@@ -529,3 +529,7 @@ html.latin .example .ex-hz { font-size: 18px; font-weight: 600; }
 html.latin .fc-ex .hanzi { font-size: 17px; font-weight: 600; }
 html.latin .tone-sym { font-size: 28px; font-weight: 700; }
 html.latin .feedback .hanzi { font-weight: 600; }
+
+/* ---------- Voice picker ---------- */
+.voice-sel { max-width: 46vw; font-size: 14px; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg-sunken); color: var(--text); }
+@media (min-width: 860px) { .voice-sel { max-width: 260px; } }

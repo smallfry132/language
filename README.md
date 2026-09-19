@@ -44,6 +44,12 @@ The app then launches full screen, respects the notch and home indicator, and wo
 
 On a Mac, use Safari's **File → Add to Dock** or bookmark the page.
 
+## Install on Android
+
+1. Open the page in Chrome (or Samsung Internet).
+2. Menu (⋮) → **Add to Home screen** / **Install app**.
+3. For speech: Android uses the phone's text-to-speech engine. Install **Speech Services by Google** from the Play Store, then in Settings → General management (or System) → Language & input → Text-to-speech output choose Google as the engine and use **Install voice data** to add Chinese and Vietnamese. The app's More → Settings page shows which voice was found and lets you pick one manually.
+
 ## Project layout
 
 ```

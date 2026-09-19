@@ -144,6 +144,9 @@
       today: "today", streakMsg: (n) => n === 1 ? "1 day" : `${n} days`,
       levels: "Levels", levelHint: "Choose which HSK levels to study. The selection applies to tiles, training and progress.", perLevel: "By level", lvlBadge: (n) => `HSK ${n}`,
       dataSource: "Word lists follow the official HSK 2.0 lists (2012).",
+      voice: "Voice", voiceAuto: "Automatic", refreshVoices: "Look for voices", langName: "Chinese",
+      ttsHintAndroid: (lang) => `On Android the app uses the phone's text-to-speech engine. Install “Speech Services by Google” from the Play Store, then open Settings → General management (or System) → Language & input → Text-to-speech output, choose Google as the preferred engine, tap its settings → Install voice data → ${lang}. Reload this page afterwards. Chrome and Samsung Internet both work.`,
+      ttsNoVoiceAndroid: (lang) => `No ${lang} voice was found on this device yet. After installing the voice data, tap “Look for voices” or reload the page.`,
       course: "Course", switchCourse: "Switch language", courseHint: "Each language keeps its own words, levels and progress.", knownOf: (k, n) => `${k} of ${n} known`
     },
     de: {
@@ -193,6 +196,9 @@
       today: "heute", streakMsg: (n) => n === 1 ? "1 Tag" : `${n} Tage`,
       levels: "Stufen", levelHint: "Wähle die HSK-Stufen, die du lernen möchtest. Die Auswahl gilt für Kacheln, Übungen und Fortschritt.", perLevel: "Nach Stufe", lvlBadge: (n) => `HSK ${n}`,
       dataSource: "Die Wortlisten folgen den offiziellen HSK-2.0-Listen (2012).",
+      voice: "Stimme", voiceAuto: "Automatisch", refreshVoices: "Stimmen suchen", langName: "Chinesisch",
+      ttsHintAndroid: (lang) => `Unter Android nutzt die App die Sprachausgabe des Telefons. Installiere „Speech Services by Google“ aus dem Play Store, öffne dann Einstellungen → Allgemeine Verwaltung (oder System) → Sprache und Eingabe → Text-zu-Sprache-Ausgabe, wähle Google als bevorzugtes Modul, tippe auf dessen Einstellungen → Sprachdaten installieren → ${lang}. Danach diese Seite neu laden. Chrome und Samsung Internet funktionieren beide.`,
+      ttsNoVoiceAndroid: (lang) => `Auf diesem Gerät wurde noch keine ${lang}-Stimme gefunden. Nach dem Installieren der Sprachdaten auf „Stimmen suchen“ tippen oder die Seite neu laden.`,
       course: "Kurs", switchCourse: "Sprache wechseln", courseHint: "Jede Sprache hat eigene Wörter, Stufen und eigenen Fortschritt.", knownOf: (k, n) => `${k} von ${n} gelernt`
     }
   };
@@ -220,7 +226,7 @@
           "Kinship words double as pronouns: anh (older male), chị (older female), em (younger person), cô (aunt/young woman), bác (older uncle/aunt). Pick them by relative age.",
           "Speaking to a stranger, a safe polite pattern is “xin chào” + “anh/chị” and adding “ạ” at the end of sentences for politeness."
         ],
-        noZhVoice: "No Vietnamese voice found yet",
+        noZhVoice: "No Vietnamese voice found yet", langName: "Vietnamese",
         ttsHint: "No sound on iPhone? Flip the ring/silent switch to ring and turn the volume up: speech follows the silent switch. If no Vietnamese voice is listed, add one under Settings → Accessibility → Spoken Content → Voices → Vietnamese.",
         tone1: "Ngang – level", tone2: "Huyền – low falling", tone3: "Sắc – rising", tone4: "Hỏi – dipping-rising", tone5: "Ngã – broken rising", tone6: "Nặng – low, short",
         tone1d: "Flat, mid-high, no mark: ma.", tone2d: "Starts mid and falls gently, grave accent: mà.", tone3d: "Rises sharply, acute accent: má.", tone4d: "Dips then rises, hook: mả.", tone5d: "Rises with a catch in the throat, tilde: mã.", tone6d: "Drops abruptly and stops, dot below: mạ."
@@ -246,7 +252,7 @@
           "Verwandtschaftswörter dienen als Pronomen: anh (älterer Mann), chị (ältere Frau), em (jüngere Person), cô (Tante/junge Frau), bác (älterer Onkel/Tante). Wähle nach relativem Alter.",
           "Gegenüber Fremden ist „xin chào“ + „anh/chị“ höflich; ein „ạ“ am Satzende macht den Satz respektvoll."
         ],
-        noZhVoice: "Noch keine vietnamesische Stimme gefunden",
+        noZhVoice: "Noch keine vietnamesische Stimme gefunden", langName: "Vietnamesisch",
         ttsHint: "Kein Ton auf dem iPhone? Stell den Klingel-/Stumm-Schalter auf Klingeln und dreh die Lautstärke auf – die Sprachausgabe folgt dem Stumm-Schalter. Wird keine vietnamesische Stimme angezeigt, füge eine hinzu unter Einstellungen → Bedienungshilfen → Gesprochene Inhalte → Stimmen → Vietnamesisch.",
         tone1: "Ngang – eben", tone2: "Huyền – tief fallend", tone3: "Sắc – steigend", tone4: "Hỏi – fallend-steigend", tone5: "Ngã – gebrochen steigend", tone6: "Nặng – tief, kurz",
         tone1d: "Flach, mittelhoch, kein Zeichen: ma.", tone2d: "Beginnt mittel und fällt sanft, Gravis: mà.", tone3d: "Steigt deutlich, Akut: má.", tone4d: "Fällt und steigt wieder, Haken: mả.", tone5d: "Steigt mit Kehlknacks, Tilde: mã.", tone6d: "Fällt abrupt und stoppt, Punkt unten: mạ."
@@ -265,14 +271,26 @@
 
   /* ---------------- Speech ---------------- */
   const TTS = { voice: null, available: "speechSynthesis" in window };
+  const IS_ANDROID = /android/i.test(navigator.userAgent);
+  const IS_IOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  // Voices of the current course language. Android reports langs like "zh_CN_#Hans" or "vi_VN".
+  function courseVoices() {
+    if (!TTS.available) return [];
+    const base = C.tts.split("-")[0];
+    return speechSynthesis.getVoices().filter((v) => new RegExp("^" + base + "([-_]|$)", "i").test(v.lang) || (base === "zh" && /chinese|中文|普通话|mandarin/i.test(v.name)));
+  }
   function pickVoice() {
     if (!TTS.available) return;
-    const voices = speechSynthesis.getVoices();
-    const base = C.tts.split("-")[0];
-    const exact = new RegExp("^" + C.tts.replace("-", "[-_]") + "$", "i");
-    const same = voices.filter((v) => new RegExp("^" + base + "([-_]|$)", "i").test(v.lang) || (base === "zh" && /chinese|中文|普通话/i.test(v.name)));
+    const same = courseVoices();
+    // Manual choice from settings (stored per course) wins when that voice is present
+    const wanted = S.settings.voices && S.settings.voices[C.id];
+    const manual = wanted && same.find((v) => v.voiceURI === wanted || v.name === wanted);
+    if (manual) { TTS.voice = manual; return; }
+    const exact = new RegExp("^" + C.tts.replace("-", "[-_]") + "([-_#].*)?$", "i"); // zh-CN, zh_CN, zh_CN_#Hans
     const pref = same.find((v) => exact.test(v.lang) && /Tingting|Ting-Ting|Linh|Google|Microsoft|Premium|Enhanced/i.test(v.name))
-      || same.find((v) => exact.test(v.lang)) || same.find((v) => !/HK|TW/i.test(v.lang)) || same[0];
+      || same.find((v) => exact.test(v.lang) && !/eSpeak/i.test(v.name))
+      || same.find((v) => exact.test(v.lang))
+      || same.find((v) => !/HK|TW/i.test(v.lang)) || same[0];
     TTS.voice = pref || null;
   }
   if (TTS.available) { pickVoice(); speechSynthesis.onvoiceschanged = () => { pickVoice(); if (route[0] === "more" && !route[1]) render(); }; }
@@ -297,6 +315,7 @@
   function unlockSpeech() {
     if (!TTS.available) return;
     try { const u = new SpeechSynthesisUtterance(""); u.volume = 0; speechSynthesis.speak(u); } catch (e) { /* ignore */ }
+    setTimeout(() => { if (!TTS.voice) { pickVoice(); if (TTS.voice && route[0] === "more" && !route[1]) render(); } }, 600);
     document.removeEventListener("touchend", unlockSpeech, true);
     document.removeEventListener("click", unlockSpeech, true);
   }
@@ -1005,6 +1024,8 @@
     if (sub === "pinyin") return renderPinyinTips(view);
     if (sub === "about") return renderAbout(view);
     setTopbar(t("more"), null);
+    const voices = courseVoices();
+    const chosen = !!(S.settings.voices && S.settings.voices[C.id]);
     view.innerHTML = `
       <div class="list">
         <button class="list-item" data-go="more/tones" type="button"><span class="li-ico">🎵</span><span class="grow"><div class="li-title">${t("toneGuide")}</div><div class="li-sub">${t("toneGuideDesc")}</div></span><span class="li-chev">›</span></button>
@@ -1019,9 +1040,15 @@
         <div class="list-item static"><span class="li-ico">🔊</span><span class="grow li-title">${t("autoSpeak")}</span><button class="switch ${S.settings.autoSpeak ? "on" : ""}" id="sw-speak" type="button" aria-label="${t("autoSpeak")}"></button></div>
         <div class="list-item static"><span class="li-ico">🐢</span><span class="grow li-title">${t("ttsRate")}<div class="li-sub" id="rate-val">${S.settings.rate.toFixed(2)}×</div></span><input type="range" id="rate" min="0.5" max="1.2" step="0.05" value="${S.settings.rate}"></div>
         <div class="list-item static"><span class="li-ico">🀄</span><span class="grow li-title">${t("tilePinyin")}</span><button class="switch ${S.settings.tilePinyin ? "on" : ""}" id="sw-tile" type="button" aria-label="${t("tilePinyin")}"></button></div>
-        <button class="list-item" id="tts-test" type="button"><span class="li-ico">🗣️</span><span class="grow li-title">${t("ttsTest")}<div class="li-sub">${TTS.voice ? esc(TTS.voice.name) + " (" + esc(TTS.voice.lang) + ")" : (TTS.available ? t("noZhVoice") : t("noTts"))}</div></span><span class="li-chev">🔊</span></button>
+        <div class="list-item static"><span class="li-ico">🎙️</span><span class="grow li-title">${t("voice")}<div class="li-sub">${TTS.voice ? esc(TTS.voice.name) + " (" + esc(TTS.voice.lang) + ")" : (TTS.available ? t("noZhVoice") : t("noTts"))}</div></span>
+          ${voices.length ? `<select id="voice-sel" class="voice-sel"><option value="">${t("voiceAuto")}</option>${voices.map((v) => `<option value="${esc(v.voiceURI)}" ${TTS.voice && v.voiceURI === TTS.voice.voiceURI && chosen ? "selected" : ""}>${esc(v.name)}</option>`).join("")}</select>` : `<button class="btn sm" id="voice-refresh" type="button">${t("refreshVoices")}</button>`}
+        </div>
+        <button class="list-item" id="tts-test" type="button"><span class="li-ico">🗣️</span><span class="grow li-title">${t("ttsTest")}</span><span class="li-chev">🔊</span></button>
       </div>
-      <div class="list-hint" style="margin-top:8px">${t("ttsHint")}</div>`;
+      <div class="list-hint" style="margin-top:8px">${IS_ANDROID ? t("ttsHintAndroid", t("langName")) : t("ttsHint")}</div>
+      ${IS_ANDROID && !voices.length ? `<div class="list-hint">${t("ttsNoVoiceAndroid", t("langName"))}</div>` : ""}`;
+    if ($("#voice-sel")) $("#voice-sel").onchange = (e) => { S.settings.voices = S.settings.voices || {}; if (e.target.value) S.settings.voices[C.id] = e.target.value; else delete S.settings.voices[C.id]; save(); TTS.voice = null; pickVoice(); render(); speak(C.testPhrase); };
+    if ($("#voice-refresh")) $("#voice-refresh").onclick = () => { try { const u = new SpeechSynthesisUtterance(""); u.volume = 0; speechSynthesis.speak(u); } catch (e) { /* ignore */ } setTimeout(() => { pickVoice(); render(); }, 700); };
     $$("[data-go]").forEach((b) => (b.onclick = () => navigate(b.dataset.go)));
     $$("[data-lang]").forEach((b) => (b.onclick = () => { S.lang = b.dataset.lang; save(); document.documentElement.lang = S.lang; render(); }));
     $$("button[data-th]").forEach((b) => (b.onclick = () => { S.settings.theme = b.dataset.th; save(); applyTheme(); render(); }));

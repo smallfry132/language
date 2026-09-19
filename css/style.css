@@ -483,6 +483,9 @@ input[type=range] { width: 120px; accent-color: var(--accent); }
 .lvl-badge.l1 { background: var(--green-soft); color: var(--green); }
 .lvl-badge.l2 { background: var(--blue-soft); color: var(--blue); }
 .lvl-badge.l3 { background: var(--gold-soft); color: var(--gold); }
+.lvl-badge.l4 { background: var(--accent-soft); color: var(--accent); }
+.lvl-badge.l5 { background: rgba(140, 82, 255, 0.14); color: #7a4fd6; }
+.lvl-badge.l6 { background: var(--text); color: var(--bg); }
 .tile .tile-num .lvl-badge { position: relative; top: -2px; }
 
 /* ---------- Course switcher ---------- */

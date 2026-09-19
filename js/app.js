@@ -17,7 +17,7 @@
   const VI_WORDS = (window.VI_WORDS || []).map((w) => ({ id: w.id, hz: w.w, py: w.pr, en: w.en, cat: w.cat, lvl: w.lvl, ex: w.ex, exPy: "", exEn: w.exEn, course: "vi" }));
   const COURSES = {
     zh: { id: "zh", glyph: "中", name: "中文 · Chinese", title: "HSK Trainer", tts: "zh-CN", script: "cjk", levels: [1, 2, 3], levelName: (l) => "HSK " + l, allLabel: "HSK 1–3", words: ZH_WORDS, toneOptions: [1, 2, 3, 4], testPhrase: "你好，我学习汉语。", source: { text: "glxxyz/hskhsk.com", url: "https://github.com/glxxyz/hskhsk.com" } },
-    vi: { id: "vi", glyph: "Vi", name: "Tiếng Việt · Vietnamese", title: "Tiếng Việt Trainer", tts: "vi-VN", script: "latin", levels: [1, 2], levelName: (l) => "A" + l, allLabel: "A1–A2", words: VI_WORDS, toneOptions: [1, 2, 3, 4, 5, 6], testPhrase: "Xin chào, tôi học tiếng Việt.", source: null }
+    vi: { id: "vi", glyph: "Vi", name: "Tiếng Việt · Vietnamese", title: "Tiếng Việt Trainer", tts: "vi-VN", script: "latin", levels: [1, 2, 3, 4, 5, 6], levelName: (l) => ["A1", "A2", "B1", "B2", "C1", "C2"][l - 1], allLabel: "A1–C2", words: VI_WORDS, toneOptions: [1, 2, 3, 4, 5, 6], testPhrase: "Xin chào, tôi học tiếng Việt.", source: null }
   };
   const CATS = window.HSK1_CATEGORIES;
   const BY_ID = Object.fromEntries(Object.values(COURSES).flatMap((c) => c.words).map((w) => [w.id, w]));
@@ -208,8 +208,8 @@
         typeHint: "Diacritics are optional (cảm ơn = cam on). If you type them, they must be right.", typePlaceholder: "Vietnamese…",
         toneGuide: "Tone guide", toneGuideDesc: "The six tones of Vietnamese, with audio", numbers: "Number trainer", numbersDesc: "Practice 1–99",
         pinyinTips: "Pronunciation tips", toneQ: "Which tone is it?",
-        aboutText: "350 beginner Vietnamese words (A1–A2, Northern standard) with a pronunciation guide, English translations, example sentences and pronunciation via your device's speech synthesis. Your progress is stored locally on this device.",
-        dataSource: "The word list was compiled for this app around everyday beginner topics; the pronunciation guide is a rough English respelling of the Hanoi accent.",
+        aboutText: "950 Vietnamese words from A1 to C2 (Northern standard) with a pronunciation guide, English translations, example sentences and pronunciation via your device's speech synthesis. Your progress is stored locally on this device.",
+        dataSource: "The word list was compiled for this app: A1–B1 cover everyday topics, B2–C1 society, work and formal language, C2 literary and idiomatic vocabulary. The levels are an editorial grading, not an official syllabus; the pronunciation guide is a rough English respelling of the Hanoi accent.",
         pinyinTipsText: [
           "Vietnamese uses the Latin alphabet with extra letters (ă â ê ô ơ ư đ) and tone marks. Every syllable carries one of six tones, and the tone changes the meaning: ma (ghost), mà (but), má (cheek), mả (grave), mã (horse), mạ (rice seedling).",
           "đ is a hard d as in “dog”. Plain d and gi are pronounced like English “z” in the North (dạ = “zah”).",
@@ -234,8 +234,8 @@
         typeHint: "Diakritika sind optional (cảm ơn = cam on). Wenn du sie tippst, müssen sie stimmen.", typePlaceholder: "Vietnamesisch…",
         toneGuide: "Töne-Übersicht", toneGuideDesc: "Die sechs Töne des Vietnamesischen, mit Audio", numbers: "Zahlen-Trainer", numbersDesc: "1–99 üben",
         pinyinTips: "Aussprache-Tipps", toneQ: "Welcher Ton ist das?",
-        aboutText: "350 vietnamesische Anfängerwörter (A1–A2, Nordstandard) mit Ausspracheführer, englischer Übersetzung, Beispielsätzen und Aussprache über die Sprachausgabe deines Geräts. Dein Fortschritt wird lokal auf diesem Gerät gespeichert.",
-        dataSource: "Die Wortliste wurde für diese App rund um Alltagsthemen für Anfänger zusammengestellt; der Ausspracheführer ist eine grobe englische Umschrift des Hanoi-Akzents.",
+        aboutText: "950 vietnamesische Wörter von A1 bis C2 (Nordstandard) mit Ausspracheführer, englischer Übersetzung, Beispielsätzen und Aussprache über die Sprachausgabe deines Geräts. Dein Fortschritt wird lokal auf diesem Gerät gespeichert.",
+        dataSource: "Die Wortliste wurde für diese App zusammengestellt: A1–B1 Alltag, B2–C1 Gesellschaft, Arbeit und formelle Sprache, C2 literarischer und idiomatischer Wortschatz. Die Stufen sind eine redaktionelle Einteilung, kein offizieller Lehrplan; der Ausspracheführer ist eine grobe englische Umschrift des Hanoi-Akzents.",
         pinyinTipsText: [
           "Vietnamesisch nutzt das lateinische Alphabet mit Zusatzbuchstaben (ă â ê ô ơ ư đ) und Tonzeichen. Jede Silbe trägt einen von sechs Tönen, und der Ton ändert die Bedeutung: ma (Geist), mà (aber), má (Wange), mả (Grab), mã (Pferd), mạ (Reissetzling).",
           "đ ist ein hartes d. Einfaches d und gi klingen im Norden wie ein stimmhaftes s (dạ = „sa“ wie in „Sahne“).",

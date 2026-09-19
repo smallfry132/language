@@ -1,7 +1,7 @@
 {
   "name": "Language Trainer",
   "short_name": "Trainer",
-  "description": "Study Chinese (HSK 1–3) and Vietnamese (A1–A2) vocabulary with tiles, flashcards, quizzes and more.",
+  "description": "Study Chinese (HSK 1–3) and Vietnamese (A1–C2) vocabulary with tiles, flashcards, quizzes and more.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

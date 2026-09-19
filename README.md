@@ -1,23 +1,24 @@
-# HSK Trainer
+# Language Trainer
 
-A web app for studying the 600 words of **HSK levels 1–3** (150 + 150 + 300), optimized for **iPhone** (Safari, installable as a full-screen web app) and **Mac**.
+A web app for studying vocabulary in two courses: **Chinese, HSK levels 1–3** (150 + 150 + 300 words) and **Vietnamese, A1–A2** (350 beginner words). Switch between them with the button in the top-left corner; each course keeps its own words, levels and progress. The app is optimized for **iPhone** (Safari, installable as a full-screen web app) and **Mac**.
 
 No build step, no dependencies, no backend: plain HTML, CSS and JavaScript. Progress is stored locally in the browser.
 
 ## Features
 
 - **Word tiles (Kachel-Übersicht)** – all words of the selected HSK levels as tiles with hanzi, pinyin (Latin pronunciation) and translation. Search by hanzi, pinyin (with or without tones) or meaning; filter by category or learning status; tap a tile for details, example sentence and audio.
-- **Level selector** – study HSK 1, 2 and 3 individually or combined. The selection applies to tiles, training and progress.
+- **Course switcher** (top-left) – Chinese or Vietnamese. The whole app follows: word set, levels, speech voice, tone system, number trainer and pronunciation tips.
+- **Level selector** – study HSK 1, 2 and 3 (or A1, A2) individually or combined. The selection applies to tiles, training and progress.
 - **English and German** – the UI is bilingual; HSK 1 words carry German translations, HSK 2 and 3 are English only (German falls back to English).
-- **Pronunciation** via the device's speech synthesis (Chinese voice on iOS and macOS).
+- **Pronunciation** via the device's speech synthesis (Chinese or Vietnamese voice on iOS and macOS).
 - **Training modes**
   - Flashcards with spaced repetition (SM-2 style scheduling, "Again / Hard / Good / Easy")
   - Multiple choice in four directions (character → meaning, meaning → character, character → pinyin, pinyin → character)
   - Type the pinyin (tones optional; tone numbers like `ni3hao3` are checked when given)
   - Listening: hear a word, pick the character
   - Matching game with timer
-  - Tone drill: hear a syllable and identify its tone
-  - Number trainer for 1–99 (read and write)
+  - Tone drill: hear a syllable and identify its tone (4 Mandarin tones, 6 Vietnamese tones)
+  - Number trainer for 1–99 (read and write), Chinese and Vietnamese
 - **Progress** – known / learning / new counts, due reviews, streak, daily goal, activity heatmap, progress per category.
 - **Extras** – tone guide with audio, pinyin tips, appearance (auto / light / dark), speech speed.
 - **PWA** – manifest, icons and a service worker so the app works offline once loaded.
@@ -51,6 +52,7 @@ css/style.css         Styles (light/dark, iPhone safe areas, desktop sidebar)
 js/data.js            HSK 1 words: hanzi, pinyin, EN/DE, category, example sentence
 js/data-hsk2.js       HSK 2 words (English)
 js/data-hsk3.js       HSK 3 words (English)
+js/data-vi.js         Vietnamese A1–A2 words (word, pronunciation guide, English, example)
 js/app.js             Application logic (views, training modes, spaced repetition, speech, storage)
 manifest.webmanifest  PWA manifest
 sw.js                 Service worker (offline cache)
@@ -61,4 +63,10 @@ icons/                App icons (SVG + PNG for iOS home screen)
 
 The word lists follow the official **HSK 2.0** standard (2012): 150 words for HSK 1, 150 for HSK 2 and 300 for HSK 3. The word membership and pinyin were checked against the MIT-licensed lists in [glxxyz/hskhsk.com](https://github.com/glxxyz/hskhsk.com). The concise translations, categories and example sentences were written for this app; treat them as learner-oriented glosses rather than dictionary entries. Edit the `js/data*.js` files to adjust them.
 
-Word ids are stable and used as keys for the stored learning progress: 1–150 HSK 1, 151–301 HSK 2, 302–601 HSK 3.
+The Vietnamese list (350 words, Northern standard) was compiled for this app around everyday beginner topics and is not based on an official syllabus. Its pronunciation column is a rough English respelling, not IPA.
+
+Word ids are stable and used as keys for the stored learning progress: 1–150 HSK 1, 151–301 HSK 2, 302–601 HSK 3, `v1`–`v350` Vietnamese.
+
+## Progress storage
+
+Everything is stored in the browser's localStorage under one key. Each word has a spaced-repetition record (ease factor, interval in days, repetitions, lapses, next due time); a word with no record is *new*, an interval under 21 days is *learning*, 21 days or more is *known*. Daily answer counts feed the streak, heatmap and daily goal. Nothing is sent to a server, so progress does not sync between devices.

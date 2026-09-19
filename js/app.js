@@ -1,25 +1,42 @@
 /* ============================================================
-   HSK 1 Trainer — application logic
+   Language Trainer (Chinese HSK 1–3, Vietnamese A1–A2) — application logic
    Vanilla JS, no build step. State lives in localStorage.
    ============================================================ */
 (function () {
   "use strict";
 
-  const LEVELS = [1, 2, 3];
-  const ALL_WORDS = [].concat(
-    window.HSK1_WORDS.map((w) => ({ ...w, lvl: 1 })),
-    (window.HSK2_WORDS || []).map((w) => ({ ...w, lvl: 2 })),
-    (window.HSK3_WORDS || []).map((w) => ({ ...w, lvl: 3 }))
+  /* ---------------- Courses ----------------
+   * Every course normalizes its words to: id, hz (the word as displayed), py (pronunciation),
+   * en, de?, cat, lvl, ex, exPy, exEn, exDe?. Word ids are unique across courses
+   * (numbers for Chinese, "v…" strings for Vietnamese) so progress can share one store. */
+  const ZH_WORDS = [].concat(
+    window.HSK1_WORDS.map((w) => ({ ...w, lvl: 1, course: "zh" })),
+    (window.HSK2_WORDS || []).map((w) => ({ ...w, lvl: 2, course: "zh" })),
+    (window.HSK3_WORDS || []).map((w) => ({ ...w, lvl: 3, course: "zh" }))
   );
+  const VI_WORDS = (window.VI_WORDS || []).map((w) => ({ id: w.id, hz: w.w, py: w.pr, en: w.en, cat: w.cat, lvl: w.lvl, ex: w.ex, exPy: "", exEn: w.exEn, course: "vi" }));
+  const COURSES = {
+    zh: { id: "zh", glyph: "中", name: "中文 · Chinese", title: "HSK Trainer", tts: "zh-CN", script: "cjk", levels: [1, 2, 3], levelName: (l) => "HSK " + l, allLabel: "HSK 1–3", words: ZH_WORDS, toneOptions: [1, 2, 3, 4], testPhrase: "你好，我学习汉语。", source: { text: "glxxyz/hskhsk.com", url: "https://github.com/glxxyz/hskhsk.com" } },
+    vi: { id: "vi", glyph: "Vi", name: "Tiếng Việt · Vietnamese", title: "Tiếng Việt Trainer", tts: "vi-VN", script: "latin", levels: [1, 2], levelName: (l) => "A" + l, allLabel: "A1–A2", words: VI_WORDS, toneOptions: [1, 2, 3, 4, 5, 6], testPhrase: "Xin chào, tôi học tiếng Việt.", source: null }
+  };
   const CATS = window.HSK1_CATEGORIES;
-  const BY_ID = Object.fromEntries(ALL_WORDS.map((w) => [w.id, w]));
-  // WORDS = words in the currently selected HSK levels (see S.settings.levels)
-  let WORDS = ALL_WORDS;
+  const BY_ID = Object.fromEntries(Object.values(COURSES).flatMap((c) => c.words).map((w) => [w.id, w]));
+  const wid = (v) => (/^\d+$/.test(String(v)) ? +v : String(v)); // dataset ids back to their stored type
+  let C = COURSES.zh;          // current course
+  let ALL_WORDS = C.words;     // all words of the current course
+  let WORDS = ALL_WORDS;       // words in the selected levels of the current course
+  const curLevels = () => S.courses[C.id].levels;
+  function applyCourse() {
+    C = COURSES[S.course] || COURSES.zh;
+    ALL_WORDS = C.words;
+    document.documentElement.classList.toggle("latin", C.script === "latin");
+    applyLevels();
+  }
   function applyLevels() {
-    const lv = S.settings.levels;
+    const lv = curLevels();
     WORDS = ALL_WORDS.filter((w) => lv.includes(w.lvl));
   }
-  const levelLabel = () => (S.settings.levels.length === LEVELS.length ? "HSK 1–3" : S.settings.levels.map((l) => "HSK " + l).join(" · "));
+  const levelLabel = () => (curLevels().length === C.levels.length ? C.allLabel : curLevels().map((l) => C.levelName(l)).join(" · "));
   const STORAGE_KEY = "hsk1trainer.v1";
   const DAY = 86400000;
 
@@ -30,11 +47,23 @@
   const shuffle = (arr) => { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const sample = (arr, n) => shuffle(arr).slice(0, n);
   const todayKey = (d) => { const x = d ? new Date(d) : new Date(); return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, "0")}-${String(x.getDate()).padStart(2, "0")}`; };
-  const isLong = (hz) => hz.length >= 3;
+  const isLong = (hz) => (C.script === "cjk" ? hz.length >= 3 : hz.length >= 9);
+  // Pinyin: drop tone marks, treat v as ü, drop spaces/punctuation/tone numbers
   const stripTones = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/v/g, "u").replace(/[\s'’\-.,!?0-9]/g, "");
-  const TONE_MARKS = { "̄": 1, "́": 2, "̌": 3, "̀": 4 };
+  // Vietnamese: drop diacritics (đ → d), collapse spaces
+  const stripVi = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").toLowerCase().replace(/[.,!?'’]/g, "").replace(/\s+/g, " ").trim();
+  const norm = (s) => (C.id === "zh" ? stripTones(s) : stripVi(s));
+  const hasDiacritics = (s) => /[̀-ͯ]/.test(s.normalize("NFD")) || /đ/i.test(s);
+  const TONE_MARKS = { "̄": 1, "́": 2, "̌": 3, "̀": 4 };           // Mandarin: 1–4, none = neutral (5)
+  const VI_TONE_MARKS = { "̀": 2, "́": 3, "̉": 4, "̃": 5, "̣": 6 }; // Vietnamese: ngang(1) huyền sắc hỏi ngã nặng
   const toneSeq = (py) => Array.from(py.normalize("NFD")).map((c) => TONE_MARKS[c]).filter(Boolean);
-  const firstTone = (py) => toneSeq(py)[0] || 5;
+  const firstTone = (w) => {
+    if (C.id === "zh") return toneSeq(w).length ? toneSeq(w)[0] : 5;
+    const marks = Array.from(w.normalize("NFD")).map((c) => VI_TONE_MARKS[c]).filter(Boolean);
+    return marks[0] || 1;
+  };
+  const VI_TONE_NAMES = ["ngang", "huyền", "sắc", "hỏi", "ngã", "nặng"];
+  const toneName = (n) => (C.id === "zh" ? t("toneN", n) : `${VI_TONE_NAMES[n - 1]} (${["a", "à", "á", "ả", "ã", "ạ"][n - 1]})`);
 
   /* ---------------- State ---------------- */
   const DEFAULT_STATE = {
@@ -42,13 +71,19 @@
     srs: {},
     favs: [],
     stats: { answered: 0, correct: 0, days: {}, sessions: 0 },
-    settings: { rate: 0.85, autoSpeak: true, tilePinyin: true, quizSize: 10, dailyGoal: 20, theme: "auto", levels: [1] }
+    settings: { rate: 0.85, autoSpeak: true, tilePinyin: true, quizSize: 10, dailyGoal: 20, theme: "auto" },
+    course: "zh",
+    courses: { zh: { levels: [1] }, vi: { levels: [1] } }
   };
   let S = load();
-  if (!Array.isArray(S.settings.levels) || !S.settings.levels.length) S.settings.levels = [1];
+  // Migration: level selection used to live in settings.levels (Chinese only)
+  if (!S.courses) S.courses = structuredClone(DEFAULT_STATE.courses);
+  if (Array.isArray(S.settings.levels) && S.settings.levels.length) { S.courses.zh.levels = S.settings.levels; delete S.settings.levels; }
+  Object.keys(COURSES).forEach((k) => { if (!S.courses[k] || !Array.isArray(S.courses[k].levels) || !S.courses[k].levels.length) S.courses[k] = { levels: [1] }; });
+  if (!COURSES[S.course]) S.course = "zh";
   // Migration: id 44 used to be 火车站 (now HSK 2, id 191); it is 一点儿 in the official HSK 1 list
   if (!S.migrated44) { if (S.srs[44]) { S.srs[191] = S.srs[44]; delete S.srs[44]; } S.favs = S.favs.map((x) => (x === 44 ? 191 : x)); S.migrated44 = true; }
-  applyLevels();
+  applyCourse();
 
   function load() {
     try {
@@ -108,7 +143,8 @@
       keys: "Keys: 1–4 select · Space / Enter continue", installed: "Ready for offline use.",
       today: "today", streakMsg: (n) => n === 1 ? "1 day" : `${n} days`,
       levels: "Levels", levelHint: "Choose which HSK levels to study. The selection applies to tiles, training and progress.", perLevel: "By level", lvlBadge: (n) => `HSK ${n}`,
-      dataSource: "Word lists follow the official HSK 2.0 lists (2012)."
+      dataSource: "Word lists follow the official HSK 2.0 lists (2012).",
+      course: "Course", switchCourse: "Switch language", courseHint: "Each language keeps its own words, levels and progress.", knownOf: (k, n) => `${k} of ${n} known`
     },
     de: {
       brandSub: "Trainer", words: "Wörter", train: "Üben", progress: "Fortschritt", more: "Mehr",
@@ -156,10 +192,72 @@
       keys: "Tasten: 1–4 wählen · Leertaste / Enter weiter", installed: "Offline nutzbar.",
       today: "heute", streakMsg: (n) => n === 1 ? "1 Tag" : `${n} Tage`,
       levels: "Stufen", levelHint: "Wähle die HSK-Stufen, die du lernen möchtest. Die Auswahl gilt für Kacheln, Übungen und Fortschritt.", perLevel: "Nach Stufe", lvlBadge: (n) => `HSK ${n}`,
-      dataSource: "Die Wortlisten folgen den offiziellen HSK-2.0-Listen (2012)."
+      dataSource: "Die Wortlisten folgen den offiziellen HSK-2.0-Listen (2012).",
+      course: "Kurs", switchCourse: "Sprache wechseln", courseHint: "Jede Sprache hat eigene Wörter, Stufen und eigenen Fortschritt.", knownOf: (k, n) => `${k} von ${n} gelernt`
     }
   };
-  const t = (key, ...args) => { const v = I18N[S.lang][key] ?? I18N.en[key] ?? key; return typeof v === "function" ? v(...args) : v; };
+  // Course-specific wording (Vietnamese is written in Latin script: no hanzi, no pinyin)
+  const COURSE_I18N = {
+    vi: {
+      en: {
+        brandSub: "Vietnamese", search: "Search word or meaning…", tilePinyin: "Pronunciation on tiles",
+        modeType: "Type the word", modeTypeDesc: "See the meaning, type the Vietnamese word.",
+        modeTones: "Tone drill", modeTonesDesc: "Hear a syllable and identify one of the six tones.",
+        modeNumbers: "Numbers", modeNumbersDesc: "Read and write Vietnamese numbers 1–99.",
+        dirHzTr: "Word → Meaning", dirTrHz: "Meaning → Word", dirHzPy: "Word → Pronunciation", dirPyHz: "Pronunciation → Word",
+        typeHint: "Diacritics are optional (cảm ơn = cam on). If you type them, they must be right.", typePlaceholder: "Vietnamese…",
+        toneGuide: "Tone guide", toneGuideDesc: "The six tones of Vietnamese, with audio", numbers: "Number trainer", numbersDesc: "Practice 1–99",
+        pinyinTips: "Pronunciation tips", toneQ: "Which tone is it?",
+        aboutText: "350 beginner Vietnamese words (A1–A2, Northern standard) with a pronunciation guide, English translations, example sentences and pronunciation via your device's speech synthesis. Your progress is stored locally on this device.",
+        dataSource: "The word list was compiled for this app around everyday beginner topics; the pronunciation guide is a rough English respelling of the Hanoi accent.",
+        pinyinTipsText: [
+          "Vietnamese uses the Latin alphabet with extra letters (ă â ê ô ơ ư đ) and tone marks. Every syllable carries one of six tones, and the tone changes the meaning: ma (ghost), mà (but), má (cheek), mả (grave), mã (horse), mạ (rice seedling).",
+          "đ is a hard d as in “dog”. Plain d and gi are pronounced like English “z” in the North (dạ = “zah”).",
+          "x sounds like “s”; s is also “s” in the North. c, k and q are all a hard “k”; ch and tr are close to “ch”.",
+          "ng at the start of a word is the sound at the end of “sing”. Try “ngon” by starting from “sing-on” and dropping the “si”.",
+          "Final consonants are never released: “tốt” ends with the tongue in the t position but no puff of air.",
+          "ư is an “u” said with unrounded lips; ơ is like the “u” in “fur”; â is a short “uh”; ă is a short “a”.",
+          "Kinship words double as pronouns: anh (older male), chị (older female), em (younger person), cô (aunt/young woman), bác (older uncle/aunt). Pick them by relative age.",
+          "Speaking to a stranger, a safe polite pattern is “xin chào” + “anh/chị” and adding “ạ” at the end of sentences for politeness."
+        ],
+        noZhVoice: "No Vietnamese voice found yet",
+        ttsHint: "No sound on iPhone? Flip the ring/silent switch to ring and turn the volume up: speech follows the silent switch. If no Vietnamese voice is listed, add one under Settings → Accessibility → Spoken Content → Voices → Vietnamese.",
+        tone1: "Ngang – level", tone2: "Huyền – low falling", tone3: "Sắc – rising", tone4: "Hỏi – dipping-rising", tone5: "Ngã – broken rising", tone6: "Nặng – low, short",
+        tone1d: "Flat, mid-high, no mark: ma.", tone2d: "Starts mid and falls gently, grave accent: mà.", tone3d: "Rises sharply, acute accent: má.", tone4d: "Dips then rises, hook: mả.", tone5d: "Rises with a catch in the throat, tilde: mã.", tone6d: "Drops abruptly and stops, dot below: mạ."
+      },
+      de: {
+        brandSub: "Vietnamesisch", search: "Wort oder Bedeutung suchen…", tilePinyin: "Aussprache auf Kacheln",
+        modeType: "Wort tippen", modeTypeDesc: "Bedeutung sehen, vietnamesisches Wort eingeben.",
+        modeTones: "Ton-Training", modeTonesDesc: "Silbe hören und einen der sechs Töne erkennen.",
+        modeNumbers: "Zahlen", modeNumbersDesc: "Vietnamesische Zahlen 1–99 lesen und schreiben.",
+        dirHzTr: "Wort → Bedeutung", dirTrHz: "Bedeutung → Wort", dirHzPy: "Wort → Aussprache", dirPyHz: "Aussprache → Wort",
+        typeHint: "Diakritika sind optional (cảm ơn = cam on). Wenn du sie tippst, müssen sie stimmen.", typePlaceholder: "Vietnamesisch…",
+        toneGuide: "Töne-Übersicht", toneGuideDesc: "Die sechs Töne des Vietnamesischen, mit Audio", numbers: "Zahlen-Trainer", numbersDesc: "1–99 üben",
+        pinyinTips: "Aussprache-Tipps", toneQ: "Welcher Ton ist das?",
+        aboutText: "350 vietnamesische Anfängerwörter (A1–A2, Nordstandard) mit Ausspracheführer, englischer Übersetzung, Beispielsätzen und Aussprache über die Sprachausgabe deines Geräts. Dein Fortschritt wird lokal auf diesem Gerät gespeichert.",
+        dataSource: "Die Wortliste wurde für diese App rund um Alltagsthemen für Anfänger zusammengestellt; der Ausspracheführer ist eine grobe englische Umschrift des Hanoi-Akzents.",
+        pinyinTipsText: [
+          "Vietnamesisch nutzt das lateinische Alphabet mit Zusatzbuchstaben (ă â ê ô ơ ư đ) und Tonzeichen. Jede Silbe trägt einen von sechs Tönen, und der Ton ändert die Bedeutung: ma (Geist), mà (aber), má (Wange), mả (Grab), mã (Pferd), mạ (Reissetzling).",
+          "đ ist ein hartes d. Einfaches d und gi klingen im Norden wie ein stimmhaftes s (dạ = „sa“ wie in „Sahne“).",
+          "x wird wie ß gesprochen, s im Norden ebenso. c, k und q sind alle ein hartes k; ch und tr ähneln „tsch“.",
+          "ng am Wortanfang ist der Laut am Ende von „sing“. „ngon“: von „sing-on“ ausgehen und „si“ weglassen.",
+          "Endkonsonanten werden nicht gelöst: „tốt“ endet mit der Zunge in t-Stellung, aber ohne Luftstoß.",
+          "ư ist ein u mit ungerundeten Lippen; ơ ähnelt dem ö in „Möwe“ ohne Rundung; â ist ein kurzes „ö/uh“; ă ein kurzes a.",
+          "Verwandtschaftswörter dienen als Pronomen: anh (älterer Mann), chị (ältere Frau), em (jüngere Person), cô (Tante/junge Frau), bác (älterer Onkel/Tante). Wähle nach relativem Alter.",
+          "Gegenüber Fremden ist „xin chào“ + „anh/chị“ höflich; ein „ạ“ am Satzende macht den Satz respektvoll."
+        ],
+        noZhVoice: "Noch keine vietnamesische Stimme gefunden",
+        ttsHint: "Kein Ton auf dem iPhone? Stell den Klingel-/Stumm-Schalter auf Klingeln und dreh die Lautstärke auf – die Sprachausgabe folgt dem Stumm-Schalter. Wird keine vietnamesische Stimme angezeigt, füge eine hinzu unter Einstellungen → Bedienungshilfen → Gesprochene Inhalte → Stimmen → Vietnamesisch.",
+        tone1: "Ngang – eben", tone2: "Huyền – tief fallend", tone3: "Sắc – steigend", tone4: "Hỏi – fallend-steigend", tone5: "Ngã – gebrochen steigend", tone6: "Nặng – tief, kurz",
+        tone1d: "Flach, mittelhoch, kein Zeichen: ma.", tone2d: "Beginnt mittel und fällt sanft, Gravis: mà.", tone3d: "Steigt deutlich, Akut: má.", tone4d: "Fällt und steigt wieder, Haken: mả.", tone5d: "Steigt mit Kehlknacks, Tilde: mã.", tone6d: "Fällt abrupt und stoppt, Punkt unten: mạ."
+      }
+    }
+  };
+  const t = (key, ...args) => {
+    const o = COURSE_I18N[C.id];
+    const v = (o && (o[S.lang]?.[key] ?? o.en?.[key])) ?? I18N[S.lang][key] ?? I18N.en[key] ?? key;
+    return typeof v === "function" ? v(...args) : v;
+  };
   const tr = (w) => (S.lang === "de" && w.de ? w.de : w.en);
   const tr2 = (w) => (S.lang === "de" ? (w.de ? w.en : "") : (w.de || ""));
   const exTr = (w) => (S.lang === "de" && w.exDe ? w.exDe : w.exEn);
@@ -170,9 +268,11 @@
   function pickVoice() {
     if (!TTS.available) return;
     const voices = speechSynthesis.getVoices();
-    const zh = voices.filter((v) => /^zh([-_]|$)/i.test(v.lang) || /chinese|中文|普通话/i.test(v.name));
-    const pref = zh.find((v) => /zh[-_]CN/i.test(v.lang) && /Tingting|Ting-Ting|Google|Microsoft|Premium|Enhanced/i.test(v.name))
-      || zh.find((v) => /zh[-_]CN/i.test(v.lang)) || zh.find((v) => !/HK|TW/i.test(v.lang)) || zh[0];
+    const base = C.tts.split("-")[0];
+    const exact = new RegExp("^" + C.tts.replace("-", "[-_]") + "$", "i");
+    const same = voices.filter((v) => new RegExp("^" + base + "([-_]|$)", "i").test(v.lang) || (base === "zh" && /chinese|中文|普通话/i.test(v.name)));
+    const pref = same.find((v) => exact.test(v.lang) && /Tingting|Ting-Ting|Linh|Google|Microsoft|Premium|Enhanced/i.test(v.name))
+      || same.find((v) => exact.test(v.lang)) || same.find((v) => !/HK|TW/i.test(v.lang)) || same[0];
     TTS.voice = pref || null;
   }
   if (TTS.available) { pickVoice(); speechSynthesis.onvoiceschanged = () => { pickVoice(); if (route[0] === "more" && !route[1]) render(); }; }
@@ -184,7 +284,7 @@
       if (speechSynthesis.paused) speechSynthesis.resume();
       if (!TTS.voice) pickVoice();
       const u = new SpeechSynthesisUtterance(text);
-      u.lang = "zh-CN";
+      u.lang = C.tts;
       if (TTS.voice) u.voice = TTS.voice;
       u.rate = (opts && opts.rate) || S.settings.rate;
       u.pitch = 1;
@@ -275,17 +375,50 @@
   function navigate(path) { location.hash = "#/" + path; }
   function parseRoute() { const h = location.hash.replace(/^#\/?/, ""); return h ? h.split("/") : ["words"]; }
   function renderNav() {
-    const html = TABS.map((tab) => `<button class="tab ${route[0] === tab.id ? "active" : ""}" data-route="${tab.id}" type="button"><span class="tab-ico">${tab.ico}</span><span>${t(tab.key)}</span></button>`).join("");
+    const html = TABS.map((tab) => `<button class="tab ${route[0] === tab.id ? "active" : ""}" data-route="${tab.id}" type="button"><span class="tab-ico">${tab.id === "words" && C.script !== "cjk" ? "🔤" : tab.ico}</span><span>${t(tab.key)}</span></button>`).join("");
     $("#nav-desktop").innerHTML = html; $("#nav-mobile").innerHTML = html;
     $$("[data-route]").forEach((b) => (b.onclick = () => navigate(b.dataset.route)));
     $$(".lang-toggle").forEach((b) => { b.textContent = S.lang === "de" ? "DE" : "EN"; b.onclick = toggleLang; });
     $("[data-i18n=brandSub]").textContent = t("brandSub");
+    updateBrand();
+  }
+  function openCourseSheet() {
+    openSheet(`
+      <h2 style="text-align:center;margin-bottom:4px">${t("switchCourse")}</h2>
+      <p class="muted small center" style="margin-bottom:14px">${t("courseHint")}</p>
+      <div class="stack">
+        ${Object.values(COURSES).map((c) => {
+          const known = c.words.filter((w) => status(w.id) === "known").length;
+          return `<button class="course-card ${c.id === C.id ? "active" : ""}" data-course="${c.id}" type="button">
+            <span class="course-glyph ${c.script}">${c.glyph}</span>
+            <span class="grow"><div class="course-name">${c.name}</div><div class="small muted">${c.words.length} ${t("words").toLowerCase()} · ${c.allLabel} · ${t("knownOf", known, c.words.length)}</div></span>
+            ${c.id === C.id ? "<span class=\"course-check\">✓</span>" : ""}
+          </button>`;
+        }).join("")}
+        <button class="btn block ghost" id="c-close" type="button">${t("close")}</button>
+      </div>`);
+    $$("[data-course]").forEach((b) => (b.onclick = () => switchCourse(b.dataset.course)));
+    $("#c-close").onclick = closeSheet;
+  }
+  function switchCourse(id) {
+    if (!COURSES[id]) return;
+    S.course = id; save();
+    applyCourse(); pickVoice();
+    wf.q = ""; wf.cat = "all"; wf.status = "all"; setupPrefs.cat = "all";
+    closeSheet();
+    if (route[0] === "words") render(); else navigate("words");
+  }
+  function updateBrand() {
+    $$(".course-glyph-brand").forEach((el) => { el.textContent = C.glyph; el.classList.toggle("latin", C.script === "latin"); });
+    $(".brand-title").textContent = C.title.replace(" Trainer", "");
+    $$(".brand, #course-btn").forEach((b) => { b.onclick = openCourseSheet; b.title = t("switchCourse"); });
   }
   function toggleLang() { S.lang = S.lang === "de" ? "en" : "de"; save(); document.documentElement.lang = S.lang; render(); }
   function setTopbar(title, back) {
     $("#topbar-title").textContent = title;
     const b = $("#topbar-back"); b.hidden = !back;
     b.onclick = back ? () => navigate(back) : null;
+    $("#course-btn").hidden = !!back;
   }
   function render() {
     closeSheet();
@@ -305,17 +438,17 @@
 
   /* ---------------- Level selector (shared) ---------------- */
   function levelChips(id) {
-    return `<div class="chips level-chips" id="${id}">${LEVELS.map((l) => {
+    return `<div class="chips level-chips" id="${id}">${C.levels.map((l) => {
       const n = ALL_WORDS.filter((w) => w.lvl === l).length;
-      return `<button class="chip lvl ${S.settings.levels.includes(l) ? "active" : ""}" data-lvl="${l}" type="button">HSK ${l} <span class="chip-n">${n}</span></button>`;
+      return `<button class="chip lvl ${curLevels().includes(l) ? "active" : ""}" data-lvl="${l}" type="button">${C.levelName(l)} <span class="chip-n">${n}</span></button>`;
     }).join("")}</div>`;
   }
   function bindLevelChips(id, onChange) {
     $$(`#${id} .chip`).forEach((b) => (b.onclick = () => {
-      const l = +b.dataset.lvl; let lv = S.settings.levels.slice();
+      const l = +b.dataset.lvl; let lv = curLevels().slice();
       if (lv.includes(l)) { if (lv.length === 1) return; lv = lv.filter((x) => x !== l); } else lv.push(l);
-      S.settings.levels = lv.sort(); save(); applyLevels();
-      $$(`#${id} .chip`).forEach((x) => x.classList.toggle("active", S.settings.levels.includes(+x.dataset.lvl)));
+      S.courses[C.id].levels = lv.sort(); save(); applyLevels();
+      $$(`#${id} .chip`).forEach((x) => x.classList.toggle("active", curLevels().includes(+x.dataset.lvl)));
       onChange();
     }));
   }
@@ -323,14 +456,14 @@
   /* ================= WORDS (tile overview) ================= */
   const wf = { q: "", cat: "all", status: "all" };
   function filteredWords() {
-    const q = wf.q.trim().toLowerCase(); const qs = stripTones(q);
+    const q = wf.q.trim().toLowerCase(); const qs = norm(q);
     return WORDS.filter((w) => {
       if (wf.cat !== "all" && w.cat !== wf.cat) return false;
       if (wf.status === "favs" && !S.favs.includes(w.id)) return false;
       if (wf.status === "due" && !isDue(w.id)) return false;
       if (["new", "learning", "known"].includes(wf.status) && status(w.id) !== wf.status) return false;
       if (!q) return true;
-      return w.hz.includes(q) || stripTones(w.py).includes(qs) || w.py.toLowerCase().includes(q) || w.en.toLowerCase().includes(q) || w.de.toLowerCase().includes(q);
+      return w.hz.toLowerCase().includes(q) || norm(w.hz).includes(qs) || norm(w.py).includes(qs) || w.py.toLowerCase().includes(q) || w.en.toLowerCase().includes(q) || (w.de || "").toLowerCase().includes(q);
     });
   }
   function renderWords(view) {
@@ -365,9 +498,9 @@
         <span class="tile-hz ${isLong(w.hz) ? "long" : ""}">${w.hz}</span>
         ${S.settings.tilePinyin ? `<span class="tile-py">${w.py}</span>` : ""}
         <span class="tile-tr">${esc(tr(w))}</span>
-        <span class="tile-num">${S.settings.levels.length > 1 ? `<span class="lvl-badge l${w.lvl}">HSK ${w.lvl}</span>` : w.id}</span>
+        <span class="tile-num">${curLevels().length > 1 ? `<span class="lvl-badge l${w.lvl}">${C.levelName(w.lvl)}</span>` : (C.id === "zh" ? w.id : "")}</span>
       </button>`).join("");
-    $$(".tile", tiles).forEach((b) => (b.onclick = () => openWord(+b.dataset.id)));
+    $$(".tile", tiles).forEach((b) => (b.onclick = () => openWord(wid(b.dataset.id))));
   }
   function openWord(id) {
     const w = BY_ID[id];
@@ -380,7 +513,7 @@
       <div class="detail-meta">
         <span class="pill ${st}">${t(st)}</span>
         <span class="pill new">${CATS[w.cat].icon} ${catName(w.cat)}</span>
-        <span class="pill new">HSK ${w.lvl} · #${w.id}</span>
+        <span class="pill new">${C.levelName(w.lvl)}${C.id === "zh" ? " · #" + w.id : ""}</span>
       </div>
       <div class="row" style="justify-content:center;margin-top:12px"><button class="speak-btn" id="d-speak" type="button" aria-label="${t("speak")}">🔊</button></div>
       <div class="example">
@@ -597,12 +730,12 @@
       view.innerHTML = `${sessionHead(i, list.length, `✓ ${correct}`)}<div class="quiz-q">${prompt}</div><div class="options">${optHtml}</div><div id="fb"></div><div class="kbd-hint">${t("keys")}</div>`;
       if ($("#q-speak")) $("#q-speak").onclick = () => speak(w.hz);
       if ($("#q-play")) { $("#q-play").onclick = () => speak(w.hz); if (autoPlay) speak(w.hz); }
-      $$(".option").forEach((b) => (b.onclick = () => answer(+b.dataset.id)));
+      $$(".option").forEach((b) => (b.onclick = () => answer(wid(b.dataset.id))));
     }
     function answer(id) {
       if (answered) return; answered = true;
       const w = list[i]; const ok = id === w.id;
-      $$(".option").forEach((b) => { b.disabled = true; if (+b.dataset.id === w.id) b.classList.add("correct"); else if (+b.dataset.id === id) b.classList.add("wrong"); });
+      $$(".option").forEach((b) => { b.disabled = true; if (wid(b.dataset.id) === w.id) b.classList.add("correct"); else if (wid(b.dataset.id) === id) b.classList.add("wrong"); });
       grade(w.id, ok ? 2 : 0); recordAnswer(ok);
       if (ok) correct++; else mistakes.push(w);
       $("#fb").innerHTML = `<div class="feedback ${ok ? "ok" : "bad"}"><span>${ok ? "✓ " + t("correct") : "✗ " + t("wrong")}</span><span class="grow"><span class="hanzi">${w.hz}</span> ${w.py} · ${esc(tr(w))}</span><button class="speak-btn sm" id="fb-speak" type="button">🔊</button></div><button class="btn primary block" id="q-next" type="button" style="margin-top:12px">${t("next")}</button>`;
@@ -625,8 +758,11 @@
     function draw() {
       if (i >= list.length) { if (cleanup) { cleanup(); cleanup = null; } return showResult(view, { correct, total: list.length, mistakes, onAgain: () => navigate("train/type") }); }
       const w = list[i]; answered = false;
+      const promptHtml = C.id === "zh"
+        ? `<div class="q-hz ${isLong(w.hz) ? "long" : ""}">${w.hz}</div><div class="q-sub">${esc(tr(w))}</div>`
+        : `<div class="q-text">${esc(tr(w))}</div>${tr2(w) ? `<div class="q-sub">${esc(tr2(w))}</div>` : ""}`;
       view.innerHTML = `${sessionHead(i, list.length, `✓ ${correct}`)}
-        <div class="quiz-q"><div class="q-hz ${isLong(w.hz) ? "long" : ""}">${w.hz}</div><div class="q-sub">${esc(tr(w))}</div></div>
+        <div class="quiz-q">${promptHtml}</div>
         <input class="type-input" id="ti" type="text" placeholder="${t("typePlaceholder")}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done">
         <div class="list-hint center">${t("typeHint")}</div>
         <div class="row" style="margin-top:8px"><button class="btn ghost grow" id="t-skip" type="button">${t("skip")}</button><button class="btn primary grow" id="t-check" type="button">${t("check")}</button></div>
@@ -638,9 +774,14 @@
     }
     function check(val) {
       const w = list[i]; const v = val.trim(); if (!v) return;
-      let ok = stripTones(v) === stripTones(w.py);
-      const digits = v.replace(/[^0-9]/g, "").replace(/[05]/g, "");
-      if (ok && digits) ok = digits === toneSeq(w.py).join("");
+      let ok;
+      if (C.id === "zh") {
+        ok = stripTones(v) === stripTones(w.py);
+        const digits = v.replace(/[^0-9]/g, "").replace(/[05]/g, "");
+        if (ok && digits) ok = digits === toneSeq(w.py).join("");
+      } else {
+        ok = hasDiacritics(v) ? v.normalize("NFC").toLowerCase().replace(/\s+/g, " ").trim() === w.hz.normalize("NFC").toLowerCase() : stripVi(v) === stripVi(w.hz);
+      }
       reveal(ok);
     }
     function reveal(ok) {
@@ -648,7 +789,7 @@
       const input = $("#ti"); input.disabled = true; input.classList.add(ok ? "ok" : "bad");
       grade(w.id, ok ? 2 : 0); recordAnswer(ok);
       if (ok) correct++; else mistakes.push(w);
-      $("#fb").innerHTML = `<div class="feedback ${ok ? "ok" : "bad"}"><span>${ok ? "✓ " + t("correct") : "✗ " + t("wrong")}</span><span class="grow">${t("answerWas")} <b>${w.py}</b></span><button class="speak-btn sm" id="fb-speak" type="button">🔊</button></div><button class="btn primary block" id="t-next" type="button" style="margin-top:12px">${t("next")}</button>`;
+      $("#fb").innerHTML = `<div class="feedback ${ok ? "ok" : "bad"}"><span>${ok ? "✓ " + t("correct") : "✗ " + t("wrong")}</span><span class="grow">${t("answerWas")} <b>${C.id === "zh" ? w.py : w.hz}</b>${C.id === "zh" ? "" : ` <span class="muted">[${esc(w.py)}]</span>`}</span><button class="speak-btn sm" id="fb-speak" type="button">🔊</button></div><button class="btn primary block" id="t-next" type="button" style="margin-top:12px">${t("next")}</button>`;
       $("#fb-speak").onclick = () => speak(w.hz);
       $("#t-next").onclick = next; $("#t-next").focus();
       if (S.settings.autoSpeak) speak(w.hz);
@@ -676,9 +817,9 @@
     $$(".match-card").forEach((b) => (b.onclick = () => pick(b)));
     function pick(b) {
       if (b.classList.contains("done")) return;
-      if (!selected) { selected = b; b.classList.add("selected"); if (b.dataset.side === "a") speak(BY_ID[+b.dataset.id].hz); return; }
+      if (!selected) { selected = b; b.classList.add("selected"); if (b.dataset.side === "a") speak(BY_ID[b.dataset.id].hz); return; }
       if (selected === b) { b.classList.remove("selected"); selected = null; return; }
-      if (selected.dataset.side === b.dataset.side) { selected.classList.remove("selected"); selected = b; b.classList.add("selected"); if (b.dataset.side === "a") speak(BY_ID[+b.dataset.id].hz); return; }
+      if (selected.dataset.side === b.dataset.side) { selected.classList.remove("selected"); selected = b; b.classList.add("selected"); if (b.dataset.side === "a") speak(BY_ID[b.dataset.id].hz); return; }
       const a = selected; selected = null; a.classList.remove("selected");
       if (a.dataset.id === b.dataset.id) {
         a.classList.add("done"); b.classList.add("done"); matched++; recordAnswer(true);
@@ -688,7 +829,7 @@
           setTimeout(() => showResult(view, { correct: 6, total: 6, mistakes: Array.from(wrongWords), extra: `${t("timeTaken")} ${elapsed} · ${mistakes} ${t("mistakes")}`, onAgain: () => startMatch(view) }), 400);
         }
       } else {
-        mistakes++; recordAnswer(false); wrongWords.add(BY_ID[+a.dataset.id]);
+        mistakes++; recordAnswer(false); wrongWords.add(BY_ID[a.dataset.id]);
         a.classList.add("shake"); b.classList.add("shake"); setTimeout(() => { a.classList.remove("shake"); b.classList.remove("shake"); }, 350);
       }
     }
@@ -696,43 +837,57 @@
 
   /* --- Tone drill --- */
   function startTones(view) {
-    const pool = WORDS.filter((w) => w.hz.length === 1 && firstTone(w.py) !== 5);
+    const pool = C.id === "zh" ? WORDS.filter((w) => w.hz.length === 1 && firstTone(w.py) !== 5) : WORDS.filter((w) => !w.hz.includes(" "));
+    const toneOf = (w) => firstTone(C.id === "zh" ? w.py : w.hz);
     const list = sample(pool, 10); let i = 0, correct = 0, answered = false; const mistakes = [];
     function draw(autoPlay) {
       if (i >= list.length) { if (cleanup) { cleanup(); cleanup = null; } return showResult(view, { correct, total: list.length, mistakes, onAgain: () => startTones(view) }); }
       const w = list[i]; answered = false;
       view.innerHTML = `${sessionHead(i, list.length, `✓ ${correct}`)}
         <div class="quiz-q"><div class="q-hz">${w.hz}</div><div class="q-sub">${esc(tr(w))}</div><div class="q-sub">${t("toneQ")}</div><button class="btn primary" id="q-play" type="button" style="margin-top:8px">▶︎ ${t("play")}</button></div>
-        <div class="options">${[1, 2, 3, 4].map((n) => `<button class="option" data-tone="${n}" type="button"><span class="opt-key">${n}</span><span>${toneSvg(n)} ${t("toneN", n)}</span></button>`).join("")}</div>
+        <div class="options">${C.toneOptions.map((n) => `<button class="option" data-tone="${n}" type="button"><span class="opt-key">${n}</span><span>${toneSvg(n)} ${toneName(n)}</span></button>`).join("")}</div>
         <div id="fb"></div><div class="kbd-hint">${t("keys")}</div>`;
       $("#q-play").onclick = () => speak(w.hz, { rate: 0.7 }); if (autoPlay) speak(w.hz, { rate: 0.7 });
       $$(".option").forEach((b) => (b.onclick = () => answer(+b.dataset.tone)));
     }
     function answer(n) {
       if (answered) return; answered = true;
-      const w = list[i]; const real = firstTone(w.py); const ok = n === real;
+      const w = list[i]; const real = toneOf(w); const ok = n === real;
       $$(".option").forEach((b) => { b.disabled = true; if (+b.dataset.tone === real) b.classList.add("correct"); else if (+b.dataset.tone === n) b.classList.add("wrong"); });
       recordAnswer(ok); if (ok) correct++; else mistakes.push(w);
-      $("#fb").innerHTML = `<div class="feedback ${ok ? "ok" : "bad"}"><span>${ok ? "✓ " + t("correct") : "✗ " + t("wrong")}</span><span class="grow"><span class="hanzi">${w.hz}</span> <b>${w.py}</b> · ${t("toneN", real)}</span></div><button class="btn primary block" id="q-next" type="button" style="margin-top:12px">${t("next")}</button>`;
+      $("#fb").innerHTML = `<div class="feedback ${ok ? "ok" : "bad"}"><span>${ok ? "✓ " + t("correct") : "✗ " + t("wrong")}</span><span class="grow"><span class="hanzi">${w.hz}</span> <b>${w.py}</b> · ${toneName(real)}</span></div><button class="btn primary block" id="q-next" type="button" style="margin-top:12px">${t("next")}</button>`;
       $("#q-next").onclick = () => { i++; draw(true); };
     }
-    bindKeys((e) => { if (/^[1-4]$/.test(e.key) && !answered) answer(+e.key); else if ((e.key === "Enter" || e.key === " ") && answered) { e.preventDefault(); i++; draw(true); } else if (e.key === " ") { e.preventDefault(); speak(list[i].hz, { rate: 0.7 }); } });
+    bindKeys((e) => { if (/^[1-6]$/.test(e.key) && C.toneOptions.includes(+e.key) && !answered) answer(+e.key); else if ((e.key === "Enter" || e.key === " ") && answered) { e.preventDefault(); i++; draw(true); } else if (e.key === " ") { e.preventDefault(); speak(list[i].hz, { rate: 0.7 }); } });
     draw(false);
   }
   function toneSvg(n) {
-    const paths = { 1: "M4 10 H44", 2: "M4 28 L44 8", 3: "M4 10 L24 30 L44 12", 4: "M4 8 L44 30", 5: "M20 18 h8" };
+    const zh = { 1: "M4 10 H44", 2: "M4 28 L44 8", 3: "M4 10 L24 30 L44 12", 4: "M4 8 L44 30", 5: "M20 18 h8" };
+    const vi = { 1: "M4 14 H44", 2: "M4 18 Q24 24 44 30", 3: "M4 28 L44 8", 4: "M4 12 Q20 30 30 20 T44 10", 5: "M4 24 L20 14 L24 22 L44 6", 6: "M8 16 L22 30" };
+    const paths = C.id === "zh" ? zh : vi;
     return `<svg class="tone-svg" viewBox="0 0 48 36" aria-hidden="true"><path d="${paths[n]}" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
   }
 
   /* --- Numbers trainer --- */
   const NUM_HZ = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十"];
   const NUM_PY = ["líng", "yī", "èr", "sān", "sì", "wǔ", "liù", "qī", "bā", "jiǔ", "shí"];
+  const VI_NUM = ["không", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín", "mười"];
+  function numToVi(n) {
+    if (n <= 10) return VI_NUM[n];
+    const tens = Math.floor(n / 10), ones = n % 10;
+    if (tens === 1) return "mười" + (ones ? " " + (ones === 5 ? "lăm" : VI_NUM[ones]) : "");
+    let s = VI_NUM[tens] + " mươi";
+    if (ones === 1) s += " mốt"; else if (ones === 4) s += " tư"; else if (ones === 5) s += " lăm"; else if (ones) s += " " + VI_NUM[ones];
+    return s;
+  }
   function numToHanzi(n) {
+    if (C.id === "vi") return numToVi(n);
     if (n <= 10) return NUM_HZ[n];
     const tens = Math.floor(n / 10), ones = n % 10;
     return (tens > 1 ? NUM_HZ[tens] : "") + "十" + (ones ? NUM_HZ[ones] : "");
   }
   function numToPinyin(n) {
+    if (C.id === "vi") return "";
     if (n <= 10) return NUM_PY[n];
     const tens = Math.floor(n / 10), ones = n % 10;
     return ((tens > 1 ? NUM_PY[tens] + " " : "") + "shí" + (ones ? " " + NUM_PY[ones] : ""));
@@ -767,7 +922,7 @@
     function reveal(ok, n) {
       answered = true; recordAnswer(ok); if (ok) correct++;
       const input = $("#ti"); if (input) { input.disabled = true; input.classList.add(ok ? "ok" : "bad"); }
-      $("#fb").innerHTML = `<div class="feedback ${ok ? "ok" : "bad"}"><span>${ok ? "✓ " + t("correct") : "✗ " + t("wrong")}</span><span class="grow"><span class="hanzi">${numToHanzi(n)}</span> = <b>${n}</b> · ${numToPinyin(n)}</span><button class="speak-btn sm" id="fb-speak" type="button">🔊</button></div><button class="btn primary block" id="t-next" type="button" style="margin-top:12px">${t("next")}</button>`;
+      $("#fb").innerHTML = `<div class="feedback ${ok ? "ok" : "bad"}"><span>${ok ? "✓ " + t("correct") : "✗ " + t("wrong")}</span><span class="grow"><span class="hanzi">${numToHanzi(n)}</span> = <b>${n}</b>${numToPinyin(n) ? " · " + numToPinyin(n) : ""}</span><button class="speak-btn sm" id="fb-speak" type="button">🔊</button></div><button class="btn primary block" id="t-next" type="button" style="margin-top:12px">${t("next")}</button>`;
       $("#fb-speak").onclick = () => speak(numToHanzi(n));
       $("#t-next").onclick = next; $("#t-next").focus();
       if (S.settings.autoSpeak) speak(numToHanzi(n));
@@ -798,9 +953,9 @@
       const ws = WORDS.filter((w) => w.cat === c); const k = ws.filter((w) => status(w.id) === "known").length; const l = ws.filter((w) => status(w.id) === "learning").length;
       return `<div class="cat-row"><span>${CATS[c].icon}</span><div><div class="cat-name">${catName(c)}</div><div class="progress-bar" style="margin-top:4px"><span class="green" style="width:${(k / ws.length) * 100}%"></span></div></div><span class="cat-count">${k}/${ws.length}${l ? ` <span class="pill learning">${l}</span>` : ""}</span></div>`;
     }).join("");
-    const lvlRows = LEVELS.map((l) => {
+    const lvlRows = C.levels.map((l) => {
       const ws = ALL_WORDS.filter((w) => w.lvl === l); const k = ws.filter((w) => status(w.id) === "known").length; const lr = ws.filter((w) => status(w.id) === "learning").length;
-      return `<div class="cat-row"><span class="lvl-badge l${l}">HSK ${l}</span><div><div class="progress-bar" style="margin-top:4px"><span class="green" style="width:${(k / ws.length) * 100}%"></span></div></div><span class="cat-count">${k}/${ws.length}${lr ? ` <span class="pill learning">${lr}</span>` : ""}</span></div>`;
+      return `<div class="cat-row"><span class="lvl-badge l${l}">${C.levelName(l)}</span><div><div class="progress-bar" style="margin-top:4px"><span class="green" style="width:${(k / ws.length) * 100}%"></span></div></div><span class="cat-count">${k}/${ws.length}${lr ? ` <span class="pill learning">${lr}</span>` : ""}</span></div>`;
     }).join("");
     view.innerHTML = `
       ${levelChips("p-lvl-chips")}
@@ -840,7 +995,7 @@
       <div style="margin-top:20px"><button class="btn danger block" id="reset-all" type="button">${t("resetAll")}</button></div>`;
     $$("[data-goal]").forEach((b) => (b.onclick = () => { S.settings.dailyGoal = +b.dataset.goal; save(); render(); }));
     bindLevelChips("p-lvl-chips", render);
-    $("#reset-all").onclick = () => { if (confirm(t("resetConfirm"))) { S.srs = {}; S.favs = []; S.stats = structuredClone(DEFAULT_STATE.stats); save(); toast(t("resetDone")); render(); } };
+    $("#reset-all").onclick = () => { if (confirm(t("resetConfirm"))) { ALL_WORDS.forEach((w) => delete S.srs[w.id]); S.favs = S.favs.filter((id) => BY_ID[id] && BY_ID[id].course !== C.id); S.stats = structuredClone(DEFAULT_STATE.stats); save(); toast(t("resetDone")); render(); } };
   }
 
   /* ================= MORE ================= */
@@ -873,22 +1028,23 @@
     $("#sw-speak").onclick = () => { S.settings.autoSpeak = !S.settings.autoSpeak; save(); $("#sw-speak").classList.toggle("on", S.settings.autoSpeak); };
     $("#sw-tile").onclick = () => { S.settings.tilePinyin = !S.settings.tilePinyin; save(); $("#sw-tile").classList.toggle("on", S.settings.tilePinyin); };
     $("#rate").oninput = (e) => { S.settings.rate = +e.target.value; $("#rate-val").textContent = S.settings.rate.toFixed(2) + "×"; save(); };
-    $("#tts-test").onclick = () => speak("你好，我学习汉语。");
+    $("#tts-test").onclick = () => speak(C.testPhrase);
   }
   function renderTones(view) {
     setTopbar(t("toneGuide"), "more");
-    const ex = [["mā", "妈"], ["má", "麻"], ["mǎ", "马"], ["mà", "骂"], ["ma", "吗"]];
-    const hskEx = [["高", "gāo"], ["人", "rén"], ["好", "hǎo"], ["大", "dà"], ["的", "de"]];
+    const zh = { ex: [["mā", "妈"], ["má", "麻"], ["mǎ", "马"], ["mà", "骂"], ["ma", "吗"]], words: [["高", "gāo"], ["人", "rén"], ["好", "hǎo"], ["大", "dà"], ["的", "de"]], all: "妈，麻，马，骂，吗", allLabel: "mā · má · mǎ · mà · ma" };
+    const vi = { ex: [["ma", "ma"], ["mà", "mà"], ["má", "má"], ["mả", "mả"], ["mã", "mã"], ["mạ", "mạ"]], words: [["ba", "three"], ["nhà", "house"], ["cá", "fish"], ["hỏi", "to ask"], ["mũ", "hat"], ["mẹ", "mother"]], all: "ma, mà, má, mả, mã, mạ", allLabel: "ma · mà · má · mả · mã · mạ" };
+    const g = C.id === "zh" ? zh : vi;
     view.innerHTML = `
       <div class="card">
-        ${[1, 2, 3, 4, 5].map((n) => `<div class="tone-card"><div class="tone-sym">${ex[n - 1][0]}</div><div><div class="tone-name">${toneSvg(n)} ${t("tone" + n)}</div><div class="tone-desc">${t("tone" + n + "d")} &nbsp;·&nbsp; <span class="hanzi">${hskEx[n - 1][0]}</span> ${hskEx[n - 1][1]}</div></div><button class="speak-btn" data-speak="${ex[n - 1][1]}" type="button">🔊</button></div>`).join("")}
+        ${g.ex.map((e, k) => { const n = k + 1; return `<div class="tone-card"><div class="tone-sym">${e[0]}</div><div><div class="tone-name">${toneSvg(n)} ${t("tone" + n)}</div><div class="tone-desc">${t("tone" + n + "d")} &nbsp;·&nbsp; <span class="hanzi">${g.words[k][0]}</span> ${g.words[k][1]}</div></div><button class="speak-btn" data-speak="${e[1]}" type="button">🔊</button></div>`; }).join("")}
       </div>
       <div class="stack" style="margin-top:16px">
-        <button class="btn primary block" id="all-tones" type="button">🔊 mā · má · mǎ · mà · ma</button>
+        <button class="btn primary block" id="all-tones" type="button">🔊 ${g.allLabel}</button>
         <button class="btn block" id="go-drill" type="button">🎵 ${t("toneDrill")}</button>
       </div>`;
     $$("[data-speak]").forEach((b) => (b.onclick = () => speak(b.dataset.speak, { rate: 0.7 })));
-    $("#all-tones").onclick = () => speak("妈，麻，马，骂，吗", { rate: 0.6 });
+    $("#all-tones").onclick = () => speak(g.all, { rate: 0.6 });
     $("#go-drill").onclick = () => navigate("train/tones");
   }
   function renderPinyinTips(view) {
@@ -898,7 +1054,7 @@
   function renderAbout(view) {
     setTopbar(t("about"), "more");
     view.innerHTML = `
-      <div class="card about"><h3 style="margin-bottom:8px">HSK Trainer</h3><p>${esc(t("aboutText"))}</p><p>${esc(t("dataSource"))} <a href="https://github.com/glxxyz/hskhsk.com" target="_blank" rel="noopener">glxxyz/hskhsk.com</a> (MIT)</p></div>
+      <div class="card about"><h3 style="margin-bottom:8px">${C.title}</h3><p>${esc(t("aboutText"))}</p><p>${esc(t("dataSource"))}${C.source ? ` <a href="${C.source.url}" target="_blank" rel="noopener">${C.source.text}</a> (MIT)` : ""}</p></div>
       <div class="section-title">${t("installTitle")}</div>
       <div class="card about"><ol>${t("installSteps").map((s) => `<li>${esc(s)}</li>`).join("")}</ol><p style="margin-top:10px">${esc(t("installMac"))}</p></div>`;
   }
@@ -917,5 +1073,5 @@
     window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
   }
   // Expose a tiny debug API (handy in the console)
-  window.HSK1 = { state: () => S, get words() { return WORDS; }, all: ALL_WORDS, speak, navigate };
+  window.HSK1 = { state: () => S, get words() { return WORDS; }, get all() { return ALL_WORDS; }, get course() { return C; }, courses: COURSES, switchCourse, speak, navigate };
 })();

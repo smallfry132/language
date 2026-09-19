@@ -160,7 +160,11 @@ p { margin: 0; }
     padding: 24px 16px; border-right: 1px solid var(--line);
     background: var(--bg-elev); position: sticky; top: 0; height: 100vh;
   }
-  .brand { display: flex; align-items: center; gap: 12px; padding: 4px 8px 20px; }
+  .brand { display: flex; align-items: center; gap: 12px; padding: 8px 8px; margin-bottom: 12px; border: 0; background: transparent; border-radius: 14px; cursor: pointer; text-align: left; width: 100%; }
+  .brand:hover { background: var(--bg-sunken); }
+  .brand-text { display: flex; flex-direction: column; flex: 1; }
+  .brand-chev { color: var(--text-3); font-size: 16px; }
+  .course-btn { display: none !important; }
   .brand-glyph {
     font-family: var(--font-hanzi); width: 44px; height: 44px; border-radius: 12px;
     background: linear-gradient(135deg, #e2493c, #b3251c); color: #fff; font-size: 26px;
@@ -480,3 +484,45 @@ input[type=range] { width: 120px; accent-color: var(--accent); }
 .lvl-badge.l2 { background: var(--blue-soft); color: var(--blue); }
 .lvl-badge.l3 { background: var(--gold-soft); color: var(--gold); }
 .tile .tile-num .lvl-badge { position: relative; top: -2px; }
+
+/* ---------- Course switcher ---------- */
+.course-btn {
+  width: 40px; height: 40px; border: 0; background: transparent; border-radius: 12px; cursor: pointer; margin-left: -6px;
+  display: flex; align-items: center; justify-content: center;
+}
+.course-btn .course-glyph-brand {
+  font-family: var(--font-hanzi); width: 30px; height: 30px; border-radius: 9px; font-size: 17px; font-weight: 600;
+  background: linear-gradient(135deg, #e2493c, #b3251c); color: #fff; display: inline-flex; align-items: center; justify-content: center;
+}
+.course-glyph-brand.latin, .brand-glyph.latin, .course-glyph.latin { font-family: var(--font); background: linear-gradient(135deg, #d9a21b, #b0121c); letter-spacing: -0.02em; }
+.course-card {
+  display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; padding: 14px; border-radius: 14px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--bg-elev); box-shadow: var(--shadow);
+}
+.course-card.active { border-color: var(--accent); background: var(--accent-soft); }
+.course-glyph {
+  font-family: var(--font-hanzi); width: 46px; height: 46px; border-radius: 13px; font-size: 24px; font-weight: 600; flex-shrink: 0;
+  background: linear-gradient(135deg, #e2493c, #b3251c); color: #fff; display: inline-flex; align-items: center; justify-content: center;
+}
+.course-name { font-weight: 700; font-size: 16px; }
+.course-check { color: var(--accent); font-weight: 800; font-size: 18px; }
+
+/* Latin-script course: smaller "hanzi" slots that wrap */
+html.latin .hanzi, html.latin .tile-hz, html.latin .detail-hz, html.latin .fc-hz, html.latin .q-hz, html.latin .num-big, html.latin .tone-sym, html.latin .ex-hz, html.latin .fc-ex .hanzi { font-family: var(--font); }
+html.latin .tile .tile-hz, html.latin .tile .tile-hz.long { font-size: 20px; font-weight: 700; line-height: 1.2; overflow-wrap: anywhere; }
+html.latin .tile .tile-py { font-size: 13px; font-weight: 500; }
+html.latin .detail-hz { font-size: 38px; font-weight: 700; overflow-wrap: anywhere; }
+html.latin .detail-py { font-size: 18px; }
+html.latin .detail-py::before, html.latin .fc-py::before, html.latin .tile-py::before { content: "["; opacity: .6; }
+html.latin .detail-py::after, html.latin .fc-py::after, html.latin .tile-py::after { content: "]"; opacity: .6; }
+html.latin .flashcard .fc-hz, html.latin .flashcard .fc-hz.long { font-size: 40px; font-weight: 700; overflow-wrap: anywhere; }
+html.latin .flashcard .fc-py { font-size: 18px; }
+html.latin .quiz-q .q-hz, html.latin .quiz-q .q-hz.long { font-size: 36px; font-weight: 700; overflow-wrap: anywhere; }
+html.latin .option.hanzi { font-size: 19px; font-weight: 600; }
+html.latin .match-card.hanzi { font-size: 17px; font-weight: 600; }
+html.latin .result-item .hanzi { font-size: 17px; font-weight: 600; min-width: 90px; }
+html.latin .num-big { font-size: 40px; font-weight: 700; }
+html.latin .example .ex-hz { font-size: 18px; font-weight: 600; }
+html.latin .fc-ex .hanzi { font-size: 17px; font-weight: 600; }
+html.latin .tone-sym { font-size: 28px; font-weight: 700; }
+html.latin .feedback .hanzi { font-weight: 600; }

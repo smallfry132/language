@@ -1,13 +1,14 @@
-# HSK 1 Trainer
+# HSK Trainer
 
-A web app for studying the 150 words of **HSK level 1**, optimized for **iPhone** (Safari, installable as a full-screen web app) and **Mac**.
+A web app for studying the 600 words of **HSK levels 1–3** (150 + 150 + 300), optimized for **iPhone** (Safari, installable as a full-screen web app) and **Mac**.
 
 No build step, no dependencies, no backend: plain HTML, CSS and JavaScript. Progress is stored locally in the browser.
 
 ## Features
 
-- **Word tiles (Kachel-Übersicht)** – all 150 HSK 1 words as tiles with hanzi, pinyin (Latin pronunciation) and translation. Search by hanzi, pinyin (with or without tones) or meaning; filter by category or learning status; tap a tile for details, example sentence and audio.
-- **English and German** translations – switch the whole UI and translations with the EN/DE toggle.
+- **Word tiles (Kachel-Übersicht)** – all words of the selected HSK levels as tiles with hanzi, pinyin (Latin pronunciation) and translation. Search by hanzi, pinyin (with or without tones) or meaning; filter by category or learning status; tap a tile for details, example sentence and audio.
+- **Level selector** – study HSK 1, 2 and 3 individually or combined. The selection applies to tiles, training and progress.
+- **English and German** – the UI is bilingual; HSK 1 words carry German translations, HSK 2 and 3 are English only (German falls back to English).
 - **Pronunciation** via the device's speech synthesis (Chinese voice on iOS and macOS).
 - **Training modes**
   - Flashcards with spaced repetition (SM-2 style scheduling, "Again / Hard / Good / Easy")
@@ -47,7 +48,9 @@ On a Mac, use Safari's **File → Add to Dock** or bookmark the page.
 ```
 index.html            App shell
 css/style.css         Styles (light/dark, iPhone safe areas, desktop sidebar)
-js/data.js            The 150 HSK 1 words: hanzi, pinyin, EN/DE, category, example sentence
+js/data.js            HSK 1 words: hanzi, pinyin, EN/DE, category, example sentence
+js/data-hsk2.js       HSK 2 words (English)
+js/data-hsk3.js       HSK 3 words (English)
 js/app.js             Application logic (views, training modes, spaced repetition, speech, storage)
 manifest.webmanifest  PWA manifest
 sw.js                 Service worker (offline cache)
@@ -56,4 +59,6 @@ icons/                App icons (SVG + PNG for iOS home screen)
 
 ## Data
 
-The word list follows the HSK 1 (HSK 2.0, 150 words) standard. Each entry has hanzi, pinyin with tone marks, an English and a German translation, a category, and a short example sentence with pinyin and translations. Edit `js/data.js` to adjust translations or add words.
+The word lists follow the official **HSK 2.0** standard (2012): 150 words for HSK 1, 150 for HSK 2 and 300 for HSK 3. The word membership and pinyin were checked against the MIT-licensed lists in [glxxyz/hskhsk.com](https://github.com/glxxyz/hskhsk.com). The concise translations, categories and example sentences were written for this app; treat them as learner-oriented glosses rather than dictionary entries. Edit the `js/data*.js` files to adjust them.
+
+Word ids are stable and used as keys for the stored learning progress: 1–150 HSK 1, 151–301 HSK 2, 302–601 HSK 3.

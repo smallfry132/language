@@ -5,9 +5,21 @@
 (function () {
   "use strict";
 
-  const WORDS = window.HSK1_WORDS;
+  const LEVELS = [1, 2, 3];
+  const ALL_WORDS = [].concat(
+    window.HSK1_WORDS.map((w) => ({ ...w, lvl: 1 })),
+    (window.HSK2_WORDS || []).map((w) => ({ ...w, lvl: 2 })),
+    (window.HSK3_WORDS || []).map((w) => ({ ...w, lvl: 3 }))
+  );
   const CATS = window.HSK1_CATEGORIES;
-  const BY_ID = Object.fromEntries(WORDS.map((w) => [w.id, w]));
+  const BY_ID = Object.fromEntries(ALL_WORDS.map((w) => [w.id, w]));
+  // WORDS = words in the currently selected HSK levels (see S.settings.levels)
+  let WORDS = ALL_WORDS;
+  function applyLevels() {
+    const lv = S.settings.levels;
+    WORDS = ALL_WORDS.filter((w) => lv.includes(w.lvl));
+  }
+  const levelLabel = () => (S.settings.levels.length === LEVELS.length ? "HSK 1–3" : S.settings.levels.map((l) => "HSK " + l).join(" · "));
   const STORAGE_KEY = "hsk1trainer.v1";
   const DAY = 86400000;
 
@@ -30,9 +42,13 @@
     srs: {},
     favs: [],
     stats: { answered: 0, correct: 0, days: {}, sessions: 0 },
-    settings: { rate: 0.85, autoSpeak: true, tilePinyin: true, quizSize: 10, dailyGoal: 20, theme: "auto" }
+    settings: { rate: 0.85, autoSpeak: true, tilePinyin: true, quizSize: 10, dailyGoal: 20, theme: "auto", levels: [1] }
   };
   let S = load();
+  if (!Array.isArray(S.settings.levels) || !S.settings.levels.length) S.settings.levels = [1];
+  // Migration: id 44 used to be 火车站 (now HSK 2, id 191); it is 一点儿 in the official HSK 1 list
+  if (!S.migrated44) { if (S.srs[44]) { S.srs[191] = S.srs[44]; delete S.srs[44]; } S.favs = S.favs.map((x) => (x === 44 ? 191 : x)); S.migrated44 = true; }
+  applyLevels();
 
   function load() {
     try {
@@ -79,7 +95,7 @@
       numPrompt: "Which number is this?", numPrompt2: "Which is", numHint: "Type the number and press Enter.", numMode1: "Read", numMode2: "Write",
       installTitle: "Install on iPhone", installSteps: ["Open this page in Safari.", "Tap the Share button.", "Choose “Add to Home Screen”.", "Launch it from the Home Screen — it runs full screen and works offline."],
       installMac: "On a Mac: in Safari choose File → Add to Dock, or simply bookmark the page.",
-      aboutText: "All 150 words of HSK level 1 with pinyin, English and German translations, example sentences and pronunciation via your device's speech synthesis. Your progress is stored locally on this device.",
+      aboutText: "All 600 words of HSK levels 1–3 with pinyin, English translations (German for HSK 1), example sentences and pronunciation via your device's speech synthesis. Your progress is stored locally on this device.",
       noTts: "Speech synthesis is not available in this browser.", speak: "Pronounce",
       noZhVoice: "No Chinese voice found yet", ttsHint: "No sound on iPhone? Flip the ring/silent switch to ring and turn the volume up: speech follows the silent switch. If no Chinese voice is listed, add one under Settings → Accessibility → Spoken Content → Voices → Chinese.",
       pinyinTipsText: [
@@ -90,7 +106,9 @@
         "“bù” becomes “bú” before a 4th tone (bú kèqi), and “yī” changes to “yí” before a 4th tone and “yì” before other tones."
       ],
       keys: "Keys: 1–4 select · Space / Enter continue", installed: "Ready for offline use.",
-      today: "today", streakMsg: (n) => n === 1 ? "1 day" : `${n} days`
+      today: "today", streakMsg: (n) => n === 1 ? "1 day" : `${n} days`,
+      levels: "Levels", levelHint: "Choose which HSK levels to study. The selection applies to tiles, training and progress.", perLevel: "By level", lvlBadge: (n) => `HSK ${n}`,
+      dataSource: "Word lists follow the official HSK 2.0 lists (2012)."
     },
     de: {
       brandSub: "Trainer", words: "Wörter", train: "Üben", progress: "Fortschritt", more: "Mehr",
@@ -125,7 +143,7 @@
       numPrompt: "Welche Zahl ist das?", numPrompt2: "Wie schreibt man", numHint: "Zahl eingeben und Enter drücken.", numMode1: "Lesen", numMode2: "Schreiben",
       installTitle: "Auf dem iPhone installieren", installSteps: ["Seite in Safari öffnen.", "Auf das Teilen-Symbol tippen.", "„Zum Home-Bildschirm“ wählen.", "Vom Home-Bildschirm starten – läuft im Vollbild und offline."],
       installMac: "Auf dem Mac: in Safari Ablage → Zum Dock hinzufügen wählen oder die Seite als Lesezeichen speichern.",
-      aboutText: "Alle 150 Wörter der HSK-Stufe 1 mit Pinyin, deutscher und englischer Übersetzung, Beispielsätzen und Aussprache über die Sprachausgabe deines Geräts. Dein Fortschritt wird lokal auf diesem Gerät gespeichert.",
+      aboutText: "Alle 600 Wörter der HSK-Stufen 1–3 mit Pinyin, englischer Übersetzung (Deutsch für HSK 1), Beispielsätzen und Aussprache über die Sprachausgabe deines Geräts. Dein Fortschritt wird lokal auf diesem Gerät gespeichert.",
       noTts: "Sprachausgabe ist in diesem Browser nicht verfügbar.", speak: "Aussprechen",
       noZhVoice: "Noch keine chinesische Stimme gefunden", ttsHint: "Kein Ton auf dem iPhone? Stell den Klingel-/Stumm-Schalter auf Klingeln und dreh die Lautstärke auf – die Sprachausgabe folgt dem Stumm-Schalter. Wird keine chinesische Stimme angezeigt, füge eine hinzu unter Einstellungen → Bedienungshilfen → Gesprochene Inhalte → Stimmen → Chinesisch.",
       pinyinTipsText: [
@@ -136,13 +154,15 @@
         "„bù“ wird vor einem 4. Ton zu „bú“ (bú kèqi); „yī“ wird vor einem 4. Ton zu „yí“ und vor anderen Tönen zu „yì“."
       ],
       keys: "Tasten: 1–4 wählen · Leertaste / Enter weiter", installed: "Offline nutzbar.",
-      today: "heute", streakMsg: (n) => n === 1 ? "1 Tag" : `${n} Tage`
+      today: "heute", streakMsg: (n) => n === 1 ? "1 Tag" : `${n} Tage`,
+      levels: "Stufen", levelHint: "Wähle die HSK-Stufen, die du lernen möchtest. Die Auswahl gilt für Kacheln, Übungen und Fortschritt.", perLevel: "Nach Stufe", lvlBadge: (n) => `HSK ${n}`,
+      dataSource: "Die Wortlisten folgen den offiziellen HSK-2.0-Listen (2012)."
     }
   };
   const t = (key, ...args) => { const v = I18N[S.lang][key] ?? I18N.en[key] ?? key; return typeof v === "function" ? v(...args) : v; };
-  const tr = (w) => (S.lang === "de" ? w.de : w.en);
-  const tr2 = (w) => (S.lang === "de" ? w.en : w.de);
-  const exTr = (w) => (S.lang === "de" ? w.exDe : w.exEn);
+  const tr = (w) => (S.lang === "de" && w.de ? w.de : w.en);
+  const tr2 = (w) => (S.lang === "de" ? (w.de ? w.en : "") : (w.de || ""));
+  const exTr = (w) => (S.lang === "de" && w.exDe ? w.exDe : w.exEn);
   const catName = (c) => (CATS[c] ? (S.lang === "de" ? CATS[c].de : CATS[c].en) : c);
 
   /* ---------------- Speech ---------------- */
@@ -283,6 +303,23 @@
   }
   window.addEventListener("hashchange", render);
 
+  /* ---------------- Level selector (shared) ---------------- */
+  function levelChips(id) {
+    return `<div class="chips level-chips" id="${id}">${LEVELS.map((l) => {
+      const n = ALL_WORDS.filter((w) => w.lvl === l).length;
+      return `<button class="chip lvl ${S.settings.levels.includes(l) ? "active" : ""}" data-lvl="${l}" type="button">HSK ${l} <span class="chip-n">${n}</span></button>`;
+    }).join("")}</div>`;
+  }
+  function bindLevelChips(id, onChange) {
+    $$(`#${id} .chip`).forEach((b) => (b.onclick = () => {
+      const l = +b.dataset.lvl; let lv = S.settings.levels.slice();
+      if (lv.includes(l)) { if (lv.length === 1) return; lv = lv.filter((x) => x !== l); } else lv.push(l);
+      S.settings.levels = lv.sort(); save(); applyLevels();
+      $$(`#${id} .chip`).forEach((x) => x.classList.toggle("active", S.settings.levels.includes(+x.dataset.lvl)));
+      onChange();
+    }));
+  }
+
   /* ================= WORDS (tile overview) ================= */
   const wf = { q: "", cat: "all", status: "all" };
   function filteredWords() {
@@ -297,19 +334,21 @@
     });
   }
   function renderWords(view) {
-    setTopbar(t("words") + " · HSK 1", null);
+    setTopbar(t("words") + " · " + levelLabel(), null);
     const statusFilters = [["all", t("all")], ["due", t("due")], ["new", t("new")], ["learning", t("learning")], ["known", t("known")], ["favs", "★ " + t("favorites")]];
     view.innerHTML = `
       <input class="search" id="search" type="search" placeholder="${esc(t("search"))}" value="${esc(wf.q)}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+      ${levelChips("lvl-chips")}
       <div class="chips" id="status-chips">${statusFilters.map(([k, l]) => `<button class="chip ${wf.status === k ? "active" : ""}" data-status="${k}" type="button">${l}</button>`).join("")}</div>
       <div class="chips" id="cat-chips">
         <button class="chip ${wf.cat === "all" ? "active" : ""}" data-cat="all" type="button">${t("all")}</button>
-        ${Object.keys(CATS).map((c) => `<button class="chip ${wf.cat === c ? "active" : ""}" data-cat="${c}" type="button">${CATS[c].icon} ${catName(c)}</button>`).join("")}
+        ${Object.keys(CATS).filter((c) => WORDS.some((w) => w.cat === c)).map((c) => `<button class="chip ${wf.cat === c ? "active" : ""}" data-cat="${c}" type="button">${CATS[c].icon} ${catName(c)}</button>`).join("")}
       </div>
       <div class="list-hint" id="words-hint"></div>
       <div class="tiles" id="tiles"></div>`;
     const search = $("#search");
     search.oninput = () => { wf.q = search.value; drawTiles(); };
+    bindLevelChips("lvl-chips", () => { setTopbar(t("words") + " · " + levelLabel(), null); drawTiles(); });
     $$("#status-chips .chip").forEach((b) => (b.onclick = () => { wf.status = b.dataset.status; $$("#status-chips .chip").forEach((x) => x.classList.toggle("active", x === b)); drawTiles(); }));
     $$("#cat-chips .chip").forEach((b) => (b.onclick = () => { wf.cat = b.dataset.cat; $$("#cat-chips .chip").forEach((x) => x.classList.toggle("active", x === b)); drawTiles(); }));
     drawTiles();
@@ -326,7 +365,7 @@
         <span class="tile-hz ${isLong(w.hz) ? "long" : ""}">${w.hz}</span>
         ${S.settings.tilePinyin ? `<span class="tile-py">${w.py}</span>` : ""}
         <span class="tile-tr">${esc(tr(w))}</span>
-        <span class="tile-num">${w.id}</span>
+        <span class="tile-num">${S.settings.levels.length > 1 ? `<span class="lvl-badge l${w.lvl}">HSK ${w.lvl}</span>` : w.id}</span>
       </button>`).join("");
     $$(".tile", tiles).forEach((b) => (b.onclick = () => openWord(+b.dataset.id)));
   }
@@ -337,11 +376,11 @@
       <div class="detail-hz">${w.hz}</div>
       <div class="detail-py">${w.py}</div>
       <div class="detail-tr">${esc(tr(w))}</div>
-      <div class="detail-tr2">${esc(tr2(w))}</div>
+      ${tr2(w) ? `<div class="detail-tr2">${esc(tr2(w))}</div>` : ""}
       <div class="detail-meta">
         <span class="pill ${st}">${t(st)}</span>
         <span class="pill new">${CATS[w.cat].icon} ${catName(w.cat)}</span>
-        <span class="pill new">#${w.id}</span>
+        <span class="pill new">HSK ${w.lvl} · #${w.id}</span>
       </div>
       <div class="row" style="justify-content:center;margin-top:12px"><button class="speak-btn" id="d-speak" type="button" aria-label="${t("speak")}">🔊</button></div>
       <div class="example">
@@ -390,7 +429,7 @@
     const due = dueWords().length; const newCount = WORDS.filter((w) => status(w.id) === "new").length;
     view.innerHTML = `
       <div class="due-banner">
-        <div class="grow"><div class="big">${due}</div><div>${t("dueToday")}${newCount ? ` · ${newCount} ${t("new").toLowerCase()}` : ""}</div></div>
+        <div class="grow"><div class="big">${due}</div><div>${t("dueToday")}${newCount ? ` · ${newCount} ${t("new").toLowerCase()}` : ""}</div><div class="small" style="opacity:.8">${levelLabel()}</div></div>
         <button class="btn" id="review-now" type="button">${due ? t("reviewNow") : t("modeFlash")}</button>
       </div>
       <div class="mode-grid">
@@ -418,7 +457,9 @@
     view.innerHTML = `
       <div class="card stack">
         <h2>${t("setupTitle")}</h2>
-        <div class="section-title" style="margin-top:4px">${t("whichWords")}</div>
+        <div class="section-title" style="margin-top:4px">${t("levels")}</div>
+        ${levelChips("s-lvl-chips")}
+        <div class="section-title">${t("whichWords")}</div>
         <div class="chips" id="pool-chips">${pools.map(([k, l]) => `<button class="chip ${setupPrefs.pool === k ? "active" : ""}" data-pool="${k}" type="button">${l}</button>`).join("")}</div>
         <div class="section-title">${t("category")}</div>
         <div class="chips" id="scat-chips"><button class="chip ${setupPrefs.cat === "all" ? "active" : ""}" data-cat="all" type="button">${t("all")}</button>${Object.keys(CATS).map((c) => `<button class="chip ${setupPrefs.cat === c ? "active" : ""}" data-cat="${c}" type="button">${CATS[c].icon} ${catName(c)}</button>`).join("")}</div>
@@ -431,6 +472,7 @@
     const bind = (sel, attr, key) => $$(sel + " .chip").forEach((b) => (b.onclick = () => { setupPrefs[key] = attr === "count" ? +b.dataset[attr] : b.dataset[attr]; $$(sel + " .chip").forEach((x) => x.classList.toggle("active", x === b)); updateInfo(); }));
     bind("#pool-chips", "pool", "pool"); bind("#scat-chips", "cat", "cat"); bind("#count-chips", "count", "count");
     if (cfg.direction) bind("#dir-chips", "dir", "direction");
+    bindLevelChips("s-lvl-chips", updateInfo);
     function updateInfo() { const n = poolWords(setupPrefs.pool, setupPrefs.cat).length; $("#pool-info").textContent = t("wordsCount", Math.min(n, setupPrefs.count), n); $("#start").disabled = n < (mode === "flash" || mode === "type" ? 1 : 4); }
     updateInfo();
     $("#start").onclick = () => {
@@ -488,7 +530,7 @@
             <div class="fc-hz ${isLong(w.hz) ? "long" : ""}">${w.hz}</div>
             <div class="fc-py">${w.py}</div>
             <div class="fc-tr">${esc(tr(w))}</div>
-            <div class="fc-tr2">${esc(tr2(w))}</div>
+            ${tr2(w) ? `<div class="fc-tr2">${esc(tr2(w))}</div>` : ""}
             <div class="fc-ex"><span class="hanzi">${w.ex}</span>${w.exPy}<br>${esc(exTr(w))}</div>
             <button class="speak-btn" id="fc-speak" type="button" style="margin-top:10px">🔊</button>`
           : `<div class="fc-hz ${isLong(w.hz) ? "long" : ""}">${w.hz}</div><div class="fc-hint">${t("tapToFlip")}</div>`}
@@ -548,7 +590,7 @@
       const label = (x) => direction === "hzTr" ? esc(tr(x)) : direction === "hzPy" ? x.py : `<span class="hanzi">${x.hz}</span>`;
       const optClass = direction === "trHz" || direction === "pyHz" || direction === "listen" ? "hanzi" : "";
       if (direction === "hzTr" || direction === "hzPy") prompt = `<div class="q-hz ${isLong(w.hz) ? "long" : ""}">${w.hz}</div><button class="speak-btn sm" id="q-speak" type="button">🔊</button>`;
-      else if (direction === "trHz") prompt = `<div class="q-text">${esc(tr(w))}</div><div class="q-sub">${esc(tr2(w))}</div>`;
+      else if (direction === "trHz") prompt = `<div class="q-text">${esc(tr(w))}</div>${tr2(w) ? `<div class="q-sub">${esc(tr2(w))}</div>` : ""}`;
       else if (direction === "pyHz") prompt = `<div class="q-text">${w.py}</div>`;
       else prompt = `<div class="q-sub">${t("listenPrompt")}</div><button class="btn primary" id="q-play" type="button" style="margin-top:8px">▶︎ ${t("play")}</button><div class="q-sub small">${t("listenHint")}</div>`;
       optHtml = opts.map((x, k) => `<button class="option ${optClass}" data-id="${x.id}" type="button"><span class="opt-key">${k + 1}</span><span>${label(x)}</span></button>`).join("");
@@ -740,7 +782,7 @@
 
   /* ================= PROGRESS ================= */
   function renderProgress(view) {
-    setTopbar(t("progress"), null);
+    setTopbar(t("progress") + " · " + levelLabel(), null);
     const counts = { new: 0, learning: 0, known: 0 };
     WORDS.forEach((w) => counts[status(w.id)]++);
     const due = dueWords().length; const st = streak();
@@ -752,11 +794,16 @@
     const days = []; const d = new Date(); d.setDate(d.getDate() - 55);
     for (let k = 0; k < 56; k++) { const key = todayKey(d); const n = S.stats.days[key] || 0; days.push({ key, n }); d.setDate(d.getDate() + 1); }
     const lvl = (n) => (n === 0 ? "" : n < 10 ? "l1" : n < 30 ? "l2" : "l3");
-    const catRows = Object.keys(CATS).map((c) => {
+    const catRows = Object.keys(CATS).filter((c) => WORDS.some((w) => w.cat === c)).map((c) => {
       const ws = WORDS.filter((w) => w.cat === c); const k = ws.filter((w) => status(w.id) === "known").length; const l = ws.filter((w) => status(w.id) === "learning").length;
       return `<div class="cat-row"><span>${CATS[c].icon}</span><div><div class="cat-name">${catName(c)}</div><div class="progress-bar" style="margin-top:4px"><span class="green" style="width:${(k / ws.length) * 100}%"></span></div></div><span class="cat-count">${k}/${ws.length}${l ? ` <span class="pill learning">${l}</span>` : ""}</span></div>`;
     }).join("");
+    const lvlRows = LEVELS.map((l) => {
+      const ws = ALL_WORDS.filter((w) => w.lvl === l); const k = ws.filter((w) => status(w.id) === "known").length; const lr = ws.filter((w) => status(w.id) === "learning").length;
+      return `<div class="cat-row"><span class="lvl-badge l${l}">HSK ${l}</span><div><div class="progress-bar" style="margin-top:4px"><span class="green" style="width:${(k / ws.length) * 100}%"></span></div></div><span class="cat-count">${k}/${ws.length}${lr ? ` <span class="pill learning">${lr}</span>` : ""}</span></div>`;
+    }).join("");
     view.innerHTML = `
+      ${levelChips("p-lvl-chips")}
       <div class="stats-grid">
         <div class="stat green"><div class="stat-val">${counts.known}</div><div class="stat-lbl">${t("statsWords")} / ${total}</div></div>
         <div class="stat gold"><div class="stat-val">${counts.learning}</div><div class="stat-lbl">${t("statsLearning")}</div></div>
@@ -786,10 +833,13 @@
       </div>
       <div class="section-title">${t("activity")}</div>
       <div class="card"><div class="heat">${days.map((x) => `<div class="day ${lvl(x.n)}" title="${x.key}: ${x.n}"></div>`).join("")}</div></div>
+      <div class="section-title">${t("perLevel")}</div>
+      <div class="card">${lvlRows}</div>
       <div class="section-title">${t("byCategory")}</div>
       <div class="card">${catRows}</div>
       <div style="margin-top:20px"><button class="btn danger block" id="reset-all" type="button">${t("resetAll")}</button></div>`;
     $$("[data-goal]").forEach((b) => (b.onclick = () => { S.settings.dailyGoal = +b.dataset.goal; save(); render(); }));
+    bindLevelChips("p-lvl-chips", render);
     $("#reset-all").onclick = () => { if (confirm(t("resetConfirm"))) { S.srs = {}; S.favs = []; S.stats = structuredClone(DEFAULT_STATE.stats); save(); toast(t("resetDone")); render(); } };
   }
 
@@ -810,7 +860,7 @@
       <div class="section-title">${t("settings")}</div>
       <div class="list">
         <div class="list-item static"><span class="li-ico">🌐</span><span class="grow li-title">${t("language")}</span><div class="seg"><button data-lang="en" class="${S.lang === "en" ? "active" : ""}" type="button">English</button><button data-lang="de" class="${S.lang === "de" ? "active" : ""}" type="button">Deutsch</button></div></div>
-        <div class="list-item static"><span class="li-ico">🎨</span><span class="grow li-title">${t("theme")}</span><div class="seg">${["auto", "light", "dark"].map((th) => `<button data-theme="${th}" class="${S.settings.theme === th ? "active" : ""}" type="button">${t("theme" + th[0].toUpperCase() + th.slice(1))}</button>`).join("")}</div></div>
+        <div class="list-item static"><span class="li-ico">🎨</span><span class="grow li-title">${t("theme")}</span><div class="seg">${["auto", "light", "dark"].map((th) => `<button data-th="${th}" class="${S.settings.theme === th ? "active" : ""}" type="button">${t("theme" + th[0].toUpperCase() + th.slice(1))}</button>`).join("")}</div></div>
         <div class="list-item static"><span class="li-ico">🔊</span><span class="grow li-title">${t("autoSpeak")}</span><button class="switch ${S.settings.autoSpeak ? "on" : ""}" id="sw-speak" type="button" aria-label="${t("autoSpeak")}"></button></div>
         <div class="list-item static"><span class="li-ico">🐢</span><span class="grow li-title">${t("ttsRate")}<div class="li-sub" id="rate-val">${S.settings.rate.toFixed(2)}×</div></span><input type="range" id="rate" min="0.5" max="1.2" step="0.05" value="${S.settings.rate}"></div>
         <div class="list-item static"><span class="li-ico">🀄</span><span class="grow li-title">${t("tilePinyin")}</span><button class="switch ${S.settings.tilePinyin ? "on" : ""}" id="sw-tile" type="button" aria-label="${t("tilePinyin")}"></button></div>
@@ -819,7 +869,7 @@
       <div class="list-hint" style="margin-top:8px">${t("ttsHint")}</div>`;
     $$("[data-go]").forEach((b) => (b.onclick = () => navigate(b.dataset.go)));
     $$("[data-lang]").forEach((b) => (b.onclick = () => { S.lang = b.dataset.lang; save(); document.documentElement.lang = S.lang; render(); }));
-    $$("[data-theme]").forEach((b) => (b.onclick = () => { S.settings.theme = b.dataset.theme; save(); applyTheme(); render(); }));
+    $$("button[data-th]").forEach((b) => (b.onclick = () => { S.settings.theme = b.dataset.th; save(); applyTheme(); render(); }));
     $("#sw-speak").onclick = () => { S.settings.autoSpeak = !S.settings.autoSpeak; save(); $("#sw-speak").classList.toggle("on", S.settings.autoSpeak); };
     $("#sw-tile").onclick = () => { S.settings.tilePinyin = !S.settings.tilePinyin; save(); $("#sw-tile").classList.toggle("on", S.settings.tilePinyin); };
     $("#rate").oninput = (e) => { S.settings.rate = +e.target.value; $("#rate-val").textContent = S.settings.rate.toFixed(2) + "×"; save(); };
@@ -848,7 +898,7 @@
   function renderAbout(view) {
     setTopbar(t("about"), "more");
     view.innerHTML = `
-      <div class="card about"><h3 style="margin-bottom:8px">HSK 1 Trainer</h3><p>${esc(t("aboutText"))}</p></div>
+      <div class="card about"><h3 style="margin-bottom:8px">HSK Trainer</h3><p>${esc(t("aboutText"))}</p><p>${esc(t("dataSource"))} <a href="https://github.com/glxxyz/hskhsk.com" target="_blank" rel="noopener">glxxyz/hskhsk.com</a> (MIT)</p></div>
       <div class="section-title">${t("installTitle")}</div>
       <div class="card about"><ol>${t("installSteps").map((s) => `<li>${esc(s)}</li>`).join("")}</ol><p style="margin-top:10px">${esc(t("installMac"))}</p></div>`;
   }
@@ -867,5 +917,5 @@
     window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
   }
   // Expose a tiny debug API (handy in the console)
-  window.HSK1 = { state: () => S, words: WORDS, speak, navigate };
+  window.HSK1 = { state: () => S, get words() { return WORDS; }, all: ALL_WORDS, speak, navigate };
 })();

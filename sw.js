@@ -1,10 +1,14 @@
-/* Service worker: offline cache for the HSK 1 Trainer (cache-first, versioned). */
-const CACHE = "hsk1-v1";
+/* Service worker: offline support for the HSK Trainer.
+ * Network-first with cache fallback, so new deployments show up on the next load
+ * while the app keeps working offline. */
+const CACHE = "hsk-trainer-v2";
 const ASSETS = [
   "./",
   "./index.html",
   "./css/style.css",
   "./js/data.js",
+  "./js/data-hsk2.js",
+  "./js/data-hsk3.js",
   "./js/app.js",
   "./manifest.webmanifest",
   "./icons/icon.svg",
@@ -25,17 +29,11 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
-  if (event.request.method !== "GET") return;
+  if (event.request.method !== "GET" || new URL(event.request.url).origin !== self.location.origin) return;
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      const network = fetch(event.request).then((res) => {
-        if (res && res.ok && new URL(event.request.url).origin === self.location.origin) {
-          const copy = res.clone();
-          caches.open(CACHE).then((c) => c.put(event.request, copy));
-        }
-        return res;
-      }).catch(() => cached);
-      return cached || network;
-    })
+    fetch(event.request).then((res) => {
+      if (res && res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(event.request, copy)); }
+      return res;
+    }).catch(() => caches.match(event.request).then((cached) => cached || caches.match("./index.html")))
   );
 });

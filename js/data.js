@@ -1,4 +1,4 @@
-/* HSK 1 vocabulary — 150 words (HSK 2.0 standard list)
+/* HSK 1 vocabulary — 150 words (HSK 2.0 standard list, 2012; checked against github.com/glxxyz/hskhsk.com, MIT)
  * Fields: id, hz (hanzi), py (pinyin with tone marks), en, de, cat (category),
  *         ex (example sentence), exPy (example pinyin), exEn, exDe
  */
@@ -19,7 +19,12 @@ window.HSK1_CATEGORIES = {
   nature:    { en: "Weather & Nature", de: "Wetter & Natur", icon: "🌦️" },
   animals:   { en: "Animals",        de: "Tiere",           icon: "🐾" },
   transport: { en: "Transport",      de: "Verkehr",         icon: "🚕" },
-  study:     { en: "Study & Work",   de: "Lernen & Arbeit", icon: "📚" }
+  study:     { en: "Study & Work",   de: "Lernen & Arbeit", icon: "📚" },
+  family:    { en: "Family",         de: "Familie",         icon: "👨‍👩‍👧" },
+  body:      { en: "Body & Health",  de: "Körper & Gesundheit", icon: "🫀" },
+  sports:    { en: "Sports & Hobbies", de: "Sport & Hobbys", icon: "⚽" },
+  adverbs:   { en: "Adverbs & Conjunctions", de: "Adverbien & Konjunktionen", icon: "🔀" },
+  misc:      { en: "Other",          de: "Sonstiges",       icon: "📎" }
 };
 
 window.HSK1_WORDS = [
@@ -63,10 +68,10 @@ window.HSK1_WORDS = [
   { id: 38,  hz: "喝",     py: "hē",         en: "to drink",                      de: "trinken",                       cat: "verbs",      ex: "我喝水。",            exPy: "Wǒ hē shuǐ.",                   exEn: "I drink water.",                     exDe: "Ich trinke Wasser." },
   { id: 39,  hz: "和",     py: "hé",         en: "and, with",                     de: "und, mit",                      cat: "particles",  ex: "我和他是朋友。",      exPy: "Wǒ hé tā shì péngyou.",         exEn: "He and I are friends.",              exDe: "Er und ich sind Freunde." },
   { id: 40,  hz: "很",     py: "hěn",        en: "very",                          de: "sehr",                          cat: "particles",  ex: "今天很热。",          exPy: "Jīntiān hěn rè.",               exEn: "It's very hot today.",               exDe: "Heute ist es sehr heiß." },
-  { id: 41,  hz: "后面",   py: "hòumiàn",    en: "behind, back",                  de: "hinten, dahinter",              cat: "places",     ex: "他在我后面。",        exPy: "Tā zài wǒ hòumiàn.",            exEn: "He is behind me.",                   exDe: "Er ist hinter mir." },
+  { id: 41,  hz: "后面",   py: "hòumian",    en: "behind, back",                  de: "hinten, dahinter",              cat: "places",     ex: "他在我后面。",        exPy: "Tā zài wǒ hòumiàn.",            exEn: "He is behind me.",                   exDe: "Er ist hinter mir." },
   { id: 42,  hz: "回",     py: "huí",        en: "to return, go back",            de: "zurückkehren",                  cat: "verbs",      ex: "我回家了。",          exPy: "Wǒ huí jiā le.",                exEn: "I went home.",                       exDe: "Ich bin nach Hause gegangen." },
   { id: 43,  hz: "会",     py: "huì",        en: "can, be able to (learned skill)", de: "können (gelernt)",            cat: "verbs",      ex: "我会说汉语。",        exPy: "Wǒ huì shuō Hànyǔ.",            exEn: "I can speak Chinese.",               exDe: "Ich kann Chinesisch sprechen." },
-  { id: 44,  hz: "火车站", py: "huǒchēzhàn", en: "train station",                 de: "Bahnhof",                       cat: "places",     ex: "火车站在哪儿？",      exPy: "Huǒchēzhàn zài nǎr?",           exEn: "Where is the train station?",        exDe: "Wo ist der Bahnhof?" },
+  { id: 44,  hz: "一点儿", py: "yìdiǎnr",   en: "a little, a bit",                de: "ein bisschen, ein wenig",       cat: "measure",    ex: "请给我一点儿水。",    exPy: "Qǐng gěi wǒ yìdiǎnr shuǐ.",     exEn: "Please give me a little water.",     exDe: "Bitte gib mir ein bisschen Wasser." },
   { id: 45,  hz: "几",     py: "jǐ",         en: "how many (small numbers)",      de: "wie viele (kleine Zahl)",       cat: "question",   ex: "你几岁？",            exPy: "Nǐ jǐ suì?",                    exEn: "How old are you?",                   exDe: "Wie alt bist du?" },
   { id: 46,  hz: "家",     py: "jiā",        en: "home, family",                  de: "Zuhause, Familie",              cat: "places",     ex: "我家有四个人。",      exPy: "Wǒ jiā yǒu sì gè rén.",         exEn: "There are four people in my family.", exDe: "Meine Familie hat vier Personen." },
   { id: 47,  hz: "叫",     py: "jiào",       en: "to be called, to call",         de: "heißen, rufen",                 cat: "verbs",      ex: "你叫什么名字？",      exPy: "Nǐ jiào shénme míngzi?",        exEn: "What's your name?",                  exDe: "Wie heißt du?" },
@@ -133,7 +138,7 @@ window.HSK1_WORDS = [
   { id: 108, hz: "天气",   py: "tiānqì",     en: "weather",                       de: "Wetter",                        cat: "nature",     ex: "今天天气怎么样？",    exPy: "Jīntiān tiānqì zěnmeyàng?",     exEn: "How's the weather today?",           exDe: "Wie ist das Wetter heute?" },
   { id: 109, hz: "听",     py: "tīng",       en: "to listen, to hear",            de: "hören, zuhören",                cat: "verbs",      ex: "请听我说。",          exPy: "Qǐng tīng wǒ shuō.",            exEn: "Please listen to me.",               exDe: "Bitte hör mir zu." },
   { id: 110, hz: "同学",   py: "tóngxué",    en: "classmate",                     de: "Mitschüler, Kommilitone",       cat: "people",     ex: "他是我的同学。",      exPy: "Tā shì wǒ de tóngxué.",         exEn: "He is my classmate.",                exDe: "Er ist mein Mitschüler." },
-  { id: 111, hz: "喂",     py: "wéi",        en: "hello (on the phone)",          de: "hallo (am Telefon)",            cat: "phrases",    ex: "喂，你好！",          exPy: "Wéi, nǐ hǎo!",                  exEn: "Hello (on the phone)!",              exDe: "Hallo (am Telefon)!" },
+  { id: 111, hz: "喂",     py: "wèi",        en: "hello (on the phone)",          de: "hallo (am Telefon)",            cat: "phrases",    ex: "喂，你好！",          exPy: "Wèi, nǐ hǎo!",                  exEn: "Hello (on the phone)!",              exDe: "Hallo (am Telefon)!" },
   { id: 112, hz: "我",     py: "wǒ",         en: "I, me",                         de: "ich, mich",                     cat: "pronouns",   ex: "我是德国人。",        exPy: "Wǒ shì Déguó rén.",             exEn: "I am German.",                       exDe: "Ich bin Deutsche/r." },
   { id: 113, hz: "我们",   py: "wǒmen",      en: "we, us",                        de: "wir, uns",                      cat: "pronouns",   ex: "我们去吃饭。",        exPy: "Wǒmen qù chīfàn.",              exEn: "Let's go eat.",                      exDe: "Wir gehen essen." },
   { id: 114, hz: "五",     py: "wǔ",         en: "five",                          de: "fünf",                          cat: "numbers",    ex: "我有五块钱。",        exPy: "Wǒ yǒu wǔ kuài qián.",          exEn: "I have five yuan.",                  exDe: "Ich habe fünf Yuan." },
@@ -145,7 +150,7 @@ window.HSK1_WORDS = [
   { id: 120, hz: "现在",   py: "xiànzài",    en: "now",                           de: "jetzt",                         cat: "time",       ex: "现在几点？",          exPy: "Xiànzài jǐ diǎn?",              exEn: "What time is it now?",               exDe: "Wie spät ist es jetzt?" },
   { id: 121, hz: "想",     py: "xiǎng",      en: "to want, to think, to miss",    de: "möchten, denken, vermissen",    cat: "verbs",      ex: "我想喝水。",          exPy: "Wǒ xiǎng hē shuǐ.",             exEn: "I want to drink water.",             exDe: "Ich möchte Wasser trinken." },
   { id: 122, hz: "小",     py: "xiǎo",       en: "small, little",                 de: "klein",                         cat: "adjectives", ex: "这个杯子很小。",      exPy: "Zhège bēizi hěn xiǎo.",         exEn: "This cup is very small.",            exDe: "Diese Tasse ist sehr klein." },
-  { id: 123, hz: "小姐",   py: "xiǎojiě",    en: "Miss, young lady",              de: "Fräulein, Frau (jung)",         cat: "people",     ex: "李小姐是老师。",      exPy: "Lǐ xiǎojiě shì lǎoshī.",        exEn: "Miss Li is a teacher.",              exDe: "Frau Li ist Lehrerin." },
+  { id: 123, hz: "小姐",   py: "xiǎojie",    en: "Miss, young lady",              de: "Fräulein, Frau (jung)",         cat: "people",     ex: "李小姐是老师。",      exPy: "Lǐ xiǎojiě shì lǎoshī.",        exEn: "Miss Li is a teacher.",              exDe: "Frau Li ist Lehrerin." },
   { id: 124, hz: "些",     py: "xiē",        en: "some, a few",                   de: "einige, ein paar",              cat: "measure",    ex: "我买了一些水果。",    exPy: "Wǒ mǎi le yìxiē shuǐguǒ.",      exEn: "I bought some fruit.",               exDe: "Ich habe etwas Obst gekauft." },
   { id: 125, hz: "写",     py: "xiě",        en: "to write",                      de: "schreiben",                     cat: "verbs",      ex: "请写你的名字。",      exPy: "Qǐng xiě nǐ de míngzi.",        exEn: "Please write your name.",            exDe: "Bitte schreib deinen Namen." },
   { id: 126, hz: "谢谢",   py: "xièxie",     en: "thank you",                     de: "danke",                         cat: "phrases",    ex: "谢谢你！",            exPy: "Xièxie nǐ!",                    exEn: "Thank you!",                         exDe: "Danke dir!" },

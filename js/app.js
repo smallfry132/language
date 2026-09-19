@@ -303,7 +303,7 @@
       if (!TTS.voice) pickVoice();
       const u = new SpeechSynthesisUtterance(text);
       u.lang = C.tts;
-      if (TTS.voice) u.voice = TTS.voice;
+      if (TTS.voice) { try { u.voice = TTS.voice; } catch (e) { /* stale voice object: fall back to lang-based selection */ } }
       u.rate = (opts && opts.rate) || S.settings.rate;
       u.pitch = 1;
       currentUtterance = u;

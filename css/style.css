@@ -533,3 +533,5 @@ html.latin .feedback .hanzi { font-weight: 600; }
 /* ---------- Voice picker ---------- */
 .voice-sel { max-width: 46vw; font-size: 14px; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg-sunken); color: var(--text); }
 @media (min-width: 860px) { .voice-sel { max-width: 260px; } }
+
+.tiles-more { grid-column: 1 / -1; margin-top: 6px; }

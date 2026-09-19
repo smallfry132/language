@@ -1,7 +1,7 @@
 /* Service worker: offline support for the Language Trainer.
  * Network-first with cache fallback, so new deployments show up on the next load
  * while the app keeps working offline. */
-const CACHE = "lang-trainer-v5";
+const CACHE = "lang-trainer-v6";
 const ASSETS = [
   "./",
   "./index.html",
@@ -11,6 +11,7 @@ const ASSETS = [
   "./js/data-hsk3.js",
   "./js/data-vi.js",
   "./js/data-vi-2.js",
+  "./js/data-ja.js",
   "./js/app.js",
   "./manifest.webmanifest",
   "./icons/icon.svg",

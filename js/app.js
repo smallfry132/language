@@ -15,9 +15,60 @@
     (window.HSK3_WORDS || []).map((w) => ({ ...w, lvl: 3, course: "zh" }))
   );
   const VI_WORDS = (window.VI_WORDS || []).map((w) => ({ id: w.id, hz: w.w, py: w.pr, en: w.en, cat: w.cat, lvl: w.lvl, ex: w.ex, exPy: "", exEn: w.exEn, course: "vi" }));
+  /* Kana → wāpuro-style romaji (Hepburn, long vowels written out: おう → ou, ー repeats the vowel). */
+  const KANA = { あ:"a",い:"i",う:"u",え:"e",お:"o",か:"ka",き:"ki",く:"ku",け:"ke",こ:"ko",さ:"sa",し:"shi",す:"su",せ:"se",そ:"so",た:"ta",ち:"chi",つ:"tsu",て:"te",と:"to",な:"na",に:"ni",ぬ:"nu",ね:"ne",の:"no",は:"ha",ひ:"hi",ふ:"fu",へ:"he",ほ:"ho",ま:"ma",み:"mi",む:"mu",め:"me",も:"mo",や:"ya",ゆ:"yu",よ:"yo",ら:"ra",り:"ri",る:"ru",れ:"re",ろ:"ro",わ:"wa",を:"wo",ん:"n",が:"ga",ぎ:"gi",ぐ:"gu",げ:"ge",ご:"go",ざ:"za",じ:"ji",ず:"zu",ぜ:"ze",ぞ:"zo",だ:"da",ぢ:"ji",づ:"zu",で:"de",ど:"do",ば:"ba",び:"bi",ぶ:"bu",べ:"be",ぼ:"bo",ぱ:"pa",ぴ:"pi",ぷ:"pu",ぺ:"pe",ぽ:"po",ぁ:"a",ぃ:"i",ぅ:"u",ぇ:"e",ぉ:"o",ゃ:"ya",ゅ:"yu",ょ:"yo",ゎ:"wa",ゐ:"i",ゑ:"e",ゔ:"vu" };
+  const KANA_DIGRAPH = { きゃ:"kya",きゅ:"kyu",きょ:"kyo",しゃ:"sha",しゅ:"shu",しょ:"sho",ちゃ:"cha",ちゅ:"chu",ちょ:"cho",にゃ:"nya",にゅ:"nyu",にょ:"nyo",ひゃ:"hya",ひゅ:"hyu",ひょ:"hyo",みゃ:"mya",みゅ:"myu",みょ:"myo",りゃ:"rya",りゅ:"ryu",りょ:"ryo",ぎゃ:"gya",ぎゅ:"gyu",ぎょ:"gyo",じゃ:"ja",じゅ:"ju",じょ:"jo",ぢゃ:"ja",ぢゅ:"ju",ぢょ:"jo",びゃ:"bya",びゅ:"byu",びょ:"byo",ぴゃ:"pya",ぴゅ:"pyu",ぴょ:"pyo",しぇ:"she",じぇ:"je",ちぇ:"che",てぃ:"ti",でぃ:"di",とぅ:"tu",どぅ:"du",ふぁ:"fa",ふぃ:"fi",ふぇ:"fe",ふぉ:"fo",うぃ:"wi",うぇ:"we",うぉ:"wo",ゔぁ:"va",ゔぃ:"vi",ゔぇ:"ve",ゔぉ:"vo",つぁ:"tsa",つぇ:"tse",つぉ:"tso" };
+  function toRomaji(kana) {
+    // katakana → hiragana, keep ー
+    const h = Array.from(kana).map((c) => { const code = c.charCodeAt(0); return code >= 0x30a1 && code <= 0x30f6 ? String.fromCharCode(code - 0x60) : c; }).join("");
+    let out = "", i = 0, sokuon = false;
+    while (i < h.length) {
+      const two = h.slice(i, i + 2), one = h[i];
+      let r = null, step = 1;
+      if (KANA_DIGRAPH[two]) { r = KANA_DIGRAPH[two]; step = 2; }
+      else if (one === "っ") { sokuon = true; i++; continue; }
+      else if (one === "ー") { const m = out.match(/[aeiou]$/); r = m ? m[0] : ""; }
+      else if (KANA[one] !== undefined) r = KANA[one];
+      else r = one; // kanji, punctuation, latin
+      if (r === "n" && one === "ん") { const next = h[i + 1]; if (next && /[あいうえおやゆよ]/.test(next)) r = "n'"; }
+      if (sokuon) { r = (r[0] === "c" ? "t" : r[0]) + r; sokuon = false; }
+      out += r; i += step;
+    }
+    return out;
+  }
+  const NUM_WORDS_EN = /^(zero|one|two|three|four|five|six|seven|eight|nine|ten|hundred|thousand|ten thousand|million|first|second|third)\b/i;
+  function jaCategory(expr, meaning) {
+    const m = meaning.toLowerCase();
+    if (NUM_WORDS_EN.test(m) || /^\d/.test(m) || /counter for/.test(m)) return "numbers";
+    if (/^to /.test(m)) return "verbs";
+    if (/^(mr|mrs|ms|father|mother|brother|sister|son|daughter|grandfather|grandmother|husband|wife|uncle|aunt|parents|child|children|family|baby)\b/.test(m)) return "family";
+    if (/^(teacher|student|doctor|friend|person|people|man|woman|boy|girl|adult|company employee|foreigner|police|clerk|customer)\b/.test(m)) return "people";
+    if (/^(i|you|he|she|we|they|this|that|which|what|who|where|when|why|how|everyone|something|somebody|nothing|nobody|myself)\b/.test(m)) return /^(what|which|who|where|when|why|how)\b/.test(m) ? "question" : "pronouns";
+    if (/^(morning|evening|night|noon|today|tomorrow|yesterday|now|week|month|year|hour|minute|o'clock|time|spring|summer|autumn|winter|monday|tuesday|wednesday|thursday|friday|saturday|sunday|january|february|march|april|may|june|july|august|september|october|november|december|birthday|holiday|next|last|every)\b/.test(m)) return "time";
+    if (/\b(rice|bread|meat|fish|water|tea|coffee|milk|egg|vegetable|fruit|apple|sushi|noodle|soup|sugar|salt|beer|sake|alcohol|food|meal|breakfast|lunch|dinner|cake|sweets|restaurant|drink)\b/.test(m) && !/^to /.test(m)) return "food";
+    if (/\b(station|school|hospital|bank|post office|shop|store|park|hotel|library|company|office|room|house|home|city|town|country|road|street|river|mountain|sea|building|kitchen|garden|airport|country|world|place)\b/.test(m)) return "places";
+    if (/\b(car|train|bus|bicycle|taxi|airplane|subway|ship|boat|ticket|traffic)\b/.test(m)) return "transport";
+    if (/\b(head|hand|foot|leg|eye|ear|mouth|nose|hair|body|stomach|tooth|teeth|illness|medicine|cold|fever|healthy|sick|injury|blood|heart)\b/.test(m)) return "body";
+    if (/\b(dog|cat|bird|fish|horse|cow|pig|animal|insect|chicken)\b/.test(m) && !/\b(meat|to)\b/.test(m)) return "animals";
+    if (/\b(rain|snow|wind|weather|sky|sun|moon|star|cloud|flower|tree|forest|nature|earth|hot|cold weather|typhoon|earthquake)\b/.test(m)) return "nature";
+    if (/\b(sport|tennis|baseball|soccer|swimming|music|song|movie|film|game|hobby|travel|trip|piano|guitar|dance|photograph|picture|book|reading)\b/.test(m)) return "sports";
+    if (/^(please|hello|good morning|good evening|good night|goodbye|thank you|excuse me|i'm sorry|welcome|congratulations|cheers|yes|no|ah!|oh!|well|um|really\?)/.test(m) || /[!？?]$/.test(expr)) return "phrases";
+    if (/[いしきくらる]$/.test(expr) && /^(bright|dark|big|small|new|old|hot|cold|warm|cool|good|bad|expensive|cheap|long|short|tall|low|high|fast|slow|early|late|near|far|busy|free|fun|interesting|boring|delicious|difficult|easy|heavy|light|quiet|noisy|beautiful|pretty|cute|kind|strong|weak|young|dangerous|safe|sad|happy|lonely|sweet|spicy|salty|bitter|round|thick|thin|wide|narrow|deep|shallow|dirty|clean)\b/.test(m)) return "adjectives";
+    if (/^(very|a little|often|always|sometimes|usually|already|still|not yet|again|soon|slowly|quickly|together|also|but|and|or|because|however|therefore|then|for example|perhaps|probably|surely|of course|about|approximately|just|only|more|most|first of all|at once|suddenly|gradually|especially|for the first time|at last)\b/.test(m)) return "adverbs";
+    if (/^(desk|chair|table|door|window|bag|umbrella|key|pen|pencil|paper|notebook|dictionary|camera|watch|clock|telephone|television|radio|computer|shoes|clothes|shirt|hat|glasses|money|wallet|box|cup|glass|plate|knife|bottle|letter|stamp|newspaper|magazine|map|photo|bed|refrigerator|toy)\b/.test(m)) return "objects";
+    if (/\b(particle|suffix|prefix|copula|honorific|auxiliary|indicates|conjunction|interjection)\b/.test(m)) return "particles";
+    if (/\b(study|learn|homework|exam|test|class|lesson|university|kanji|hiragana|katakana|grammar|word|language|english|japanese|question|answer|meaning|work|job|meeting)\b/.test(m)) return "study";
+    return "misc";
+  }
+  const JA_WORDS = (window.JA_WORDS_RAW || []).map((r, i) => {
+    const [lvl, expr, reading, meaning] = r;
+    const romaji = toRomaji(reading);
+    return { id: "j" + (i + 1), hz: expr, py: reading === expr ? romaji : `${reading} · ${romaji}`, kana: reading, romaji, en: meaning, cat: jaCategory(expr, meaning), lvl, ex: "", exPy: "", exEn: "", course: "ja" };
+  });
   const COURSES = {
     zh: { id: "zh", glyph: "中", name: "中文 · Chinese", title: "HSK Trainer", tts: "zh-CN", script: "cjk", levels: [1, 2, 3], levelName: (l) => "HSK " + l, allLabel: "HSK 1–3", words: ZH_WORDS, toneOptions: [1, 2, 3, 4], testPhrase: "你好，我学习汉语。", source: { text: "glxxyz/hskhsk.com", url: "https://github.com/glxxyz/hskhsk.com" } },
-    vi: { id: "vi", glyph: "Vi", name: "Tiếng Việt · Vietnamese", title: "Tiếng Việt Trainer", tts: "vi-VN", script: "latin", levels: [1, 2, 3, 4, 5, 6], levelName: (l) => ["A1", "A2", "B1", "B2", "C1", "C2"][l - 1], allLabel: "A1–C2", words: VI_WORDS, toneOptions: [1, 2, 3, 4, 5, 6], testPhrase: "Xin chào, tôi học tiếng Việt.", source: null }
+    vi: { id: "vi", glyph: "Vi", name: "Tiếng Việt · Vietnamese", title: "Tiếng Việt Trainer", tts: "vi-VN", script: "latin", levels: [1, 2, 3, 4, 5, 6], levelName: (l) => ["A1", "A2", "B1", "B2", "C1", "C2"][l - 1], allLabel: "A1–C2", words: VI_WORDS, toneOptions: [1, 2, 3, 4, 5, 6], testPhrase: "Xin chào, tôi học tiếng Việt.", source: null },
+    ja: { id: "ja", glyph: "あ", name: "日本語 · Japanese", title: "JLPT Trainer", tts: "ja-JP", script: "cjk", levels: [1, 2, 3, 4, 5], levelName: (l) => "N" + (6 - l), allLabel: "N5–N1", words: JA_WORDS, toneOptions: null, testPhrase: "こんにちは。日本語を勉強しています。", source: { text: "jamsinclair/open-anki-jlpt-decks", url: "https://github.com/jamsinclair/open-anki-jlpt-decks" } }
   };
   const CATS = window.HSK1_CATEGORIES;
   const BY_ID = Object.fromEntries(Object.values(COURSES).flatMap((c) => c.words).map((w) => [w.id, w]));
@@ -52,7 +103,8 @@
   const stripTones = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/v/g, "u").replace(/[\s'’\-.,!?0-9]/g, "");
   // Vietnamese: drop diacritics (đ → d), collapse spaces
   const stripVi = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").toLowerCase().replace(/[.,!?'’]/g, "").replace(/\s+/g, " ").trim();
-  const norm = (s) => (C.id === "zh" ? stripTones(s) : stripVi(s));
+  const stripJa = (s) => s.normalize("NFC").toLowerCase().replace(/[\s'’\-.,!?・]/g, "");
+  const norm = (s) => (C.id === "zh" ? stripTones(s) : C.id === "ja" ? stripJa(s) : stripVi(s));
   const hasDiacritics = (s) => /[̀-ͯ]/.test(s.normalize("NFD")) || /đ/i.test(s);
   const TONE_MARKS = { "̄": 1, "́": 2, "̌": 3, "̀": 4 };           // Mandarin: 1–4, none = neutral (5)
   const VI_TONE_MARKS = { "̀": 2, "́": 3, "̉": 4, "̃": 5, "̣": 6 }; // Vietnamese: ngang(1) huyền sắc hỏi ngã nặng
@@ -73,7 +125,7 @@
     stats: { answered: 0, correct: 0, days: {}, sessions: 0 },
     settings: { rate: 0.85, autoSpeak: true, tilePinyin: true, quizSize: 10, dailyGoal: 20, theme: "auto" },
     course: "zh",
-    courses: { zh: { levels: [1] }, vi: { levels: [1] } }
+    courses: { zh: { levels: [1] }, vi: { levels: [1] }, ja: { levels: [1] } }
   };
   let S = load();
   // Migration: level selection used to live in settings.levels (Chinese only)
@@ -144,6 +196,7 @@
       today: "today", streakMsg: (n) => n === 1 ? "1 day" : `${n} days`,
       levels: "Levels", levelHint: "Choose which HSK levels to study. The selection applies to tiles, training and progress.", perLevel: "By level", lvlBadge: (n) => `HSK ${n}`,
       dataSource: "Word lists follow the official HSK 2.0 lists (2012).",
+      showMore: (n, rest) => `Show ${n} more (${rest} remaining)`,
       voice: "Voice", voiceAuto: "Automatic", refreshVoices: "Look for voices", langName: "Chinese",
       ttsHintAndroid: (lang) => `On Android the app uses the phone's text-to-speech engine. Install “Speech Services by Google” from the Play Store, then open Settings → General management (or System) → Language & input → Text-to-speech output, choose Google as the preferred engine, tap its settings → Install voice data → ${lang}. Reload this page afterwards. Chrome and Samsung Internet both work.`,
       ttsNoVoiceAndroid: (lang) => `No ${lang} voice was found on this device yet. After installing the voice data, tap “Look for voices” or reload the page.`,
@@ -196,6 +249,7 @@
       today: "heute", streakMsg: (n) => n === 1 ? "1 Tag" : `${n} Tage`,
       levels: "Stufen", levelHint: "Wähle die HSK-Stufen, die du lernen möchtest. Die Auswahl gilt für Kacheln, Übungen und Fortschritt.", perLevel: "Nach Stufe", lvlBadge: (n) => `HSK ${n}`,
       dataSource: "Die Wortlisten folgen den offiziellen HSK-2.0-Listen (2012).",
+      showMore: (n, rest) => `${n} weitere anzeigen (${rest} übrig)`,
       voice: "Stimme", voiceAuto: "Automatisch", refreshVoices: "Stimmen suchen", langName: "Chinesisch",
       ttsHintAndroid: (lang) => `Unter Android nutzt die App die Sprachausgabe des Telefons. Installiere „Speech Services by Google“ aus dem Play Store, öffne dann Einstellungen → Allgemeine Verwaltung (oder System) → Sprache und Eingabe → Text-zu-Sprache-Ausgabe, wähle Google als bevorzugtes Modul, tippe auf dessen Einstellungen → Sprachdaten installieren → ${lang}. Danach diese Seite neu laden. Chrome und Samsung Internet funktionieren beide.`,
       ttsNoVoiceAndroid: (lang) => `Auf diesem Gerät wurde noch keine ${lang}-Stimme gefunden. Nach dem Installieren der Sprachdaten auf „Stimmen suchen“ tippen oder die Seite neu laden.`,
@@ -204,6 +258,48 @@
   };
   // Course-specific wording (Vietnamese is written in Latin script: no hanzi, no pinyin)
   const COURSE_I18N = {
+    ja: {
+      en: {
+        brandSub: "JLPT", search: "Search kanji, kana, romaji or meaning…", tilePinyin: "Reading on tiles", langName: "Japanese",
+        modeType: "Type the reading", modeTypeDesc: "See the word, type its reading in kana or romaji.",
+        modeNumbers: "Numbers", modeNumbersDesc: "Read and write Japanese numbers 1–99.",
+        dirHzTr: "Word → Meaning", dirTrHz: "Meaning → Word", dirHzPy: "Word → Reading", dirPyHz: "Reading → Word",
+        typeHint: "Kana or romaji (たべる = taberu). Long vowels as written: ou / oo.", typePlaceholder: "reading…",
+        pinyinTips: "Reading tips", numbers: "Number trainer", numbersDesc: "Practice 1–99",
+        noZhVoice: "No Japanese voice found yet",
+        ttsHint: "No sound on iPhone? Flip the ring/silent switch to ring and turn the volume up: speech follows the silent switch. If no Japanese voice is listed, add one under Settings → Accessibility → Spoken Content → Voices → Japanese.",
+        aboutText: "The JLPT vocabulary from N5 to N1 (about 8,000 words) with kana reading, romaji and English meaning, and pronunciation via your device's speech synthesis. Your progress is stored locally on this device.",
+        dataSource: "Words, readings and meanings come from the open JLPT lists in",
+        pinyinTipsText: [
+          "Japanese is written with kanji (Chinese characters) plus two syllabaries, hiragana and katakana. The reading shown here is in kana, followed by romaji.",
+          "Romaji here is written the way you type it: long vowels stay as written (とうきょう = toukyou), and っ doubles the following consonant (きって = kitte).",
+          "Vowels are short and pure: a as in “father”, i as in “ski”, u as in “put” (lips relaxed), e as in “bed”, o as in “more”.",
+          "r is a light tap between English r and l. f (ふ) is blown softly between the lips. ん before b, p, m sounds like m.",
+          "Pitch accent, not stress, distinguishes some words (はし bridge vs はし chopsticks). Listen to the audio and imitate the melody.",
+          "Meanings list several senses separated by commas. In multiple choice, any sense counts as the word's meaning."
+        ]
+      },
+      de: {
+        brandSub: "JLPT", search: "Kanji, Kana, Romaji oder Bedeutung suchen…", tilePinyin: "Lesung auf Kacheln", langName: "Japanisch",
+        modeType: "Lesung tippen", modeTypeDesc: "Wort sehen, Lesung in Kana oder Romaji eingeben.",
+        modeNumbers: "Zahlen", modeNumbersDesc: "Japanische Zahlen 1–99 lesen und schreiben.",
+        dirHzTr: "Wort → Bedeutung", dirTrHz: "Bedeutung → Wort", dirHzPy: "Wort → Lesung", dirPyHz: "Lesung → Wort",
+        typeHint: "Kana oder Romaji (たべる = taberu). Lange Vokale wie geschrieben: ou / oo.", typePlaceholder: "Lesung…",
+        pinyinTips: "Lese-Tipps", numbers: "Zahlen-Trainer", numbersDesc: "1–99 üben",
+        noZhVoice: "Noch keine japanische Stimme gefunden",
+        ttsHint: "Kein Ton auf dem iPhone? Stell den Klingel-/Stumm-Schalter auf Klingeln und dreh die Lautstärke auf – die Sprachausgabe folgt dem Stumm-Schalter. Wird keine japanische Stimme angezeigt, füge eine hinzu unter Einstellungen → Bedienungshilfen → Gesprochene Inhalte → Stimmen → Japanisch.",
+        aboutText: "Der JLPT-Wortschatz von N5 bis N1 (rund 8.000 Wörter) mit Kana-Lesung, Romaji und englischer Bedeutung sowie Aussprache über die Sprachausgabe deines Geräts. Dein Fortschritt wird lokal auf diesem Gerät gespeichert.",
+        dataSource: "Wörter, Lesungen und Bedeutungen stammen aus den offenen JLPT-Listen in",
+        pinyinTipsText: [
+          "Japanisch wird mit Kanji (chinesischen Zeichen) und zwei Silbenschriften geschrieben, Hiragana und Katakana. Die Lesung steht hier in Kana, gefolgt von Romaji.",
+          "Romaji ist so geschrieben, wie man es tippt: lange Vokale bleiben wie geschrieben (とうきょう = toukyou), っ verdoppelt den folgenden Konsonanten (きって = kitte).",
+          "Vokale sind kurz und rein: a wie in „Vater“, i wie in „Kino“, u wie in „Mut“ (Lippen entspannt), e wie in „Bett“, o wie in „Ofen“.",
+          "r ist ein leichter Zungenschlag zwischen r und l. f (ふ) wird sanft zwischen den Lippen geblasen. ん vor b, p, m klingt wie m.",
+          "Nicht Betonung, sondern Tonhöhe unterscheidet manche Wörter (はし Brücke vs. はし Essstäbchen). Höre das Audio und imitiere die Melodie.",
+          "Bedeutungen listen mehrere Lesarten durch Kommas getrennt. Im Multiple Choice zählt jede davon als Bedeutung des Wortes."
+        ]
+      }
+    },
     vi: {
       en: {
         brandSub: "Vietnamese", search: "Search word or meaning…", tilePinyin: "Pronunciation on tiles",
@@ -482,7 +578,7 @@
       if (wf.status === "due" && !isDue(w.id)) return false;
       if (["new", "learning", "known"].includes(wf.status) && status(w.id) !== wf.status) return false;
       if (!q) return true;
-      return w.hz.toLowerCase().includes(q) || norm(w.hz).includes(qs) || norm(w.py).includes(qs) || w.py.toLowerCase().includes(q) || w.en.toLowerCase().includes(q) || (w.de || "").toLowerCase().includes(q);
+      return w.hz.toLowerCase().includes(q) || norm(w.hz).includes(qs) || norm(w.py).includes(qs) || w.py.toLowerCase().includes(q) || (w.romaji && w.romaji.includes(qs)) || w.en.toLowerCase().includes(q) || (w.de || "").toLowerCase().includes(q);
     });
   }
   function renderWords(view) {
@@ -505,12 +601,16 @@
     $$("#cat-chips .chip").forEach((b) => (b.onclick = () => { wf.cat = b.dataset.cat; $$("#cat-chips .chip").forEach((x) => x.classList.toggle("active", x === b)); drawTiles(); }));
     drawTiles();
   }
-  function drawTiles() {
+  let tileLimit = 240;
+  function drawTiles(reset) {
+    if (reset !== false) tileLimit = 240;
     const list = filteredWords();
     $("#words-hint").textContent = t("wordsCount", list.length, WORDS.length);
     const tiles = $("#tiles");
     if (!list.length) { tiles.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="big">🔍</div>${t("noResults")}</div>`; return; }
-    tiles.innerHTML = list.map((w) => `
+    const CHUNK = 240;
+    const shown = list.slice(0, tileLimit);
+    tiles.innerHTML = shown.map((w) => `
       <button class="tile" data-id="${w.id}" type="button">
         <span class="tile-dot ${status(w.id)}"></span>
         ${S.favs.includes(w.id) ? `<span class="tile-fav">★</span>` : ""}
@@ -518,8 +618,9 @@
         ${S.settings.tilePinyin ? `<span class="tile-py">${w.py}</span>` : ""}
         <span class="tile-tr">${esc(tr(w))}</span>
         <span class="tile-num">${curLevels().length > 1 ? `<span class="lvl-badge l${w.lvl}">${C.levelName(w.lvl)}</span>` : (C.id === "zh" ? w.id : "")}</span>
-      </button>`).join("");
+      </button>`).join("") + (list.length > shown.length ? `<button class="btn block tiles-more" id="tiles-more" type="button">${t("showMore", Math.min(CHUNK, list.length - shown.length), list.length - shown.length)}</button>` : "");
     $$(".tile", tiles).forEach((b) => (b.onclick = () => openWord(wid(b.dataset.id))));
+    const more = $("#tiles-more"); if (more) more.onclick = () => { tileLimit += CHUNK; drawTiles(false); };
   }
   function openWord(id) {
     const w = BY_ID[id];
@@ -535,9 +636,9 @@
         <span class="pill new">${C.levelName(w.lvl)}${C.id === "zh" ? " · #" + w.id : ""}</span>
       </div>
       <div class="row" style="justify-content:center;margin-top:12px"><button class="speak-btn" id="d-speak" type="button" aria-label="${t("speak")}">🔊</button></div>
-      <div class="example">
-        <div class="row"><div class="grow"><div class="ex-hz">${w.ex}</div><div class="ex-py">${w.exPy}</div><div class="ex-tr">${esc(exTr(w))}</div></div><button class="speak-btn sm" id="d-speak-ex" type="button" aria-label="${t("speak")}">🔊</button></div>
-      </div>
+      ${w.ex ? `<div class="example">
+        <div class="row"><div class="grow"><div class="ex-hz">${w.ex}</div>${w.exPy ? `<div class="ex-py">${w.exPy}</div>` : ""}<div class="ex-tr">${esc(exTr(w))}</div></div><button class="speak-btn sm" id="d-speak-ex" type="button" aria-label="${t("speak")}">🔊</button></div>
+      </div>` : ""}
       <div class="detail-actions">
         <button class="btn ${st === "known" ? "ghost" : "success"}" id="d-known" type="button">${st === "known" ? "↺ " + t("resetWord") : "✓ " + t("markKnown")}</button>
         <button class="btn ${fav ? "warn" : ""}" id="d-fav" type="button">${fav ? "★ " + t("unfav") : "☆ " + t("fav")}</button>
@@ -545,7 +646,7 @@
         <button class="btn block ghost" id="d-close" type="button">${t("close")}</button>
       </div>`, () => { if (route[0] === "words" && $("#tiles")) drawTiles(); });
     $("#d-speak").onclick = () => speak(w.hz);
-    $("#d-speak-ex").onclick = () => speak(w.ex);
+    if ($("#d-speak-ex")) $("#d-speak-ex").onclick = () => speak(w.ex);
     $("#d-close").onclick = closeSheet;
     $("#d-fav").onclick = () => { S.favs = fav ? S.favs.filter((x) => x !== id) : S.favs.concat(id); save(); openWord(id); };
     $("#d-known").onclick = () => { if (st === "known") resetWord(id); else markKnown(id); openWord(id); };
@@ -573,7 +674,7 @@
     if (mode === "type") return setupSession(view, mode, { pool: true, count: [10, 20, 40] });
     if (mode === "listen") return setupSession(view, mode, { pool: true, count: [10, 20, 40] });
     if (mode === "match") return startMatch(view);
-    if (mode === "tones") return startTones(view);
+    if (mode === "tones") return C.toneOptions ? startTones(view) : renderTrainHome(view);
     if (mode === "numbers") return startNumbers(view);
   }
   function renderTrainHome(view) {
@@ -585,7 +686,7 @@
         <button class="btn" id="review-now" type="button">${due ? t("reviewNow") : t("modeFlash")}</button>
       </div>
       <div class="mode-grid">
-        ${MODES.map((m) => `<button class="mode-card" data-mode="${m.id}" type="button"><span class="mode-ico">${m.ico}</span><span class="mode-title">${t(m.key)}</span><span class="mode-desc">${t(m.key + "Desc")}</span></button>`).join("")}
+        ${MODES.filter((m) => m.id !== "tones" || C.toneOptions).map((m) => `<button class="mode-card" data-mode="${m.id}" type="button"><span class="mode-ico">${m.ico}</span><span class="mode-title">${t(m.key)}</span><span class="mode-desc">${t(m.key + "Desc")}</span></button>`).join("")}
       </div>`;
     $("#review-now").onclick = () => navigate("train/flash");
     $$("[data-mode]").forEach((b) => (b.onclick = () => navigate("train/" + b.dataset.mode)));
@@ -683,7 +784,7 @@
             <div class="fc-py">${w.py}</div>
             <div class="fc-tr">${esc(tr(w))}</div>
             ${tr2(w) ? `<div class="fc-tr2">${esc(tr2(w))}</div>` : ""}
-            <div class="fc-ex"><span class="hanzi">${w.ex}</span>${w.exPy}<br>${esc(exTr(w))}</div>
+            ${w.ex ? `<div class="fc-ex"><span class="hanzi">${w.ex}</span>${w.exPy}<br>${esc(exTr(w))}</div>` : ""}
             <button class="speak-btn" id="fc-speak" type="button" style="margin-top:10px">🔊</button>`
           : `<div class="fc-hz ${isLong(w.hz) ? "long" : ""}">${w.hz}</div><div class="fc-hint">${t("tapToFlip")}</div>`}
         </div>
@@ -699,7 +800,7 @@
       if (!flipped) { $("#fc").onclick = flip; $("#fc-flip").onclick = flip; }
       else {
         $("#fc-speak").onclick = (e) => { e.stopPropagation(); speak(w.hz); };
-        $("#fc").onclick = () => speak(w.ex);
+        $("#fc").onclick = () => speak(w.ex || w.hz);
         $$("[data-q]").forEach((b) => (b.onclick = () => rate(+b.dataset.q)));
       }
     }
@@ -777,7 +878,7 @@
     function draw() {
       if (i >= list.length) { if (cleanup) { cleanup(); cleanup = null; } return showResult(view, { correct, total: list.length, mistakes, onAgain: () => navigate("train/type") }); }
       const w = list[i]; answered = false;
-      const promptHtml = C.id === "zh"
+      const promptHtml = C.id === "zh" || C.id === "ja"
         ? `<div class="q-hz ${isLong(w.hz) ? "long" : ""}">${w.hz}</div><div class="q-sub">${esc(tr(w))}</div>`
         : `<div class="q-text">${esc(tr(w))}</div>${tr2(w) ? `<div class="q-sub">${esc(tr2(w))}</div>` : ""}`;
       view.innerHTML = `${sessionHead(i, list.length, `✓ ${correct}`)}
@@ -798,6 +899,9 @@
         ok = stripTones(v) === stripTones(w.py);
         const digits = v.replace(/[^0-9]/g, "").replace(/[05]/g, "");
         if (ok && digits) ok = digits === toneSeq(w.py).join("");
+      } else if (C.id === "ja") {
+        const a = stripJa(v);
+        ok = a === stripJa(w.kana) || a === stripJa(w.romaji) || a === stripJa(w.hz) || a === stripJa(w.romaji).replace(/'/g, "") || a === toRomaji(w.kana).replace(/ou/g, "oo") || a.replace(/ou/g, "oo") === stripJa(w.romaji).replace(/ou/g, "oo");
       } else {
         ok = hasDiacritics(v) ? v.normalize("NFC").toLowerCase().replace(/\s+/g, " ").trim() === w.hz.normalize("NFC").toLowerCase() : stripVi(v) === stripVi(w.hz);
       }
@@ -808,7 +912,7 @@
       const input = $("#ti"); input.disabled = true; input.classList.add(ok ? "ok" : "bad");
       grade(w.id, ok ? 2 : 0); recordAnswer(ok);
       if (ok) correct++; else mistakes.push(w);
-      $("#fb").innerHTML = `<div class="feedback ${ok ? "ok" : "bad"}"><span>${ok ? "✓ " + t("correct") : "✗ " + t("wrong")}</span><span class="grow">${t("answerWas")} <b>${C.id === "zh" ? w.py : w.hz}</b>${C.id === "zh" ? "" : ` <span class="muted">[${esc(w.py)}]</span>`}</span><button class="speak-btn sm" id="fb-speak" type="button">🔊</button></div><button class="btn primary block" id="t-next" type="button" style="margin-top:12px">${t("next")}</button>`;
+      $("#fb").innerHTML = `<div class="feedback ${ok ? "ok" : "bad"}"><span>${ok ? "✓ " + t("correct") : "✗ " + t("wrong")}</span><span class="grow">${t("answerWas")} <b>${C.id === "zh" || C.id === "ja" ? w.py : w.hz}</b>${C.id === "zh" || C.id === "ja" ? "" : ` <span class="muted">[${esc(w.py)}]</span>`}</span><button class="speak-btn sm" id="fb-speak" type="button">🔊</button></div><button class="btn primary block" id="t-next" type="button" style="margin-top:12px">${t("next")}</button>`;
       $("#fb-speak").onclick = () => speak(w.hz);
       $("#t-next").onclick = next; $("#t-next").focus();
       if (S.settings.autoSpeak) speak(w.hz);
@@ -899,14 +1003,24 @@
     if (ones === 1) s += " mốt"; else if (ones === 4) s += " tư"; else if (ones === 5) s += " lăm"; else if (ones) s += " " + VI_NUM[ones];
     return s;
   }
+  const JA_NUM_HZ = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十"];
+  const JA_NUM_RO = ["zero", "ichi", "ni", "san", "yon", "go", "roku", "nana", "hachi", "kyuu", "juu"];
+  function numToJa(n, pron) {
+    const H = pron ? JA_NUM_RO : JA_NUM_HZ; const sep = pron ? " " : "";
+    if (n <= 10) return H[n];
+    const tens = Math.floor(n / 10), ones = n % 10;
+    return (tens > 1 ? H[tens] + sep : "") + H[10] + (ones ? sep + H[ones] : "");
+  }
   function numToHanzi(n) {
     if (C.id === "vi") return numToVi(n);
+    if (C.id === "ja") return numToJa(n, false);
     if (n <= 10) return NUM_HZ[n];
     const tens = Math.floor(n / 10), ones = n % 10;
     return (tens > 1 ? NUM_HZ[tens] : "") + "十" + (ones ? NUM_HZ[ones] : "");
   }
   function numToPinyin(n) {
     if (C.id === "vi") return "";
+    if (C.id === "ja") return numToJa(n, true);
     if (n <= 10) return NUM_PY[n];
     const tens = Math.floor(n / 10), ones = n % 10;
     return ((tens > 1 ? NUM_PY[tens] + " " : "") + "shí" + (ones ? " " + NUM_PY[ones] : ""));
@@ -1020,6 +1134,7 @@
   /* ================= MORE ================= */
   function renderMore(view) {
     const sub = route[1];
+    if (sub === "tones" && !C.toneOptions) return navigate("more");
     if (sub === "tones") return renderTones(view);
     if (sub === "pinyin") return renderPinyinTips(view);
     if (sub === "about") return renderAbout(view);
@@ -1028,7 +1143,7 @@
     const chosen = !!(S.settings.voices && S.settings.voices[C.id]);
     view.innerHTML = `
       <div class="list">
-        <button class="list-item" data-go="more/tones" type="button"><span class="li-ico">🎵</span><span class="grow"><div class="li-title">${t("toneGuide")}</div><div class="li-sub">${t("toneGuideDesc")}</div></span><span class="li-chev">›</span></button>
+        ${C.toneOptions ? `<button class="list-item" data-go="more/tones" type="button"><span class="li-ico">🎵</span><span class="grow"><div class="li-title">${t("toneGuide")}</div><div class="li-sub">${t("toneGuideDesc")}</div></span><span class="li-chev">›</span></button>` : ""}
         <button class="list-item" data-go="train/numbers" type="button"><span class="li-ico">🔢</span><span class="grow"><div class="li-title">${t("numbers")}</div><div class="li-sub">${t("numbersDesc")}</div></span><span class="li-chev">›</span></button>
         <button class="list-item" data-go="more/pinyin" type="button"><span class="li-ico">🔤</span><span class="grow"><div class="li-title">${t("pinyinTips")}</div></span><span class="li-chev">›</span></button>
         <button class="list-item" data-go="more/about" type="button"><span class="li-ico">📱</span><span class="grow"><div class="li-title">${t("about")}</div></span><span class="li-chev">›</span></button>
@@ -1081,7 +1196,7 @@
   function renderAbout(view) {
     setTopbar(t("about"), "more");
     view.innerHTML = `
-      <div class="card about"><h3 style="margin-bottom:8px">${C.title}</h3><p>${esc(t("aboutText"))}</p><p>${esc(t("dataSource"))}${C.source ? ` <a href="${C.source.url}" target="_blank" rel="noopener">${C.source.text}</a> (MIT)` : ""}</p></div>
+      <div class="card about"><h3 style="margin-bottom:8px">${C.title}</h3><p>${esc(t("aboutText"))}</p><p>${esc(t("dataSource"))}${C.source ? ` <a href="${C.source.url}" target="_blank" rel="noopener">${C.source.text}</a> (MIT${C.id === "ja" ? ", based on Jonathan Waller's JLPT lists, tanos.co.uk, CC BY" : ""})` : ""}</p></div>
       <div class="section-title">${t("installTitle")}</div>
       <div class="card about"><ol>${t("installSteps").map((s) => `<li>${esc(s)}</li>`).join("")}</ol><p style="margin-top:10px">${esc(t("installMac"))}</p></div>`;
   }

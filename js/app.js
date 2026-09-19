@@ -81,6 +81,7 @@
       installMac: "On a Mac: in Safari choose File → Add to Dock, or simply bookmark the page.",
       aboutText: "All 150 words of HSK level 1 with pinyin, English and German translations, example sentences and pronunciation via your device's speech synthesis. Your progress is stored locally on this device.",
       noTts: "Speech synthesis is not available in this browser.", speak: "Pronounce",
+      noZhVoice: "No Chinese voice found yet", ttsHint: "No sound on iPhone? Flip the ring/silent switch to ring and turn the volume up: speech follows the silent switch. If no Chinese voice is listed, add one under Settings → Accessibility → Spoken Content → Voices → Chinese.",
       pinyinTipsText: [
         "Pinyin is the Latin transcription of Mandarin. It is not English: “q” sounds like “ch” in “cheese”, “x” like a soft “sh”, “zh” like “j” in “judge”, “c” like “ts” in “cats”.",
         "“ü” (written “u” after j, q, x, y) is pronounced like the German “ü”.",
@@ -126,6 +127,7 @@
       installMac: "Auf dem Mac: in Safari Ablage → Zum Dock hinzufügen wählen oder die Seite als Lesezeichen speichern.",
       aboutText: "Alle 150 Wörter der HSK-Stufe 1 mit Pinyin, deutscher und englischer Übersetzung, Beispielsätzen und Aussprache über die Sprachausgabe deines Geräts. Dein Fortschritt wird lokal auf diesem Gerät gespeichert.",
       noTts: "Sprachausgabe ist in diesem Browser nicht verfügbar.", speak: "Aussprechen",
+      noZhVoice: "Noch keine chinesische Stimme gefunden", ttsHint: "Kein Ton auf dem iPhone? Stell den Klingel-/Stumm-Schalter auf Klingeln und dreh die Lautstärke auf – die Sprachausgabe folgt dem Stumm-Schalter. Wird keine chinesische Stimme angezeigt, füge eine hinzu unter Einstellungen → Bedienungshilfen → Gesprochene Inhalte → Stimmen → Chinesisch.",
       pinyinTipsText: [
         "Pinyin ist die lateinische Umschrift des Mandarin. Achtung: „q“ klingt wie „tch“, „x“ wie ein weiches „sch“, „zh“ wie „dsch“ in „Dschungel“, „c“ wie „ts“ in „Zahl“.",
         "„ü“ (nach j, q, x, y nur als „u“ geschrieben) spricht man wie das deutsche „ü“.",
@@ -153,19 +155,36 @@
       || zh.find((v) => /zh[-_]CN/i.test(v.lang)) || zh.find((v) => !/HK|TW/i.test(v.lang)) || zh[0];
     TTS.voice = pref || null;
   }
-  if (TTS.available) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+  if (TTS.available) { pickVoice(); speechSynthesis.onvoiceschanged = () => { pickVoice(); if (route[0] === "more" && !route[1]) render(); }; }
+  let currentUtterance = null; // keep a reference: Safari garbage-collects utterances mid-speech otherwise
   function speak(text, opts) {
     if (!TTS.available) { toast(t("noTts")); return; }
     try {
-      speechSynthesis.cancel();
+      if (speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel();
+      if (speechSynthesis.paused) speechSynthesis.resume();
+      if (!TTS.voice) pickVoice();
       const u = new SpeechSynthesisUtterance(text);
       u.lang = "zh-CN";
       if (TTS.voice) u.voice = TTS.voice;
       u.rate = (opts && opts.rate) || S.settings.rate;
       u.pitch = 1;
-      speechSynthesis.speak(u);
-      if (speechSynthesis.paused) speechSynthesis.resume();
+      currentUtterance = u;
+      // iOS drops an utterance queued in the same tick as cancel(); defer minimally
+      setTimeout(() => speechSynthesis.speak(u), 0);
     } catch (e) { /* ignore */ }
+  }
+  // iOS only plays speech after a user gesture: unlock with a silent utterance on the first touch/click
+  function unlockSpeech() {
+    if (!TTS.available) return;
+    try { const u = new SpeechSynthesisUtterance(""); u.volume = 0; speechSynthesis.speak(u); } catch (e) { /* ignore */ }
+    document.removeEventListener("touchend", unlockSpeech, true);
+    document.removeEventListener("click", unlockSpeech, true);
+  }
+  if (TTS.available) {
+    document.addEventListener("touchend", unlockSpeech, true);
+    document.addEventListener("click", unlockSpeech, true);
+    // Safari pauses speech when the page is hidden and never resumes it
+    document.addEventListener("visibilitychange", () => { if (!document.hidden && speechSynthesis.paused) speechSynthesis.resume(); });
   }
 
   /* ---------------- Spaced repetition (SM-2 style) ---------------- */
@@ -522,7 +541,7 @@
       const distractors = sample(WORDS.filter((x) => x.id !== w.id && (direction === "hzPy" || direction === "pyHz" || direction === "listen" ? true : tr(x) !== tr(w))), optCount - 1);
       return shuffle([w].concat(distractors));
     }
-    function draw() {
+    function draw(autoPlay) {
       if (i >= list.length) { if (cleanup) { cleanup(); cleanup = null; } return showResult(view, { correct, total: list.length, mistakes, onAgain: () => navigate("train/" + (direction === "listen" ? "listen" : "quiz")) }); }
       const w = list[i]; const opts = optionsFor(w); answered = false;
       let prompt, optHtml;
@@ -535,7 +554,7 @@
       optHtml = opts.map((x, k) => `<button class="option ${optClass}" data-id="${x.id}" type="button"><span class="opt-key">${k + 1}</span><span>${label(x)}</span></button>`).join("");
       view.innerHTML = `${sessionHead(i, list.length, `✓ ${correct}`)}<div class="quiz-q">${prompt}</div><div class="options">${optHtml}</div><div id="fb"></div><div class="kbd-hint">${t("keys")}</div>`;
       if ($("#q-speak")) $("#q-speak").onclick = () => speak(w.hz);
-      if ($("#q-play")) { $("#q-play").onclick = () => speak(w.hz); setTimeout(() => speak(w.hz), 150); }
+      if ($("#q-play")) { $("#q-play").onclick = () => speak(w.hz); if (autoPlay) speak(w.hz); }
       $$(".option").forEach((b) => (b.onclick = () => answer(+b.dataset.id)));
     }
     function answer(id) {
@@ -549,13 +568,13 @@
       $("#q-next").onclick = next;
       if (S.settings.autoSpeak && direction !== "listen") speak(w.hz);
     }
-    function next() { i++; draw(); }
+    function next() { i++; draw(true); }
     bindKeys((e) => {
       if (/^[1-4]$/.test(e.key) && !answered) { const b = $$(".option")[+e.key - 1]; if (b) b.click(); }
       else if ((e.key === "Enter" || e.key === " ") && answered) { e.preventDefault(); next(); }
       else if (e.key === " " && direction === "listen") { e.preventDefault(); speak(list[i].hz); }
     });
-    draw();
+    draw(false);
   }
 
   /* --- Type pinyin --- */
@@ -637,14 +656,14 @@
   function startTones(view) {
     const pool = WORDS.filter((w) => w.hz.length === 1 && firstTone(w.py) !== 5);
     const list = sample(pool, 10); let i = 0, correct = 0, answered = false; const mistakes = [];
-    function draw() {
+    function draw(autoPlay) {
       if (i >= list.length) { if (cleanup) { cleanup(); cleanup = null; } return showResult(view, { correct, total: list.length, mistakes, onAgain: () => startTones(view) }); }
       const w = list[i]; answered = false;
       view.innerHTML = `${sessionHead(i, list.length, `✓ ${correct}`)}
         <div class="quiz-q"><div class="q-hz">${w.hz}</div><div class="q-sub">${esc(tr(w))}</div><div class="q-sub">${t("toneQ")}</div><button class="btn primary" id="q-play" type="button" style="margin-top:8px">▶︎ ${t("play")}</button></div>
         <div class="options">${[1, 2, 3, 4].map((n) => `<button class="option" data-tone="${n}" type="button"><span class="opt-key">${n}</span><span>${toneSvg(n)} ${t("toneN", n)}</span></button>`).join("")}</div>
         <div id="fb"></div><div class="kbd-hint">${t("keys")}</div>`;
-      $("#q-play").onclick = () => speak(w.hz, { rate: 0.7 }); setTimeout(() => speak(w.hz, { rate: 0.7 }), 150);
+      $("#q-play").onclick = () => speak(w.hz, { rate: 0.7 }); if (autoPlay) speak(w.hz, { rate: 0.7 });
       $$(".option").forEach((b) => (b.onclick = () => answer(+b.dataset.tone)));
     }
     function answer(n) {
@@ -653,10 +672,10 @@
       $$(".option").forEach((b) => { b.disabled = true; if (+b.dataset.tone === real) b.classList.add("correct"); else if (+b.dataset.tone === n) b.classList.add("wrong"); });
       recordAnswer(ok); if (ok) correct++; else mistakes.push(w);
       $("#fb").innerHTML = `<div class="feedback ${ok ? "ok" : "bad"}"><span>${ok ? "✓ " + t("correct") : "✗ " + t("wrong")}</span><span class="grow"><span class="hanzi">${w.hz}</span> <b>${w.py}</b> · ${t("toneN", real)}</span></div><button class="btn primary block" id="q-next" type="button" style="margin-top:12px">${t("next")}</button>`;
-      $("#q-next").onclick = () => { i++; draw(); };
+      $("#q-next").onclick = () => { i++; draw(true); };
     }
-    bindKeys((e) => { if (/^[1-4]$/.test(e.key) && !answered) answer(+e.key); else if ((e.key === "Enter" || e.key === " ") && answered) { e.preventDefault(); i++; draw(); } else if (e.key === " ") { e.preventDefault(); speak(list[i].hz, { rate: 0.7 }); } });
-    draw();
+    bindKeys((e) => { if (/^[1-4]$/.test(e.key) && !answered) answer(+e.key); else if ((e.key === "Enter" || e.key === " ") && answered) { e.preventDefault(); i++; draw(true); } else if (e.key === " ") { e.preventDefault(); speak(list[i].hz, { rate: 0.7 }); } });
+    draw(false);
   }
   function toneSvg(n) {
     const paths = { 1: "M4 10 H44", 2: "M4 28 L44 8", 3: "M4 10 L24 30 L44 12", 4: "M4 8 L44 30", 5: "M20 18 h8" };
@@ -795,8 +814,9 @@
         <div class="list-item static"><span class="li-ico">🔊</span><span class="grow li-title">${t("autoSpeak")}</span><button class="switch ${S.settings.autoSpeak ? "on" : ""}" id="sw-speak" type="button" aria-label="${t("autoSpeak")}"></button></div>
         <div class="list-item static"><span class="li-ico">🐢</span><span class="grow li-title">${t("ttsRate")}<div class="li-sub" id="rate-val">${S.settings.rate.toFixed(2)}×</div></span><input type="range" id="rate" min="0.5" max="1.2" step="0.05" value="${S.settings.rate}"></div>
         <div class="list-item static"><span class="li-ico">🀄</span><span class="grow li-title">${t("tilePinyin")}</span><button class="switch ${S.settings.tilePinyin ? "on" : ""}" id="sw-tile" type="button" aria-label="${t("tilePinyin")}"></button></div>
-        <button class="list-item" id="tts-test" type="button"><span class="li-ico">🗣️</span><span class="grow li-title">${t("ttsTest")}</span><span class="li-sub">${TTS.voice ? esc(TTS.voice.name) : (TTS.available ? "zh-CN" : "—")}</span></button>
-      </div>`;
+        <button class="list-item" id="tts-test" type="button"><span class="li-ico">🗣️</span><span class="grow li-title">${t("ttsTest")}<div class="li-sub">${TTS.voice ? esc(TTS.voice.name) + " (" + esc(TTS.voice.lang) + ")" : (TTS.available ? t("noZhVoice") : t("noTts"))}</div></span><span class="li-chev">🔊</span></button>
+      </div>
+      <div class="list-hint" style="margin-top:8px">${t("ttsHint")}</div>`;
     $$("[data-go]").forEach((b) => (b.onclick = () => navigate(b.dataset.go)));
     $$("[data-lang]").forEach((b) => (b.onclick = () => { S.lang = b.dataset.lang; save(); document.documentElement.lang = S.lang; render(); }));
     $$("[data-theme]").forEach((b) => (b.onclick = () => { S.settings.theme = b.dataset.theme; save(); applyTheme(); render(); }));

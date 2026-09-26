@@ -19,6 +19,7 @@ No build step, no dependencies, no backend: plain HTML, CSS and JavaScript. Prog
   - Matching game with timer
   - Tone drill: hear a syllable and identify its tone (4 Mandarin tones, 6 Vietnamese tones)
   - Number trainer for 1–99 (read and write), Chinese and Vietnamese
+- **Sounds** – a textbook-style pronunciation chart per language: one base sound per row with its variants as playable cells (Mandarin finals and initials across the four tones, Vietnamese vowels across the six tones plus consonants and final consonants, the Japanese kana tables plus length and double-consonant contrasts). Tapping a cell plays it and lists real words from the word lists containing that sound. A listen-and-pick drill trains minimal pairs (tones, similar consonants, similar vowels, long vs short vowels).
 - **Progress** – known / learning / new counts, due reviews, streak, daily goal, activity heatmap, progress per category.
 - **Extras** – tone guide with audio, pinyin tips, appearance (auto / light / dark), speech speed.
 - **PWA** – manifest, icons and a service worker so the app works offline once loaded.
@@ -61,6 +62,7 @@ js/data-hsk3.js       HSK 3 words (English)
 js/data-vi.js         Vietnamese A1–A2 words (word, pronunciation guide, English, example)
 js/data-vi-2.js       Vietnamese B1–C2 words
 js/data-ja.js         JLPT N5–N1 words as compact rows [level, kanji, kana, meaning]
+js/sounds-data.js     Sound charts and listening drills per language
 js/app.js             Application logic (views, training modes, spaced repetition, speech, storage)
 manifest.webmanifest  PWA manifest
 sw.js                 Service worker (offline cache)

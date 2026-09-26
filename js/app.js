@@ -197,6 +197,7 @@
       levels: "Levels", levelHint: "Choose which HSK levels to study. The selection applies to tiles, training and progress.", perLevel: "By level", lvlBadge: (n) => `HSK ${n}`,
       dataSource: "Word lists follow the official HSK 2.0 lists (2012).",
       showMore: (n, rest) => `Show ${n} more (${rest} remaining)`,
+      sounds: "Sounds", playRow: "Play row", examplesFor: (x) => `Words with “${x}”`, noExamples: "No example words in the current lists.", listenPick: "Listen & pick", drillPrompt: "Which one did you hear?", drillOf: "Drill", allDrills: "Mixed", soundsIntroMore: "Tap a cell to hear it and see example words. Tap the row label to hear the whole row.",
       voice: "Voice", voiceAuto: "Automatic", refreshVoices: "Look for voices", langName: "Chinese",
       ttsHintAndroid: (lang) => `On Android the app uses the phone's text-to-speech engine. Install “Speech Services by Google” from the Play Store, then open Settings → General management (or System) → Language & input → Text-to-speech output, choose Google as the preferred engine, tap its settings → Install voice data → ${lang}. Reload this page afterwards. Chrome and Samsung Internet both work.`,
       ttsNoVoiceAndroid: (lang) => `No ${lang} voice was found on this device yet. After installing the voice data, tap “Look for voices” or reload the page.`,
@@ -250,6 +251,7 @@
       levels: "Stufen", levelHint: "Wähle die HSK-Stufen, die du lernen möchtest. Die Auswahl gilt für Kacheln, Übungen und Fortschritt.", perLevel: "Nach Stufe", lvlBadge: (n) => `HSK ${n}`,
       dataSource: "Die Wortlisten folgen den offiziellen HSK-2.0-Listen (2012).",
       showMore: (n, rest) => `${n} weitere anzeigen (${rest} übrig)`,
+      sounds: "Laute", playRow: "Zeile abspielen", examplesFor: (x) => `Wörter mit „${x}“`, noExamples: "Keine Beispielwörter in den aktuellen Listen.", listenPick: "Hören & wählen", drillPrompt: "Welchen Laut hast du gehört?", drillOf: "Übung", allDrills: "Gemischt", soundsIntroMore: "Tippe eine Zelle, um sie zu hören und Beispielwörter zu sehen. Tippe die Zeilenbezeichnung, um die ganze Zeile zu hören.",
       voice: "Stimme", voiceAuto: "Automatisch", refreshVoices: "Stimmen suchen", langName: "Chinesisch",
       ttsHintAndroid: (lang) => `Unter Android nutzt die App die Sprachausgabe des Telefons. Installiere „Speech Services by Google“ aus dem Play Store, öffne dann Einstellungen → Allgemeine Verwaltung (oder System) → Sprache und Eingabe → Text-zu-Sprache-Ausgabe, wähle Google als bevorzugtes Modul, tippe auf dessen Einstellungen → Sprachdaten installieren → ${lang}. Danach diese Seite neu laden. Chrome und Samsung Internet funktionieren beide.`,
       ttsNoVoiceAndroid: (lang) => `Auf diesem Gerät wurde noch keine ${lang}-Stimme gefunden. Nach dem Installieren der Sprachdaten auf „Stimmen suchen“ tippen oder die Seite neu laden.`,
@@ -481,6 +483,7 @@
   const TABS = [
     { id: "words", ico: "🀄", key: "words" },
     { id: "train", ico: "🎯", key: "train" },
+    { id: "sounds", ico: "🗣️", key: "sounds" },
     { id: "progress", ico: "📈", key: "progress" },
     { id: "more", ico: "⋯", key: "more" }
   ];
@@ -545,6 +548,7 @@
     view.className = "view fade-in";
     const main = route[0];
     if (main === "train") renderTrain(view);
+    else if (main === "sounds") renderSounds(view);
     else if (main === "progress") renderProgress(view);
     else if (main === "more") renderMore(view);
     else renderWords(view);
@@ -1066,6 +1070,132 @@
       else if ((e.key === "Enter" || e.key === " ") && answered && e.target.id !== "ti") { e.preventDefault(); next(); }
     });
     draw();
+  }
+
+  /* ================= SOUNDS ================= */
+  const L = (o) => (o ? (o[S.lang] || o.en || "") : "");
+  // --- pinyin syllable analysis (for finding example words by initial/final/tone) ---
+  const PY_FINALS = ["iang", "iong", "uang", "ueng", "ang", "eng", "ing", "ong", "ian", "iao", "uai", "uan", "van", "ai", "ei", "ao", "ou", "an", "en", "in", "un", "vn", "ia", "ie", "iu", "ua", "uo", "ue", "ve", "er", "a", "o", "e", "i", "u", "v"];
+  const PY_INITIALS = ["zh", "ch", "sh", "b", "p", "m", "f", "d", "t", "n", "l", "g", "k", "h", "j", "q", "x", "r", "z", "c", "s", "w", "y"];
+  function pySyllables(py) {
+    const out = [];
+    for (const part of py.split(/[\s'’]+/)) {
+      const chars = Array.from(part);
+      const plain = chars.map((c) => { const d = c.normalize("NFD"); return d.includes("̈") ? "v" : d[0].toLowerCase(); });
+      const tones = chars.map((c) => { const d = c.normalize("NFD"); for (const ch of d) if (TONE_MARKS[ch]) return TONE_MARKS[ch]; return 0; });
+      let i = 0;
+      while (i < plain.length) {
+        const rest = plain.slice(i).join("");
+        const ini = PY_INITIALS.find((x) => rest.startsWith(x)) || "";
+        const afterIni = rest.slice(ini.length);
+        const fin = PY_FINALS.find((x) => afterIni.startsWith(x)) || "";
+        const len = (ini.length + fin.length) || 1;
+        const tone = tones.slice(i, i + len).find(Boolean) || 5;
+        out.push({ i: ini, f: fin || rest[0], tone });
+        i += len;
+      }
+    }
+    return out;
+  }
+  const VI_INI = /^(ngh|ng|nh|kh|ph|th|tr|ch|gh|gi|qu|[bcdđghklmnpqrstvx])/;
+  const VI_FIN = /(ch|ng|nh|[cmnpt])$/;
+  const viNoTone = (s) => s.normalize("NFD").replace(/[̣̀́̃̉]/g, "").normalize("NFC").toLowerCase();
+  const kataToHira = (s) => Array.from(s).map((c) => { const code = c.charCodeAt(0); return code >= 0x30a1 && code <= 0x30f6 ? String.fromCharCode(code - 0x60) : c; }).join("");
+  function soundExamples(row, cell) {
+    const m = row.match; const hits = [];
+    const want = (w) => {
+      if (C.id === "zh") {
+        const sy = pySyllables(w.py); const tone = cell ? (toneSeq(cell.t)[0] || 0) : 0;
+        return sy.some((x) => (m.final ? x.f === m.final : true) && (m.initial ? new RegExp("^(" + m.initial + ")$").test(x.i) : true) && (!tone || x.tone === tone));
+      }
+      if (C.id === "vi") {
+        const syl = viNoTone(w.hz).split(/\s+/);
+        if (m.vowel) return syl.some((x) => x.includes(m.vowel));
+        if (m.initial) { const set = m.initial.split("|"); return syl.some((x) => { const r = x.match(VI_INI); return r && set.includes(r[1]); }); }
+        if (m.final) { const set = m.final.split("|"); return syl.some((x) => { const r = x.match(VI_FIN); return r && set.includes(r[1]); }); }
+      }
+      if (C.id === "ja") {
+        const reading = kataToHira(w.kana || "");
+        const keys = cell ? [kataToHira(cell.t)] : row.cells.map((c) => kataToHira(c.t)).filter(Boolean);
+        return keys.some((k) => k && reading.includes(k));
+      }
+      return false;
+    };
+    for (const w of ALL_WORDS) { if (want(w)) { hits.push(w); if (hits.length >= 60) break; } }
+    hits.sort((a, b) => a.lvl - b.lvl || a.hz.length - b.hz.length);
+    return hits.slice(0, 6);
+  }
+  const soundPrefs = { group: null };
+  function renderSounds(view) {
+    if (route[1] === "drill") return renderSoundDrill(view);
+    const data = window.SOUNDS && window.SOUNDS[C.id];
+    setTopbar(t("sounds") + " · " + C.title.replace(" Trainer", ""), null);
+    if (!data) { view.innerHTML = `<div class="empty">🗣️</div>`; return; }
+    const g = data.groups.find((x) => x.id === soundPrefs.group) || data.groups[0];
+    const sep = C.id === "ja" ? "、" : C.id === "zh" ? "，" : ", ";
+    view.innerHTML = `
+      <p class="muted small" style="margin:2px 2px 10px">${esc(L(data.intro))} ${esc(t("soundsIntroMore"))}</p>
+      <div class="chips" id="sg-chips">${data.groups.map((x) => `<button class="chip ${x === g ? "active" : ""}" data-g="${x.id}" type="button">${esc(L(x.name))}</button>`).join("")}</div>
+      <div class="card sound-table ${g.kana ? "kana" : ""}">
+        ${g.head && g.head.length ? `<div class="srow shead"><div class="sbase"></div><div class="scells">${g.head.map((h) => `<div class="scell-h">${esc(h)}</div>`).join("")}</div></div>` : ""}
+        ${g.rows.map((r, ri) => `
+          <div class="srow" data-row="${ri}">
+            <button class="sbase" data-row="${ri}" type="button" title="${t("playRow")}">${esc(r.base)}</button>
+            <div class="scells">${r.cells.map((c, ci) => c.t ? `<button class="scell" data-row="${ri}" data-cell="${ci}" type="button"><span class="scell-t">${esc(c.t)}</span>${c.s && c.s !== c.t ? `<span class="scell-s">${esc(c.s)}</span>` : ""}${c.sub ? `<span class="scell-sub">${esc(c.sub)}</span>` : ""}</button>` : `<span class="scell empty"></span>`).join("")}</div>
+          </div>
+          ${r.note ? `<div class="snote">${esc(L(r.note))}</div>` : ""}
+          <div class="sex" id="sex-${ri}" hidden></div>`).join("")}
+      </div>
+      <button class="btn primary block" id="go-drill" type="button" style="margin-top:16px">🎧 ${t("listenPick")}</button>`;
+    $$("#sg-chips .chip").forEach((b) => (b.onclick = () => { soundPrefs.group = b.dataset.g; renderSounds(view); }));
+    $("#go-drill").onclick = () => navigate("sounds/drill");
+    const showExamples = (ri, ci) => {
+      const r = g.rows[ri]; const cell = ci == null ? null : r.cells[ci];
+      $$(".sex").forEach((x) => { x.hidden = true; });
+      $$(".scell.active").forEach((x) => x.classList.remove("active"));
+      if (cell) $(`.scell[data-row="${ri}"][data-cell="${ci}"]`).classList.add("active");
+      const box = $(`#sex-${ri}`); if (!r.match && !(C.id === "ja" && g.kana)) { return; }
+      const ex = soundExamples(r, cell);
+      box.hidden = false;
+      box.innerHTML = `<div class="sex-title">${t("examplesFor", cell ? cell.t : r.base)}</div>` + (ex.length ? ex.map((w) => `<button class="sex-item" data-id="${w.id}" type="button"><span class="hanzi sex-hz">${w.hz}</span><span class="grow"><span class="sex-py">${w.py}</span><span class="sex-tr">${esc(tr(w))}</span></span><span class="speak-btn sm" data-speak="${esc(w.hz)}">🔊</span></button>`).join("") : `<div class="muted small">${t("noExamples")}</div>`);
+      $$(".sex-item", box).forEach((b) => (b.onclick = (e) => { const sp = e.target.closest("[data-speak]"); if (sp) { speak(sp.dataset.speak); return; } openWord(wid(b.dataset.id)); }));
+    };
+    $$(".scell:not(.empty)").forEach((b) => (b.onclick = () => { const r = g.rows[+b.dataset.row]; const c = r.cells[+b.dataset.cell]; speak(c.s || c.t, { rate: 0.8 }); showExamples(+b.dataset.row, +b.dataset.cell); }));
+    $$(".sbase").forEach((b) => (b.onclick = () => { const r = g.rows[+b.dataset.row]; speak(r.cells.filter((c) => c.t).map((c) => c.s || c.t).join(sep), { rate: 0.7 }); showExamples(+b.dataset.row, null); }));
+  }
+  const drillPrefs = { cat: "all" };
+  function renderSoundDrill(view) {
+    const data = window.SOUNDS && window.SOUNDS[C.id]; if (!data) return navigate("sounds");
+    setTopbar(t("listenPick"), "sounds");
+    const cats = data.drills;
+    let pool = drillPrefs.cat === "all" ? cats.flatMap((d) => d.sets.map((set) => ({ set, name: L(d.name) }))) : (cats.find((d) => d.id === drillPrefs.cat) || cats[0]).sets.map((set) => ({ set, name: L((cats.find((d) => d.id === drillPrefs.cat) || cats[0]).name) }));
+    const total = 10; let i = 0, correct = 0, answered = false; const mistakes = [];
+    const qs = Array.from({ length: total }, () => { const q = pool[Math.floor(Math.random() * pool.length)]; return { ...q, target: q.set[Math.floor(Math.random() * q.set.length)] }; });
+    function draw(autoPlay) {
+      if (i >= total) { if (cleanup) { cleanup(); cleanup = null; } return showResult(view, { correct, total, mistakes, onAgain: () => renderSoundDrill(view) }); }
+      const q = qs[i]; answered = false;
+      view.innerHTML = `
+        <div class="chips" id="sd-chips"><button class="chip ${drillPrefs.cat === "all" ? "active" : ""}" data-c="all" type="button">${t("allDrills")}</button>${cats.map((d) => `<button class="chip ${drillPrefs.cat === d.id ? "active" : ""}" data-c="${d.id}" type="button">${esc(L(d.name))}</button>`).join("")}</div>
+        ${sessionHead(i, total, `✓ ${correct}`)}
+        <div class="quiz-q"><div class="q-sub">${esc(q.name)}</div><div class="q-sub">${t("drillPrompt")}</div><button class="btn primary" id="q-play" type="button" style="margin-top:8px">▶︎ ${t("play")}</button><div class="q-sub small">${t("listenHint")}</div></div>
+        <div class="options sound-options">${q.set.map((it, k) => `<button class="option ${C.script === "cjk" && !/[a-zāáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ]/.test(it.t) ? "hanzi" : ""}" data-k="${k}" type="button"><span class="opt-key">${k + 1}</span><span>${esc(it.t)}${it.s && it.s !== it.t ? ` <span class="muted hanzi">${esc(it.s)}</span>` : ""}</span></button>`).join("")}</div>
+        <div id="fb"></div><div class="kbd-hint">${t("keys")}</div>`;
+      $$("#sd-chips .chip").forEach((b) => (b.onclick = () => { drillPrefs.cat = b.dataset.c; if (cleanup) { cleanup(); cleanup = null; } renderSoundDrill(view); }));
+      const play = () => speak(q.target.s || q.target.t, { rate: 0.75 });
+      $("#q-play").onclick = play; if (autoPlay) play();
+      $$(".option").forEach((b) => (b.onclick = () => answer(+b.dataset.k)));
+    }
+    function answer(k) {
+      if (answered) return; answered = true;
+      const q = qs[i]; const real = q.set.indexOf(q.target); const ok = k === real;
+      $$(".option").forEach((b) => { b.disabled = true; if (+b.dataset.k === real) b.classList.add("correct"); else if (+b.dataset.k === k) b.classList.add("wrong"); });
+      recordAnswer(ok); if (ok) correct++; else mistakes.push({ hz: q.target.t, py: q.target.s && q.target.s !== q.target.t ? q.target.s : "", en: q.name, id: "d" + i });
+      $("#fb").innerHTML = `<div class="feedback ${ok ? "ok" : "bad"}"><span>${ok ? "✓ " + t("correct") : "✗ " + t("wrong")}</span><span class="grow"><b>${esc(q.target.t)}</b>${q.target.s && q.target.s !== q.target.t ? ` <span class="hanzi">${esc(q.target.s)}</span>` : ""}</span><button class="speak-btn sm" id="fb-speak" type="button">🔊</button></div><button class="btn primary block" id="q-next" type="button" style="margin-top:12px">${t("next")}</button>`;
+      $("#fb-speak").onclick = () => speak(q.target.s || q.target.t, { rate: 0.75 });
+      $("#q-next").onclick = () => { i++; draw(true); };
+    }
+    bindKeys((e) => { if (/^[1-6]$/.test(e.key) && !answered) { const b = $$(".option")[+e.key - 1]; if (b) b.click(); } else if ((e.key === "Enter" || e.key === " ") && answered) { e.preventDefault(); i++; draw(true); } else if (e.key === " " && !answered) { e.preventDefault(); $("#q-play").click(); } });
+    draw(false);
   }
 
   /* ================= PROGRESS ================= */

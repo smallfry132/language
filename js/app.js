@@ -197,7 +197,7 @@
       levels: "Levels", levelHint: "Choose which HSK levels to study. The selection applies to tiles, training and progress.", perLevel: "By level", lvlBadge: (n) => `HSK ${n}`,
       dataSource: "Word lists follow the official HSK 2.0 lists (2012).",
       showMore: (n, rest) => `Show ${n} more (${rest} remaining)`,
-      sounds: "Sounds", playRow: "Play row", examplesFor: (x) => `Words with “${x}”`, noExamples: "No example words in the current lists.", listenPick: "Listen & pick", drillPrompt: "Which one did you hear?", drillOf: "Drill", allDrills: "Mixed", soundsIntroMore: "Tap the row label to hear the whole row.",
+      sounds: "Sounds", playRow: "Play row", slow: "Slow playback", twice: "Play twice", viewList: "Show whole table", viewFocus: "One sound at a time", soundKeys: "Keys: ← → sound · 1–6 play cell · Space play row", examplesFor: (x) => `Words with “${x}”`, noExamples: "No example words in the current lists.", listenPick: "Listen & pick", drillPrompt: "Which one did you hear?", drillOf: "Drill", allDrills: "Mixed", soundsIntroMore: "Tap the row label to hear the whole row.",
       voice: "Voice", voiceAuto: "Automatic", refreshVoices: "Look for voices", langName: "Chinese",
       ttsHintAndroid: (lang) => `On Android the app uses the phone's text-to-speech engine. Install “Speech Services by Google” from the Play Store, then open Settings → General management (or System) → Language & input → Text-to-speech output, choose Google as the preferred engine, tap its settings → Install voice data → ${lang}. Reload this page afterwards. Chrome and Samsung Internet both work.`,
       ttsNoVoiceAndroid: (lang) => `No ${lang} voice was found on this device yet. After installing the voice data, tap “Look for voices” or reload the page.`,
@@ -251,7 +251,7 @@
       levels: "Stufen", levelHint: "Wähle die HSK-Stufen, die du lernen möchtest. Die Auswahl gilt für Kacheln, Übungen und Fortschritt.", perLevel: "Nach Stufe", lvlBadge: (n) => `HSK ${n}`,
       dataSource: "Die Wortlisten folgen den offiziellen HSK-2.0-Listen (2012).",
       showMore: (n, rest) => `${n} weitere anzeigen (${rest} übrig)`,
-      sounds: "Laute", playRow: "Zeile abspielen", examplesFor: (x) => `Wörter mit „${x}“`, noExamples: "Keine Beispielwörter in den aktuellen Listen.", listenPick: "Hören & wählen", drillPrompt: "Welchen Laut hast du gehört?", drillOf: "Übung", allDrills: "Gemischt", soundsIntroMore: "Tippe die Zeilenbezeichnung, um die ganze Zeile zu hören.",
+      sounds: "Laute", playRow: "Zeile abspielen", slow: "Langsam abspielen", twice: "Zweimal abspielen", viewList: "Ganze Tabelle zeigen", viewFocus: "Ein Laut nach dem anderen", soundKeys: "Tasten: ← → Laut · 1–6 Zelle · Leertaste Zeile", examplesFor: (x) => `Wörter mit „${x}“`, noExamples: "Keine Beispielwörter in den aktuellen Listen.", listenPick: "Hören & wählen", drillPrompt: "Welchen Laut hast du gehört?", drillOf: "Übung", allDrills: "Gemischt", soundsIntroMore: "Tippe die Zeilenbezeichnung, um die ganze Zeile zu hören.",
       voice: "Stimme", voiceAuto: "Automatisch", refreshVoices: "Stimmen suchen", langName: "Chinesisch",
       ttsHintAndroid: (lang) => `Unter Android nutzt die App die Sprachausgabe des Telefons. Installiere „Speech Services by Google“ aus dem Play Store, öffne dann Einstellungen → Allgemeine Verwaltung (oder System) → Sprache und Eingabe → Text-zu-Sprache-Ausgabe, wähle Google als bevorzugtes Modul, tippe auf dessen Einstellungen → Sprachdaten installieren → ${lang}. Danach diese Seite neu laden. Chrome und Samsung Internet funktionieren beide.`,
       ttsNoVoiceAndroid: (lang) => `Auf diesem Gerät wurde noch keine ${lang}-Stimme gefunden. Nach dem Installieren der Sprachdaten auf „Stimmen suchen“ tippen oder die Seite neu laden.`,
@@ -1125,43 +1125,116 @@
     hits.sort((a, b) => a.lvl - b.lvl || a.hz.length - b.hz.length);
     return hits.slice(0, 6);
   }
-  const soundPrefs = { group: null };
+  const soundPrefs = { group: null, row: 0, view: "focus", slow: false };
+  // Isolated syllables get clipped by most voices; a sentence-final mark makes the engine give them full length.
+  function speakSound(text, twice) {
+    const pad = C.script === "cjk" ? "。" : ".";
+    const body = /[。.!?！？]$/.test(text) ? text : text + pad;
+    speak(twice ? body + " " + body : body, { rate: soundPrefs.slow ? 0.5 : 0.7 });
+  }
   function renderSounds(view) {
     if (route[1] === "drill") return renderSoundDrill(view);
     const data = window.SOUNDS && window.SOUNDS[C.id];
     setTopbar(t("sounds") + " · " + C.title.replace(" Trainer", ""), null);
     if (!data) { view.innerHTML = `<div class="empty">🗣️</div>`; return; }
-    const g = data.groups.find((x) => x.id === soundPrefs.group) || data.groups[0];
+    let gi = Math.max(0, data.groups.findIndex((x) => x.id === soundPrefs.group)); if (gi < 0) gi = 0;
+    const g = data.groups[gi];
+    if (soundPrefs.row >= g.rows.length) soundPrefs.row = 0;
     const sep = C.id === "ja" ? "、" : C.id === "zh" ? "，" : ", ";
-    view.innerHTML = `
-      <p class="muted small" style="margin:2px 2px 10px">${esc(L(data.intro))} ${esc(t("soundsIntroMore"))}</p>
+    const rate = () => (soundPrefs.slow ? 0.5 : 0.7);
+    const cellHtml = (r, ri, c, ci) => c.t ? `<button class="scell" data-row="${ri}" data-cell="${ci}" type="button"><span class="scell-t">${esc(c.t)}</span>${c.s && c.s !== c.t ? `<span class="scell-s">${esc(c.s)}</span>` : ""}${c.sub ? `<span class="scell-sub">${esc(c.sub)}</span>` : ""}</button>` : `<span class="scell empty"></span>`;
+    const headHtml = g.head && g.head.length ? `<div class="shead-row">${g.head.map((h) => `<div class="scell-h">${esc(h)}</div>`).join("")}</div>` : "";
+    const toolbar = `
       <div class="chips" id="sg-chips">${data.groups.map((x) => `<button class="chip ${x === g ? "active" : ""}" data-g="${x.id}" type="button">${esc(L(x.name))}</button>`).join("")}</div>
-      <div class="card sound-table ${g.kana ? "kana" : ""}">
-        ${g.head && g.head.length ? `<div class="srow shead"><div class="sbase"></div><div class="scells">${g.head.map((h) => `<div class="scell-h">${esc(h)}</div>`).join("")}</div></div>` : ""}
-        ${g.rows.map((r, ri) => `
-          <div class="srow" data-row="${ri}">
-            <button class="sbase" data-row="${ri}" type="button" title="${t("playRow")}">${esc(r.base)}</button>
-            <div class="scells">${r.cells.map((c, ci) => c.t ? `<button class="scell" data-row="${ri}" data-cell="${ci}" type="button"><span class="scell-t">${esc(c.t)}</span>${c.s && c.s !== c.t ? `<span class="scell-s">${esc(c.s)}</span>` : ""}${c.sub ? `<span class="scell-sub">${esc(c.sub)}</span>` : ""}</button>` : `<span class="scell empty"></span>`).join("")}</div>
+      <div class="sindex-wrap">
+        <div class="chips sindex" id="sindex">${g.rows.map((r, ri) => `<button class="chip lvl ${ri === soundPrefs.row ? "active" : ""}" data-row="${ri}" type="button">${esc(r.base)}</button>`).join("")}</div>
+        <div class="stools">
+          <button class="btn sm icon ${soundPrefs.slow ? "warn" : "ghost"}" id="s-slow" type="button" title="${t("slow")}">🐢</button>
+          <button class="btn sm icon ghost" id="s-view" type="button" title="${soundPrefs.view === "focus" ? t("viewList") : t("viewFocus")}">${soundPrefs.view === "focus" ? "▦" : "▭"}</button>
+        </div>
+      </div>`;
+    if (soundPrefs.view === "focus") {
+      const ri = soundPrefs.row; const r = g.rows[ri];
+      const pos = `${ri + 1} / ${g.rows.length}`;
+      view.innerHTML = `${toolbar}
+        <div class="card sfocus ${g.kana ? "kana" : ""}" id="sfocus">
+          <div class="sfocus-head">
+            <button class="btn icon" id="s-prev" type="button" aria-label="previous">‹</button>
+            <div class="sfocus-title"><div class="sfocus-base">${esc(r.base)}</div><div class="sfocus-pos">${esc(L(g.name))} · ${pos}</div></div>
+            <button class="btn icon" id="s-next" type="button" aria-label="next">›</button>
           </div>
-          ${r.note ? `<div class="snote">${esc(L(r.note))}</div>` : ""}
-          <div class="sex" id="sex-${ri}" hidden></div>`).join("")}
-      </div>
-      <button class="btn primary block" id="go-drill" type="button" style="margin-top:16px">🎧 ${t("listenPick")}</button>`;
-    $$("#sg-chips .chip").forEach((b) => (b.onclick = () => { soundPrefs.group = b.dataset.g; renderSounds(view); }));
+          ${headHtml}
+          <div class="scells big">${r.cells.map((c, ci) => cellHtml(r, ri, c, ci)).join("")}</div>
+          ${r.note ? `<div class="snote focus">${esc(L(r.note))}</div>` : ""}
+          <button class="btn block" id="s-playrow" type="button">🔊 ${t("playRow")}</button>
+          <div class="sex" id="sex-${ri}" hidden></div>
+        </div>
+        <div class="kbd-hint">${t("soundKeys")}</div>
+        <button class="btn primary block" id="go-drill" type="button" style="margin-top:12px">🎧 ${t("listenPick")}</button>`;
+    } else {
+      view.innerHTML = `${toolbar}
+        <div class="card sound-table ${g.kana ? "kana" : ""}">
+          ${g.head && g.head.length ? `<div class="srow shead"><div class="sbase"></div><div class="scells">${g.head.map((h) => `<div class="scell-h">${esc(h)}</div>`).join("")}</div></div>` : ""}
+          ${g.rows.map((r, ri) => `
+            <div class="srow ${ri === soundPrefs.row ? "current" : ""}" data-row="${ri}" id="srow-${ri}">
+              <button class="sbase" data-row="${ri}" type="button" title="${t("playRow")}">${esc(r.base)}</button>
+              <div class="scells">${r.cells.map((c, ci) => cellHtml(r, ri, c, ci)).join("")}</div>
+            </div>
+            ${r.note ? `<div class="snote">${esc(L(r.note))}</div>` : ""}
+            <div class="sex" id="sex-${ri}" hidden></div>`).join("")}
+        </div>
+        <button class="btn primary block" id="go-drill" type="button" style="margin-top:16px">🎧 ${t("listenPick")}</button>`;
+    }
+    // ---- wiring ----
+    const rerender = () => { if (cleanup) { cleanup(); cleanup = null; } renderSounds(view); };
+    $$("#sg-chips .chip").forEach((b) => (b.onclick = () => { soundPrefs.group = b.dataset.g; soundPrefs.row = 0; rerender(); }));
+    $$("#sindex .chip").forEach((b) => (b.onclick = () => goRow(+b.dataset.row)));
+    $("#s-slow").onclick = () => { soundPrefs.slow = !soundPrefs.slow; rerender(); };
+    $("#s-view").onclick = () => { soundPrefs.view = soundPrefs.view === "focus" ? "list" : "focus"; rerender(); };
     $("#go-drill").onclick = () => navigate("sounds/drill");
-    const showExamples = (ri, ci) => {
+    const activeChip = $("#sindex .chip.active"); if (activeChip && activeChip.scrollIntoView) activeChip.scrollIntoView({ inline: "center", block: "nearest" });
+    function goRow(ri, dir) {
+      // move across groups at the ends
+      if (ri < 0) { const pg = (gi - 1 + data.groups.length) % data.groups.length; soundPrefs.group = data.groups[pg].id; soundPrefs.row = data.groups[pg].rows.length - 1; return rerender(); }
+      if (ri >= g.rows.length) { const ng = (gi + 1) % data.groups.length; soundPrefs.group = data.groups[ng].id; soundPrefs.row = 0; return rerender(); }
+      soundPrefs.row = ri;
+      if (soundPrefs.view === "focus") { rerender(); if (dir) playRow(); }
+      else { $$(".srow").forEach((x) => x.classList.toggle("current", +x.dataset.row === ri)); $$("#sindex .chip").forEach((x) => x.classList.toggle("active", +x.dataset.row === ri)); const el = $(`#srow-${ri}`); if (el) el.scrollIntoView({ block: "center", behavior: "smooth" }); }
+    }
+    const playRow = () => { const r = g.rows[soundPrefs.row]; speak(r.cells.filter((c) => c.t).map((c) => c.s || c.t).join(sep), { rate: soundPrefs.slow ? 0.5 : 0.7 }); };
+    const playCell = (ri, ci) => { const c = g.rows[ri].cells[ci]; if (!c || !c.t) return; speakSound(c.s || c.t, false); showExamples(ri, ci); };
+    function showExamples(ri, ci) {
       const r = g.rows[ri]; const cell = ci == null ? null : r.cells[ci];
       $$(".sex").forEach((x) => { x.hidden = true; });
       $$(".scell.active").forEach((x) => x.classList.remove("active"));
-      if (cell) $(`.scell[data-row="${ri}"][data-cell="${ci}"]`).classList.add("active");
-      const box = $(`#sex-${ri}`); if (!r.match && !(C.id === "ja" && g.kana)) { return; }
+      if (cell) { const el = $(`.scell[data-row="${ri}"][data-cell="${ci}"]`); if (el) el.classList.add("active"); }
+      const box = $(`#sex-${ri}`); if (!box) return;
+      if (!r.match && !(C.id === "ja" && g.kana)) return;
       const ex = soundExamples(r, cell);
       box.hidden = false;
       box.innerHTML = `<div class="sex-title">${t("examplesFor", cell ? cell.t : r.base)}</div>` + (ex.length ? ex.map((w) => `<button class="sex-item" data-id="${w.id}" type="button"><span class="hanzi sex-hz">${w.hz}</span><span class="grow"><span class="sex-py">${w.py}</span><span class="sex-tr">${esc(tr(w))}</span></span><span class="speak-btn sm" data-speak="${esc(w.hz)}">🔊</span></button>`).join("") : `<div class="muted small">${t("noExamples")}</div>`);
-      $$(".sex-item", box).forEach((b) => (b.onclick = (e) => { const sp = e.target.closest("[data-speak]"); if (sp) { speak(sp.dataset.speak); return; } openWord(wid(b.dataset.id)); }));
-    };
-    $$(".scell:not(.empty)").forEach((b) => (b.onclick = () => { const r = g.rows[+b.dataset.row]; const c = r.cells[+b.dataset.cell]; speak(c.s || c.t, { rate: 0.8 }); showExamples(+b.dataset.row, +b.dataset.cell); }));
-    $$(".sbase").forEach((b) => (b.onclick = () => { const r = g.rows[+b.dataset.row]; speak(r.cells.filter((c) => c.t).map((c) => c.s || c.t).join(sep), { rate: 0.7 }); showExamples(+b.dataset.row, null); }));
+      $$(".sex-item", box).forEach((b) => (b.onclick = (e) => { const sp = e.target.closest("[data-speak]"); if (sp) { speak(sp.dataset.speak, { rate: rate() }); return; } openWord(wid(b.dataset.id)); }));
+    }
+    $$(".scell:not(.empty)").forEach((b) => (b.onclick = () => { soundPrefs.row = +b.dataset.row; playCell(+b.dataset.row, +b.dataset.cell); }));
+    $$(".sbase").forEach((b) => (b.onclick = () => { goRow(+b.dataset.row); playRow(); showExamples(+b.dataset.row, null); }));
+    if (soundPrefs.view === "focus") {
+      $("#s-prev").onclick = () => goRow(soundPrefs.row - 1, -1);
+      $("#s-next").onclick = () => goRow(soundPrefs.row + 1, 1);
+      $("#s-playrow").onclick = () => { playRow(); showExamples(soundPrefs.row, null); };
+      showExamples(soundPrefs.row, null);
+      // swipe left/right on the card
+      let sx = null; const card = $("#sfocus");
+      card.addEventListener("touchstart", (e) => { sx = e.touches[0].clientX; }, { passive: true });
+      card.addEventListener("touchend", (e) => { if (sx == null) return; const dx = e.changedTouches[0].clientX - sx; sx = null; if (dx < -60) goRow(soundPrefs.row + 1, 1); else if (dx > 60) goRow(soundPrefs.row - 1, -1); }, { passive: true });
+    }
+    bindKeys((e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); goRow(soundPrefs.row + 1, 1); }
+      else if (e.key === "ArrowLeft") { e.preventDefault(); goRow(soundPrefs.row - 1, -1); }
+      else if (e.key === "ArrowDown" && soundPrefs.view === "list") { e.preventDefault(); goRow(Math.min(g.rows.length - 1, soundPrefs.row + 1)); }
+      else if (e.key === "ArrowUp" && soundPrefs.view === "list") { e.preventDefault(); goRow(Math.max(0, soundPrefs.row - 1)); }
+      else if (e.key === " ") { e.preventDefault(); playRow(); }
+      else if (/^[1-6]$/.test(e.key)) { playCell(soundPrefs.row, +e.key - 1); }
+    });
   }
   const drillPrefs = { cat: "all" };
   function renderSoundDrill(view) {
@@ -1177,12 +1250,14 @@
       view.innerHTML = `
         <div class="chips" id="sd-chips"><button class="chip ${drillPrefs.cat === "all" ? "active" : ""}" data-c="all" type="button">${t("allDrills")}</button>${cats.map((d) => `<button class="chip ${drillPrefs.cat === d.id ? "active" : ""}" data-c="${d.id}" type="button">${esc(L(d.name))}</button>`).join("")}</div>
         ${sessionHead(i, total, `✓ ${correct}`)}
-        <div class="quiz-q"><div class="q-sub">${esc(q.name)}</div><div class="q-sub">${t("drillPrompt")}</div><button class="btn primary" id="q-play" type="button" style="margin-top:8px">▶︎ ${t("play")}</button><div class="q-sub small">${t("listenHint")}</div></div>
+        <div class="quiz-q"><div class="q-sub">${esc(q.name)}</div><div class="q-sub">${t("drillPrompt")}</div><div class="row" style="justify-content:center;margin-top:8px"><button class="btn primary" id="q-play" type="button">▶︎ ${t("play")}</button><button class="btn icon ${soundPrefs.slow ? "warn" : ""}" id="q-slow" type="button" title="${t("slow")}">🐢</button><button class="btn icon" id="q-twice" type="button" title="${t("twice")}">×2</button></div><div class="q-sub small">${t("listenHint")}</div></div>
         <div class="options sound-options">${q.set.map((it, k) => `<button class="option ${C.script === "cjk" && !/[a-zāáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ]/.test(it.t) ? "hanzi" : ""}" data-k="${k}" type="button"><span class="opt-key">${k + 1}</span><span>${esc(it.t)}${it.s && it.s !== it.t ? ` <span class="muted hanzi">${esc(it.s)}</span>` : ""}</span></button>`).join("")}</div>
         <div id="fb"></div><div class="kbd-hint">${t("keys")}</div>`;
       $$("#sd-chips .chip").forEach((b) => (b.onclick = () => { drillPrefs.cat = b.dataset.c; if (cleanup) { cleanup(); cleanup = null; } renderSoundDrill(view); }));
-      const play = () => speak(q.target.s || q.target.t, { rate: 0.75 });
-      $("#q-play").onclick = play; if (autoPlay) play();
+      const play = (twice) => speakSound(q.target.s || q.target.t, twice);
+      $("#q-play").onclick = () => play(false); $("#q-twice").onclick = () => play(true);
+      $("#q-slow").onclick = () => { soundPrefs.slow = !soundPrefs.slow; $("#q-slow").classList.toggle("warn", soundPrefs.slow); play(false); };
+      if (autoPlay) play(false);
       $$(".option").forEach((b) => (b.onclick = () => answer(+b.dataset.k)));
     }
     function answer(k) {
@@ -1191,7 +1266,7 @@
       $$(".option").forEach((b) => { b.disabled = true; if (+b.dataset.k === real) b.classList.add("correct"); else if (+b.dataset.k === k) b.classList.add("wrong"); });
       recordAnswer(ok); if (ok) correct++; else mistakes.push({ hz: q.target.t, py: q.target.s && q.target.s !== q.target.t ? q.target.s : "", en: q.name, id: "d" + i });
       $("#fb").innerHTML = `<div class="feedback ${ok ? "ok" : "bad"}"><span>${ok ? "✓ " + t("correct") : "✗ " + t("wrong")}</span><span class="grow"><b>${esc(q.target.t)}</b>${q.target.s && q.target.s !== q.target.t ? ` <span class="hanzi">${esc(q.target.s)}</span>` : ""}</span><button class="speak-btn sm" id="fb-speak" type="button">🔊</button></div><button class="btn primary block" id="q-next" type="button" style="margin-top:12px">${t("next")}</button>`;
-      $("#fb-speak").onclick = () => speak(q.target.s || q.target.t, { rate: 0.75 });
+      $("#fb-speak").onclick = () => speakSound(q.target.s || q.target.t, false);
       $("#q-next").onclick = () => { i++; draw(true); };
     }
     bindKeys((e) => { if (/^[1-6]$/.test(e.key) && !answered) { const b = $$(".option")[+e.key - 1]; if (b) b.click(); } else if ((e.key === "Enter" || e.key === " ") && answered) { e.preventDefault(); i++; draw(true); } else if (e.key === " " && !answered) { e.preventDefault(); $("#q-play").click(); } });

@@ -8,18 +8,18 @@ window.SOUNDS = {
     groups: [
       { id: "vowels", name: { en: "Vowels", de: "Vokale" }, head: ["1st ˉ", "2nd ˊ", "3rd ˇ", "4th ˋ"], rows: [
         { base: "a", cells: [{ t: "ā", s: "妈" }, { t: "á", s: "麻" }, { t: "ǎ", s: "马" }, { t: "à", s: "骂" }], match: { final: "a" }, note: { en: "open, like 'father'", de: "offen, wie in „Vater“" } },
-        { base: "o", cells: [{ t: "ō", s: "摸" }, { t: "ó", s: "模" }, { t: "ǒ", s: "抹" }, { t: "ò", s: "墨" }], match: { final: "o" }, note: { en: "rounded, between 'o' and 'u'", de: "gerundet, zwischen o und u" } },
-        { base: "e", cells: [{ t: "ē", s: "哥" }, { t: "é", s: "格" }, { t: "ě", s: "葛" }, { t: "è", s: "个" }], match: { final: "e" }, note: { en: "unrounded, like 'uh' with the tongue back", de: "ungerundet, ein dumpfes „ö/uh“" } },
+        { base: "o", cells: [{ t: "ō", s: "摸" }, { t: "ó", s: "魔" }, { t: "wǒ", s: "我" }, { t: "ò", s: "墨" }], match: { final: "o" }, note: { en: "rounded, between 'o' and 'u'", de: "gerundet, zwischen o und u" } },
+        { base: "e", cells: [{ t: "ē", s: "哥" }, { t: "é", s: "鹅" }, { t: "ě", s: "可" }, { t: "è", s: "饿" }], match: { final: "e" }, note: { en: "unrounded, like 'uh' with the tongue back", de: "ungerundet, ein dumpfes „ö/uh“" } },
         { base: "i", cells: [{ t: "ī", s: "一" }, { t: "í", s: "姨" }, { t: "ǐ", s: "以" }, { t: "ì", s: "意" }], match: { final: "i" }, note: { en: "like 'ee'; after z c s zh ch sh r it is a buzzing 'i'", de: "wie „ie“; nach z c s zh ch sh r ein summendes i" } },
         { base: "u", cells: [{ t: "ū", s: "乌" }, { t: "ú", s: "无" }, { t: "ǔ", s: "五" }, { t: "ù", s: "物" }], match: { final: "u" }, note: { en: "like 'oo' in 'moon'", de: "wie u in „Mut“" } },
         { base: "ü", cells: [{ t: "ǖ", s: "淤" }, { t: "ǘ", s: "鱼" }, { t: "ǚ", s: "雨" }, { t: "ǜ", s: "玉" }], match: { final: "v" }, note: { en: "like German ü; written u after j q x y", de: "wie deutsches ü; nach j q x y als u geschrieben" } },
         { base: "er", cells: [{ t: "ér", s: "儿" }, { t: "ěr", s: "耳" }, { t: "èr", s: "二" }], match: { final: "er" }, note: { en: "r-coloured vowel", de: "r-gefärbter Vokal" } }
       ] },
       { id: "finals", name: { en: "Finals (vowel + ending)", de: "Auslaute (Vokal + Endung)" }, head: ["1st ˉ", "2nd ˊ", "3rd ˇ", "4th ˋ"], rows: [
-        { base: "ai", cells: [{ t: "āi", s: "挨" }, { t: "ái", s: "癌" }, { t: "ǎi", s: "矮" }, { t: "ài", s: "爱" }], match: { final: "ai" } },
+        { base: "ai", cells: [{ t: "āi", s: "哀" }, { t: "ái", s: "癌" }, { t: "ǎi", s: "矮" }, { t: "ài", s: "爱" }], match: { final: "ai" } },
         { base: "ei", cells: [{ t: "fēi", s: "飞" }, { t: "féi", s: "肥" }, { t: "fěi", s: "匪" }, { t: "fèi", s: "费" }], match: { final: "ei" } },
-        { base: "ao", cells: [{ t: "bāo", s: "包" }, { t: "báo", s: "薄" }, { t: "bǎo", s: "饱" }, { t: "bào", s: "抱" }], match: { final: "ao" } },
-        { base: "ou", cells: [{ t: "shōu", s: "收" }, { t: "shóu", s: "熟" }, { t: "shǒu", s: "手" }, { t: "shòu", s: "瘦" }], match: { final: "ou" } },
+        { base: "ao", cells: [{ t: "bāo", s: "包" }, { t: "báo", s: "雹" }, { t: "bǎo", s: "饱" }, { t: "bào", s: "抱" }], match: { final: "ao" } },
+        { base: "ou", cells: [{ t: "shōu", s: "收" }, { t: "" }, { t: "shǒu", s: "手" }, { t: "shòu", s: "瘦" }], match: { final: "ou" } },
         { base: "an", cells: [{ t: "cān", s: "餐" }, { t: "cán", s: "残" }, { t: "cǎn", s: "惨" }, { t: "càn", s: "灿" }], match: { final: "an" } },
         { base: "ang", cells: [{ t: "tāng", s: "汤" }, { t: "táng", s: "糖" }, { t: "tǎng", s: "躺" }, { t: "tàng", s: "烫" }], match: { final: "ang" } },
         { base: "en", cells: [{ t: "fēn", s: "分" }, { t: "fén", s: "坟" }, { t: "fěn", s: "粉" }, { t: "fèn", s: "份" }], match: { final: "en" } },
@@ -29,10 +29,10 @@ window.SOUNDS = {
         { base: "ong", cells: [{ t: "tōng", s: "通" }, { t: "tóng", s: "同" }, { t: "tǒng", s: "统" }, { t: "tòng", s: "痛" }], match: { final: "ong" } },
         { base: "ian", cells: [{ t: "yān", s: "烟" }, { t: "yán", s: "盐" }, { t: "yǎn", s: "眼" }, { t: "yàn", s: "燕" }], match: { final: "ian" } },
         { base: "uan", cells: [{ t: "wān", s: "弯" }, { t: "wán", s: "完" }, { t: "wǎn", s: "晚" }, { t: "wàn", s: "万" }], match: { final: "uan" } },
-        { base: "iao", cells: [{ t: "jiāo", s: "交" }, { t: "jiáo", s: "嚼" }, { t: "jiǎo", s: "脚" }, { t: "jiào", s: "叫" }], match: { final: "iao" } },
-        { base: "iu", cells: [{ t: "jiū", s: "揪" }, { t: "jiú", s: "" }, { t: "jiǔ", s: "九" }, { t: "jiù", s: "就" }], match: { final: "iu" } },
-        { base: "ui", cells: [{ t: "duī", s: "堆" }, { t: "duí", s: "" }, { t: "duǐ", s: "" }, { t: "duì", s: "对" }], match: { final: "ui" } },
-        { base: "un", cells: [{ t: "hūn", s: "婚" }, { t: "hún", s: "魂" }, { t: "hǔn", s: "" }, { t: "hùn", s: "混" }], match: { final: "un" } }
+        { base: "iao", cells: [{ t: "jiāo", s: "交" }, { t: "" }, { t: "jiǎo", s: "脚" }, { t: "jiào", s: "叫" }], match: { final: "iao" } },
+        { base: "iu", cells: [{ t: "jiū", s: "揪" }, { t: "" }, { t: "jiǔ", s: "九" }, { t: "jiù", s: "就" }], match: { final: "iu" } },
+        { base: "ui", cells: [{ t: "duī", s: "堆" }, { t: "" }, { t: "" }, { t: "duì", s: "对" }], match: { final: "ui" } },
+        { base: "un", cells: [{ t: "hūn", s: "婚" }, { t: "hún", s: "魂" }, { t: "" }, { t: "hùn", s: "混" }], match: { final: "un" } }
       ] },
       { id: "initials", name: { en: "Consonants (initials)", de: "Konsonanten (Anlaute)" }, head: [], rows: [
         { base: "b · p", cells: [{ t: "bā", s: "八" }, { t: "pā", s: "趴" }], match: { initial: "b|p" }, note: { en: "b is unaspirated (like 'spin'), p has a puff of air", de: "b ohne Hauch (wie in „Spinne“), p mit Hauch" } },
@@ -52,9 +52,9 @@ window.SOUNDS = {
         [{ t: "mā", s: "妈" }, { t: "má", s: "麻" }, { t: "mǎ", s: "马" }, { t: "mà", s: "骂" }],
         [{ t: "yī", s: "一" }, { t: "yí", s: "姨" }, { t: "yǐ", s: "以" }, { t: "yì", s: "意" }],
         [{ t: "wū", s: "乌" }, { t: "wú", s: "无" }, { t: "wǔ", s: "五" }, { t: "wù", s: "物" }],
-        [{ t: "bāo", s: "包" }, { t: "báo", s: "薄" }, { t: "bǎo", s: "饱" }, { t: "bào", s: "抱" }],
+        [{ t: "bāo", s: "包" }, { t: "báo", s: "雹" }, { t: "bǎo", s: "饱" }, { t: "bào", s: "抱" }],
         [{ t: "tāng", s: "汤" }, { t: "táng", s: "糖" }, { t: "tǎng", s: "躺" }, { t: "tàng", s: "烫" }],
-        [{ t: "shū", s: "书" }, { t: "shú", s: "熟" }, { t: "shǔ", s: "数" }, { t: "shù", s: "树" }],
+        [{ t: "shū", s: "书" }, { t: "shú", s: "熟" }, { t: "shǔ", s: "鼠" }, { t: "shù", s: "树" }],
         [{ t: "mǎi", s: "买" }, { t: "mài", s: "卖" }],
         [{ t: "wèn", s: "问" }, { t: "wén", s: "文" }, { t: "wěn", s: "吻" }]
       ] },

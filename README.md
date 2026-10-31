@@ -7,6 +7,9 @@ No build step, no dependencies, no backend: plain HTML, CSS and JavaScript. Prog
 ## Features
 
 - **Today** (start screen) – one guided session per day: review the due words, meet a few new words (listen and repeat out loud), then hear-and-pick and hear-and-write them. Streak, daily goal and words known at a glance.
+- **Dialogues** (Chinese) – eight short HSK 1 conversations (greetings, names, nationality, where you're from, family, ordering food, time, your day). Three ways through each: *Listen* (line by line, tap a word for its meaning), *Read aloud* (the microphone checks which syllables came through and keeps your reading time) and *Your turn* (the app speaks one role, you answer by speaking or typing pinyin).
+- **Speaking** – speech recognition through the browser (Safari on Mac and iPhone, Chrome) checks words and sentences; where it isn't available you record yourself and compare with the model voice.
+- **Practice** is grouped by skill: Listen, Speak, Read, Write. Pinyin is coloured by tone everywhere.
 - **Lessons** – one lesson per class with your tutor: add words from the lists or your own words (pinyin, characters, meaning). New words for Today come from the newest lesson first; each lesson can also be practised on its own.
 - **Pinyin first** (Chinese, on by default) – for learners who don't read characters yet: pinyin is shown big everywhere, and quizzes, listening and matching use pinyin and meaning instead of characters. Turn it off under More → Settings when you start learning characters.
 - **Sync** – keeps progress, lessons and settings the same on Mac and iPhone through a sync code (More → Sync). Needs the server setup below.
@@ -78,6 +81,7 @@ js/data-vi.js         Vietnamese A1–A2 words (word, pronunciation guide, Engli
 js/data-vi-2.js       Vietnamese B1–C2 words
 js/data-ja.js         JLPT N5–N1 words as compact rows [level, kanji, kana, meaning]
 js/sounds-data.js     Sound charts and listening drills per language
+js/dialogues.js       Dialogues per course (Chinese: HSK 1)
 js/app.js             Application logic (views, training modes, spaced repetition, speech, storage, sync)
 api/sync.mjs          Vercel function: sync store (Upstash Redis)
 manifest.webmanifest  PWA manifest

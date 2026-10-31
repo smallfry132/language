@@ -134,6 +134,7 @@
     courses: { zh: { levels: [1] }, vi: { levels: [1] }, ja: { levels: [1] } },
     lessons: {},  // id → { course, name, words: [ids], created, t }
     custom: {},   // id → own word { course, hz, py, en, t }
+    dlg: {},      // dialogue id → { listen: day, read: { best, last, acc }, turn: { best, last } }
     peers: {},    // device id → stats of the other synced devices
     mt: {}        // last-change times of the whole-value fields, for sync
   };
@@ -165,7 +166,7 @@
    * entries of the keyed maps get their own time `t` (a removed entry becomes { gone: 1, t }),
    * whole-value fields get a time in S.mt. Sync merges by these times, newest wins. */
   const LWW_FIELDS = ["favs", "settings", "courses", "typer", "lang"]; // the current course stays per device
-  const MAP_FIELDS = ["srs", "lessons", "custom"];
+  const MAP_FIELDS = ["srs", "lessons", "custom", "dlg"];
   const syncSettings = (s) => { const { voices, ...rest } = s; return rest; }; // voices differ per device
   const lwwJson = (f) => JSON.stringify(f === "settings" ? syncSettings(S.settings) : S[f] ?? null);
   const entryJson = (e) => { const { t, ...rest } = e || {}; return JSON.stringify(rest); };
@@ -191,7 +192,7 @@
   /* ---------------- i18n ---------------- */
   const I18N = {
     en: {
-      brandSub: "Trainer", words: "Words", train: "Train", progress: "Progress", more: "More",
+      brandSub: "Trainer", words: "Words", train: "Practice", progress: "Progress", more: "More",
       search: "Search hanzi, pinyin or meaning…", all: "All", favorites: "Favorites", new: "New", learning: "Learning", known: "Known", due: "Due",
       wordsCount: (n, t) => `${n} of ${t} words`, noResults: "No words match your filters.",
       category: "Category", example: "Example", markKnown: "Mark as known", markLearning: "Mark as learning", resetWord: "Reset progress",
@@ -270,7 +271,32 @@
       syncCopy: "Copy code", copied: "Copied", syncNow: "Sync now", syncLast: (s) => `Last synced ${s}`, syncNever: "Not synced yet", syncPending: "Changes waiting to sync",
       syncDisconnect: "Turn off on this device", syncDisconnectConfirm: "Stop syncing this device? Its progress stays here, and the other devices keep theirs.",
       syncNotSetup: "Sync isn't set up on the server yet.", syncFailed: "Sync failed. It will try again.", syncOffline: "Offline. Changes sync when you're back online.", syncBadCode: "That code doesn't look right.", syncDone: "Synced",
-      justNow: "just now", minAgo: (n) => `${n} min ago`, hAgo: (n) => `${n} h ago`
+      justNow: "just now", minAgo: (n) => `${n} min ago`, hAgo: (n) => `${n} h ago`,
+      wordsMet: "Words met", dialogues: "Dialogues", myLessons: "My lessons", adjust: "Adjust",
+      dueInToday: (n) => (n === 1 ? "1 word is due. Review it in Today" : `${n} words are due. Review them in Today`),
+      skill_listen: "Listen", skill_listenDesc: "Train your ear for words, tones and similar sounds.",
+      skill_speak: "Speak", skill_speakDesc: "Say words and sentences out loud and get feedback.",
+      skill_read: "Read", skill_readDesc: "Recognise words and what they mean.",
+      skill_write: "Write", skill_writeDesc: "Type pinyin from memory and from hearing.",
+      modeSay: "Say the word", modeSayDesc: "See a word and say it. The microphone checks it, or you record and compare.",
+      soundDrill: "Similar sounds", soundDrillDesc: "Hear two sounds that are easy to mix up and pick the right one.",
+      soundChart: "Sound chart", soundChartDesc: "Every sound with its tones, to listen and repeat.",
+      dialoguesRead: "Read dialogues aloud", dialoguesReadDesc: "Short conversations: listen, read aloud, answer.",
+      stepSpeak: "Speak", stepSpeakDesc: "Say each word out loud. The microphone checks it, or you record yourself and compare.",
+      dlg_listen: "Listen", dlg_read: "Read aloud", dlg_turn: "Your turn",
+      dlg_listenHint: "Play the whole dialogue, then tap a line to hear it again. Tap a word to see what it means.",
+      dlg_readHint: "Read each line aloud: tap the microphone, speak, and see which words came through. Your reading time is kept, so you can see yourself get faster.",
+      dlg_turnHint: "Choose a role. The app speaks the other person; you answer by speaking or typing.",
+      showHz: "Characters", showTr: "Translation", playAll: "Play all", stop: "Stop",
+      readTime: (s) => `Reading time ${s}`, bestTime: (s) => `best ${s}`,
+      chooseRole: "Who do you want to be?", iAm: (n) => `I'm ${n}`, switchRole: "Swap roles",
+      dlgTurnDone: (c, n) => `${c} of ${n} answers right`, sayIn: (l) => `Say it in ${l}:`, typeOr: "…or type the pinyin", hint: "Hint",
+      tonesMissing: "✓ Right. Next time add the tones too.", tonesWrong: "Right words, but check the tones.",
+      speakBtn: "Speak", listening: "Listening… tap to stop", record: "Record", stopRec: "Stop", playMine: "You", playModel: "Model",
+      rateSelf: "Did it sound like the model?",
+      heardGreat: "Clear, well done.", heardAlmost: "Almost. Listen to the model and try again.", heardNo: "That didn't come through. Try again, a little slower.", heardAs: (x) => `Heard: ${x}`,
+      micBlocked: "Speech recognition isn't available here, so you'll record yourself instead. On iPhone it needs Dictation (Settings → General → Keyboard) and microphone access.",
+      noMic: "No access to the microphone."
     },
     de: {
       brandSub: "Trainer", words: "Wörter", train: "Üben", progress: "Fortschritt", more: "Mehr",
@@ -352,7 +378,32 @@
       syncCopy: "Code kopieren", copied: "Kopiert", syncNow: "Jetzt synchronisieren", syncLast: (s) => `Zuletzt synchronisiert ${s}`, syncNever: "Noch nicht synchronisiert", syncPending: "Änderungen warten auf Synchronisierung",
       syncDisconnect: "Auf diesem Gerät ausschalten", syncDisconnectConfirm: "Synchronisierung auf diesem Gerät beenden? Der Fortschritt bleibt hier erhalten, die anderen Geräte behalten ihren.",
       syncNotSetup: "Die Synchronisierung ist auf dem Server noch nicht eingerichtet.", syncFailed: "Synchronisierung fehlgeschlagen. Neuer Versuch folgt.", syncOffline: "Offline. Änderungen werden synchronisiert, sobald du wieder online bist.", syncBadCode: "Dieser Code sieht nicht richtig aus.", syncDone: "Synchronisiert",
-      justNow: "gerade eben", minAgo: (n) => `vor ${n} Min.`, hAgo: (n) => `vor ${n} Std.`
+      justNow: "gerade eben", minAgo: (n) => `vor ${n} Min.`, hAgo: (n) => `vor ${n} Std.`,
+      wordsMet: "Wörter kennengelernt", dialogues: "Dialoge", myLessons: "Meine Lektionen", adjust: "Anpassen",
+      dueInToday: (n) => (n === 1 ? "1 Wort ist fällig. Wiederhole es unter Heute" : `${n} Wörter sind fällig. Wiederhole sie unter Heute`),
+      skill_listen: "Hören", skill_listenDesc: "Trainiere dein Ohr für Wörter, Töne und ähnliche Laute.",
+      skill_speak: "Sprechen", skill_speakDesc: "Sprich Wörter und Sätze laut und bekomme Rückmeldung.",
+      skill_read: "Lesen", skill_readDesc: "Wörter und ihre Bedeutung erkennen.",
+      skill_write: "Schreiben", skill_writeDesc: "Pinyin aus dem Kopf und nach Gehör tippen.",
+      modeSay: "Wort sprechen", modeSayDesc: "Wort sehen und laut sagen. Das Mikrofon prüft es, oder du nimmst dich auf und vergleichst.",
+      soundDrill: "Ähnliche Laute", soundDrillDesc: "Zwei leicht verwechselbare Laute hören und den richtigen wählen.",
+      soundChart: "Lauttabelle", soundChartDesc: "Jeder Laut mit seinen Tönen, zum Anhören und Nachsprechen.",
+      dialoguesRead: "Dialoge laut lesen", dialoguesReadDesc: "Kurze Gespräche: hören, laut lesen, antworten.",
+      stepSpeak: "Sprechen", stepSpeakDesc: "Sag jedes Wort laut. Das Mikrofon prüft es, oder du nimmst dich auf und vergleichst.",
+      dlg_listen: "Hören", dlg_read: "Laut lesen", dlg_turn: "Du bist dran",
+      dlg_listenHint: "Spiel den ganzen Dialog ab, dann tippe eine Zeile, um sie noch einmal zu hören. Tippe ein Wort, um seine Bedeutung zu sehen.",
+      dlg_readHint: "Lies jede Zeile laut: tippe aufs Mikrofon, sprich, und sieh, welche Wörter angekommen sind. Deine Lesezeit wird gespeichert, so siehst du, wie du schneller wirst.",
+      dlg_turnHint: "Wähle eine Rolle. Die App spricht die andere Person, du antwortest sprechend oder tippend.",
+      showHz: "Schriftzeichen", showTr: "Übersetzung", playAll: "Alles abspielen", stop: "Stopp",
+      readTime: (s) => `Lesezeit ${s}`, bestTime: (s) => `Bestzeit ${s}`,
+      chooseRole: "Wer möchtest du sein?", iAm: (n) => `Ich bin ${n}`, switchRole: "Rollen tauschen",
+      dlgTurnDone: (c, n) => `${c} von ${n} Antworten richtig`, sayIn: (l) => `Sag es auf ${l}:`, typeOr: "…oder tippe das Pinyin", hint: "Tipp",
+      tonesMissing: "✓ Richtig. Nächstes Mal auch mit Tönen.", tonesWrong: "Richtige Wörter, aber prüf die Töne.",
+      speakBtn: "Sprechen", listening: "Ich höre zu… tippen zum Beenden", record: "Aufnehmen", stopRec: "Stopp", playMine: "Du", playModel: "Vorbild",
+      rateSelf: "Klang es wie das Vorbild?",
+      heardGreat: "Klar und deutlich, super.", heardAlmost: "Fast. Hör dir das Vorbild an und versuch es noch einmal.", heardNo: "Das kam nicht an. Versuch es noch einmal, etwas langsamer.", heardAs: (x) => `Gehört: ${x}`,
+      micBlocked: "Spracherkennung ist hier nicht verfügbar, du nimmst dich stattdessen auf. Auf dem iPhone braucht sie die Diktierfunktion (Einstellungen → Allgemein → Tastatur) und Zugriff aufs Mikrofon.",
+      noMic: "Kein Zugriff aufs Mikrofon."
     }
   };
   // Pinyin-first wording (Chinese while characters are not studied yet)
@@ -374,7 +425,7 @@
   const COURSE_I18N = {
     ja: {
       en: {
-        brandSub: "Japanese", search: "Search kanji, kana, romaji or meaning…", tilePinyin: "Reading on tiles", langName: "Japanese",
+        brandSub: "Japanese", search: "Search kanji, kana, romaji or meaning…", tilePinyin: "Reading on tiles", langName: "Japanese", typeOr: "…or type it",
         modeType: "Type the reading", modeTypeDesc: "See the word, type its reading in kana or romaji.",
         modeNumbers: "Numbers", modeNumbersDesc: "Read and write Japanese numbers 1–99.",
         dirHzTr: "Word → Meaning", dirTrHz: "Meaning → Word", dirHzPy: "Word → Reading", dirPyHz: "Reading → Word",
@@ -394,7 +445,7 @@
         ]
       },
       de: {
-        brandSub: "Japanisch", search: "Kanji, Kana, Romaji oder Bedeutung suchen…", tilePinyin: "Lesung auf Kacheln", langName: "Japanisch",
+        brandSub: "Japanisch", search: "Kanji, Kana, Romaji oder Bedeutung suchen…", tilePinyin: "Lesung auf Kacheln", langName: "Japanisch", typeOr: "…oder tippe es",
         modeType: "Lesung tippen", modeTypeDesc: "Wort sehen, Lesung in Kana oder Romaji eingeben.",
         modeNumbers: "Zahlen", modeNumbersDesc: "Japanische Zahlen 1–99 lesen und schreiben.",
         dirHzTr: "Wort → Bedeutung", dirTrHz: "Bedeutung → Wort", dirHzPy: "Wort → Lesung", dirPyHz: "Lesung → Wort",
@@ -416,7 +467,7 @@
     },
     vi: {
       en: {
-        brandSub: "Vietnamese", search: "Search word or meaning…", tilePinyin: "Pronunciation on tiles",
+        brandSub: "Vietnamese", search: "Search word or meaning…", tilePinyin: "Pronunciation on tiles", typeOr: "…or type it",
         modeType: "Type the word", modeTypeDesc: "See the meaning, type the Vietnamese word.",
         modeTones: "Tone drill", modeTonesDesc: "Hear a syllable and identify one of the six tones.",
         modeTyperDesc: "Copy-type Vietnamese with all diacritics. Enter reads it aloud.",
@@ -445,7 +496,7 @@
         tone1d: "Flat, mid-high, no mark: ma.", tone2d: "Starts mid and falls gently, grave accent: mà.", tone3d: "Rises sharply, acute accent: má.", tone4d: "Dips then rises, hook: mả.", tone5d: "Rises with a catch in the throat, tilde: mã.", tone6d: "Drops abruptly and stops, dot below: mạ."
       },
       de: {
-        brandSub: "Vietnamesisch", search: "Wort oder Bedeutung suchen…", tilePinyin: "Aussprache auf Kacheln",
+        brandSub: "Vietnamesisch", search: "Wort oder Bedeutung suchen…", tilePinyin: "Aussprache auf Kacheln", typeOr: "…oder tippe es",
         modeType: "Wort tippen", modeTypeDesc: "Bedeutung sehen, vietnamesisches Wort eingeben.",
         modeTones: "Ton-Training", modeTonesDesc: "Silbe hören und einen der sechs Töne erkennen.",
         modeTyperDesc: "Vietnamesisch mit allen Diakritika abtippen. Enter liest es vor.",
@@ -483,7 +534,7 @@
   // Pinyin first: Chinese learners who don't read characters yet see and practise pinyin instead (on unless turned off)
   function pyFirst() { return C.id === "zh" && S.courses.zh.pinyinFirst !== false; }
   // The written form of a word as the learner reads it
-  const face = (w) => (pyFirst() ? `<span class="py-face">${esc(w.py)}</span>` : `<span class="hanzi">${w.hz}</span>`);
+  const face = (w) => (pyFirst() ? `<span class="py-face">${pyHtml(w.py)}</span>` : `<span class="hanzi">${w.hz}</span>`);
   const tr = (w) => (S.lang === "de" && w.de ? w.de : w.en);
   const tr2 = (w) => (S.lang === "de" ? (w.de ? w.en : "") : (w.de || ""));
   const exTr = (w) => (S.lang === "de" && w.exDe ? w.exDe : w.exEn);
@@ -526,6 +577,7 @@
       if (TTS.voice) { try { u.voice = TTS.voice; } catch (e) { /* stale voice object: fall back to lang-based selection */ } }
       u.rate = (opts && opts.rate) || S.settings.rate;
       u.pitch = 1;
+      if (opts && opts.onend) u.onend = opts.onend;
       currentUtterance = u;
       // iOS drops an utterance queued in the same tick as cancel(); defer minimally
       setTimeout(() => speechSynthesis.speak(u), 0);
@@ -612,12 +664,28 @@
   }
 
   /* ---------------- Router ---------------- */
+  // Line icons (24×24, stroke = currentColor)
+  const ICON = {
+    today: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+    lessons: '<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5M8 7h7M8 11h5"/>',
+    train: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2"/>',
+    words: '<path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/>',
+    settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+    listen: '<path d="M6 8.5a6 6 0 1 1 12 0c0 3.5-3 4.5-3 7.5a3 3 0 0 1-6 0"/><path d="M9.5 8.5a2.5 2.5 0 0 1 5 0"/>',
+    speak: '<rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4"/>',
+    read: '<path d="M2 5h7a3 3 0 0 1 3 3v12a2 2 0 0 0-2-2H2zM22 5h-7a3 3 0 0 0-3 3v12a2 2 0 0 1 2-2h8z"/>',
+    write: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
+    chat: '<path d="M4 5h11v8H8l-4 3z"/><path d="M15 9h5v8l-3-2h-6v-2"/>',
+    stats: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+    play: '<path d="M7 4l13 8-13 8z"/>',
+    stop: '<rect x="6" y="6" width="12" height="12" rx="1.5"/>'
+  };
+  const icon = (k, cls) => `<svg class="ico ${cls || ""}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[k]}</svg>`;
   const TABS = [
-    { id: "today", ico: "☀️", key: "tabToday" },
-    { id: "words", ico: "🀄", key: "words" },
-    { id: "train", ico: "🎯", key: "train" },
-    { id: "sounds", ico: "🗣️", key: "sounds" },
-    { id: "more", ico: "⋯", key: "more" }
+    { id: "today", key: "tabToday", also: ["progress"] },
+    { id: "lessons", key: "lessons", also: [] },
+    { id: "train", key: "train", also: ["sounds"] },
+    { id: "words", key: "words", also: [] }
   ];
   let route = [];
   let cleanup = null;
@@ -626,10 +694,10 @@
   function navigate(path) { location.hash = "#/" + path; }
   function parseRoute() { const h = location.hash.replace(/^#\/?/, ""); return h ? h.split("/") : ["today"]; }
   function renderNav() {
-    const html = TABS.map((tab) => `<button class="tab ${route[0] === tab.id || (tab.id === "today" && route[0] === "progress") ? "active" : ""}" data-route="${tab.id}" type="button"><span class="tab-ico">${tab.id === "words" && C.script !== "cjk" ? "🔤" : tab.ico}</span><span>${t(tab.key)}</span></button>`).join("");
+    const html = TABS.map((tab) => `<button class="tab ${route[0] === tab.id || tab.also.includes(route[0]) ? "active" : ""}" data-route="${tab.id}" type="button"><span class="tab-ico">${icon(tab.id)}</span><span>${t(tab.key)}</span></button>`).join("");
     $("#nav-desktop").innerHTML = html; $("#nav-mobile").innerHTML = html;
     $$("[data-route]").forEach((b) => (b.onclick = () => navigate(b.dataset.route)));
-    $$(".lang-toggle").forEach((b) => { b.textContent = S.lang === "de" ? "DE" : "EN"; b.onclick = toggleLang; });
+    $$(".lang-toggle").forEach((b) => { b.innerHTML = icon("settings"); b.setAttribute("aria-label", t("settings")); b.classList.toggle("active", route[0] === "more"); b.onclick = () => navigate("more"); });
     $("[data-i18n=brandSub]").textContent = t("brandSub");
     updateBrand();
   }
@@ -664,7 +732,6 @@
     $(".brand-title").textContent = C.title.replace(" Trainer", "");
     $$(".brand, #course-btn").forEach((b) => { b.onclick = openCourseSheet; b.title = t("switchCourse"); });
   }
-  function toggleLang() { S.lang = S.lang === "de" ? "en" : "de"; save(); document.documentElement.lang = S.lang; render(); }
   function setTopbar(title, back) {
     $("#topbar-title").textContent = title;
     const b = $("#topbar-back"); b.hidden = !back;
@@ -684,6 +751,7 @@
     if (main === "train") renderTrain(view);
     else if (main === "words") renderWords(view);
     else if (main === "sounds") renderSounds(view);
+    else if (main === "lessons") renderLessons(view);
     else if (main === "progress") renderProgress(view);
     else if (main === "more") renderMore(view);
     else renderToday(view);
@@ -718,7 +786,7 @@
       if (["new", "learning", "known"].includes(wf.status) && status(w.id) !== wf.status) return false;
       if (!q) return true;
       return w.hz.toLowerCase().includes(q) || norm(w.hz).includes(qs) || norm(w.py).includes(qs) || w.py.toLowerCase().includes(q) || (w.romaji && w.romaji.includes(qs)) || w.en.toLowerCase().includes(q) || (w.de || "").toLowerCase().includes(q);
-    });
+    }).sort((a, b) => (status(a.id) === "new") - (status(b.id) === "new")); // words you have met first
   }
   function renderWords(view) {
     setTopbar(t("words") + " · " + levelLabel(), null);
@@ -754,8 +822,8 @@
         <span class="tile-dot ${status(w.id)}"></span>
         ${S.favs.includes(w.id) ? `<span class="tile-fav">★</span>` : ""}
         ${pyFirst()
-          ? `<span class="tile-hz py ${w.py.length > 10 ? "long" : ""}">${esc(w.py)}</span><span class="tile-sub-hz">${w.hz}</span>`
-          : `<span class="tile-hz ${isLong(w.hz) ? "long" : ""}">${w.hz}</span>${S.settings.tilePinyin ? `<span class="tile-py">${w.py}</span>` : ""}`}
+          ? `<span class="tile-hz py ${w.py.length > 10 ? "long" : ""}">${pyHtml(w.py)}</span><span class="tile-sub-hz">${w.hz}</span>`
+          : `<span class="tile-hz ${isLong(w.hz) ? "long" : ""}">${w.hz}</span>${S.settings.tilePinyin ? `<span class="tile-py">${pyShow(w.py)}</span>` : ""}`}
         <span class="tile-tr">${esc(tr(w))}</span>
         <span class="tile-num">${curLevels().length > 1 ? `<span class="lvl-badge l${w.lvl}">${C.levelName(w.lvl)}</span>` : (C.id === "zh" ? w.id : "")}</span>
       </button>`).join("") + (list.length > shown.length ? `<button class="btn block tiles-more" id="tiles-more" type="button">${t("showMore", Math.min(CHUNK, list.length - shown.length), list.length - shown.length)}</button>` : "");
@@ -766,7 +834,7 @@
     const w = BY_ID[id];
     const st = status(id); const fav = S.favs.includes(id);
     openSheet(`
-      ${pyFirst() ? `<div class="detail-py big">${esc(w.py)}</div><div class="detail-sub-hz">${w.hz}</div>` : `<div class="detail-hz">${w.hz}</div><div class="detail-py">${w.py}</div>`}
+      ${pyFirst() ? `<div class="detail-py big">${pyHtml(w.py)}</div><div class="detail-sub-hz">${w.hz}</div>` : `<div class="detail-hz">${w.hz}</div><div class="detail-py">${pyShow(w.py)}</div>`}
       <div class="detail-tr">${esc(tr(w))}</div>
       ${tr2(w) ? `<div class="detail-tr2">${esc(tr2(w))}</div>` : ""}
       <div class="detail-meta">
@@ -803,7 +871,15 @@
     { id: "listen", ico: "👂", key: "modeListen" },
     { id: "match", ico: "🧩", key: "modeMatch" },
     { id: "tones", ico: "🎵", key: "modeTones" },
-    { id: "numbers", ico: "🔢", key: "modeNumbers" }
+    { id: "numbers", ico: "🔢", key: "modeNumbers" },
+    { id: "say", ico: "🎤", key: "modeSay" }
+  ];
+  // Practice is grouped by what the tutors ask for; each row is a mode or a place in the app
+  const SKILLS = [
+    { id: "listen", rows: [["train/listen", "modeListen"], ["train/tones", "modeTones"], ["sounds/drill", "soundDrill"]] },
+    { id: "speak", rows: [["train/say", "modeSay"], ["lessons", "dialoguesRead"], ["sounds", "soundChart"]] },
+    { id: "read", rows: [["train/flash", "modeFlash"], ["train/quiz", "modeQuiz"], ["train/match", "modeMatch"]] },
+    { id: "write", rows: [["train/type", "modeType"], ["train/typer", "modeTyper"], ["train/numbers", "modeNumbers"]] }
   ];
   function renderTrain(view) {
     const mode = route[1];
@@ -819,20 +895,21 @@
     if (mode === "match") return startMatch(view);
     if (mode === "tones") return C.toneOptions ? startTones(view) : renderTrainHome(view);
     if (mode === "numbers") return startNumbers(view);
+    if (mode === "say") return setupSession(view, mode, { pool: true, count: [5, 10, 20] });
   }
   function renderTrainHome(view) {
     setTopbar(t("train"), null);
-    const due = dueWords().length; const newCount = WORDS.filter((w) => status(w.id) === "new").length;
+    const due = dueWords().length;
+    const hidden = (route) => (route === "train/tones" && !C.toneOptions) || (route === "train/typer" && C.id === "ja") || (route === "lessons" && !courseDialogues().length);
     view.innerHTML = `
-      <div class="due-banner">
-        <div class="grow"><div class="big">${due}</div><div>${t("dueToday")}${newCount ? ` · ${newCount} ${t("new").toLowerCase()}` : ""}</div><div class="small" style="opacity:.8">${levelLabel()}</div></div>
-        <button class="btn" id="review-now" type="button">${due ? t("reviewNow") : t("modeFlash")}</button>
-      </div>
-      <div class="mode-grid">
-        ${MODES.filter((m) => (m.id !== "tones" || C.toneOptions) && (m.id !== "typer" || C.id !== "ja")).map((m) => `<button class="mode-card" data-mode="${m.id}" type="button"><span class="mode-ico">${m.ico}</span><span class="mode-title">${t(m.key)}</span><span class="mode-desc">${t(m.key + "Desc")}</span></button>`).join("")}
-      </div>`;
-    $("#review-now").onclick = () => navigate("train/flash");
-    $$("[data-mode]").forEach((b) => (b.onclick = () => navigate("train/" + b.dataset.mode)));
+      ${due ? `<button class="list-hint due-note" id="due-note" type="button">${t("dueInToday", due)} ›</button>` : ""}
+      <div class="skills">${SKILLS.map((sk) => `
+        <section class="skill">
+          <div class="skill-head">${icon(sk.id)}<div><h3>${t("skill_" + sk.id)}</h3><div class="li-sub">${t("skill_" + sk.id + "Desc")}</div></div></div>
+          <div class="list">${sk.rows.filter(([r]) => !hidden(r)).map(([r, key]) => `<button class="list-item" data-go="${r}" type="button"><span class="grow"><div class="li-title">${t(key)}</div><div class="li-sub">${t(key + "Desc")}</div></span><span class="li-chev">›</span></button>`).join("")}</div>
+        </section>`).join("")}</div>`;
+    if ($("#due-note")) $("#due-note").onclick = () => navigate("today");
+    $$("[data-go]").forEach((b) => (b.onclick = () => navigate(b.dataset.go)));
   }
 
   /* --- Session setup --- */
@@ -856,7 +933,11 @@
     if (!dirs.some(([k]) => k === setupPrefs.direction)) setupPrefs.direction = "hzTr";
     view.innerHTML = `
       <div class="card stack">
-        <h2>${t("setupTitle")}</h2>
+        <h2>${t(MODES.find((m) => m.id === mode).key)}</h2>
+        <p class="muted" style="margin:0">${t(MODES.find((m) => m.id === mode).key + "Desc")}</p>
+        <div class="list-hint" id="pool-info"></div>
+        <button class="btn primary block" id="start" type="button">${t("start")}</button>
+        <details class="adjust"><summary>${t("adjust")}</summary>
         <div class="section-title" style="margin-top:4px">${t("levels")}</div>
         ${levelChips("s-lvl-chips")}
         <div class="section-title">${t("whichWords")}</div>
@@ -866,14 +947,14 @@
         <div class="section-title">${t("howMany")}</div>
         <div class="chips" id="count-chips">${cfg.count.map((n) => `<button class="chip ${setupPrefs.count === n ? "active" : ""}" data-count="${n}" type="button">${n === 150 ? t("all") : n}</button>`).join("")}</div>
         ${cfg.direction ? `<div class="section-title">${t("direction")}</div><div class="chips" id="dir-chips">${dirs.map(([k, l]) => `<button class="chip ${setupPrefs.direction === k ? "active" : ""}" data-dir="${k}" type="button">${l}</button>`).join("")}</div>` : ""}
-        <div class="list-hint" id="pool-info"></div>
-        <button class="btn primary block" id="start" type="button">${t("start")}</button>
+        </details>
       </div>`;
+    if (!cfg.count.includes(setupPrefs.count)) setupPrefs.count = cfg.count[0];
     const bind = (sel, attr, key) => $$(sel + " .chip").forEach((b) => (b.onclick = () => { setupPrefs[key] = attr === "count" ? +b.dataset[attr] : b.dataset[attr]; $$(sel + " .chip").forEach((x) => x.classList.toggle("active", x === b)); updateInfo(); }));
     bind("#pool-chips", "pool", "pool"); bind("#scat-chips", "cat", "cat"); bind("#count-chips", "count", "count");
     if (cfg.direction) bind("#dir-chips", "dir", "direction");
     bindLevelChips("s-lvl-chips", updateInfo);
-    function updateInfo() { const n = poolWords(setupPrefs.pool, setupPrefs.cat).length; $("#pool-info").textContent = t("wordsCount", Math.min(n, setupPrefs.count), n); $("#start").disabled = n < (mode === "flash" || mode === "type" ? 1 : 4); }
+    function updateInfo() { const n = poolWords(setupPrefs.pool, setupPrefs.cat).length; $("#pool-info").textContent = t("wordsCount", Math.min(n, setupPrefs.count), n); $("#start").disabled = n < (mode === "flash" || mode === "type" || mode === "say" ? 1 : 4); }
     updateInfo();
     $("#start").onclick = () => {
       let list = poolWords(setupPrefs.pool, setupPrefs.cat);
@@ -882,6 +963,7 @@
       else if (mode === "quiz") runQuiz(view, list, setupPrefs.direction);
       else if (mode === "type") runType(view, list);
       else if (mode === "listen") runQuiz(view, list, "listen");
+      else if (mode === "say") runSay(view, list);
     };
   }
 
@@ -928,12 +1010,12 @@
         ${sessionHead(i, queue.length)}
         <div class="flashcard" id="fc">
           ${flipped ? `
-            ${pyFirst() ? `<div class="fc-py big">${esc(w.py)}</div><div class="fc-sub-hz">${w.hz}</div>` : `<div class="fc-hz ${isLong(w.hz) ? "long" : ""}">${w.hz}</div><div class="fc-py">${w.py}</div>`}
+            ${pyFirst() ? `<div class="fc-py big">${pyHtml(w.py)}</div><div class="fc-sub-hz">${w.hz}</div>` : `<div class="fc-hz ${isLong(w.hz) ? "long" : ""}">${w.hz}</div><div class="fc-py">${pyShow(w.py)}</div>`}
             <div class="fc-tr">${esc(tr(w))}</div>
             ${tr2(w) ? `<div class="fc-tr2">${esc(tr2(w))}</div>` : ""}
             ${w.ex ? `<div class="fc-ex">${pyFirst() && w.exPy ? `${w.exPy}<br><span class="hanzi small">${w.ex}</span>` : `<span class="hanzi">${w.ex}</span>${w.exPy}`}<br>${esc(exTr(w))}</div>` : ""}
             <button class="speak-btn" id="fc-speak" type="button" style="margin-top:10px">🔊</button>`
-          : `${pyFirst() ? `<div class="fc-py big">${esc(w.py)}</div>` : `<div class="fc-hz ${isLong(w.hz) ? "long" : ""}">${w.hz}</div>`}<div class="fc-hint">${t("tapToFlip")}</div>`}
+          : `${pyFirst() ? `<div class="fc-py big">${pyHtml(w.py)}</div>` : `<div class="fc-hz ${isLong(w.hz) ? "long" : ""}">${w.hz}</div>`}<div class="fc-hint">${t("tapToFlip")}</div>`}
         </div>
         ${flipped ? `
           <div class="rate-grid">
@@ -996,7 +1078,7 @@
       let prompt, optHtml;
       const label = (x) => direction === "hzTr" ? esc(tr(x)) : direction === "hzPy" ? x.py : face(x);
       const optClass = !pyFirst() && (direction === "trHz" || direction === "pyHz" || direction === "listen") ? "hanzi" : "";
-      if (direction === "hzTr" || direction === "hzPy") prompt = `${pyFirst() ? `<div class="q-text py-face">${esc(w.py)}</div>` : `<div class="q-hz ${isLong(w.hz) ? "long" : ""}">${w.hz}</div>`}<button class="speak-btn sm" id="q-speak" type="button">🔊</button>`;
+      if (direction === "hzTr" || direction === "hzPy") prompt = `${pyFirst() ? `<div class="q-text py-face">${pyHtml(w.py)}</div>` : `<div class="q-hz ${isLong(w.hz) ? "long" : ""}">${w.hz}</div>`}<button class="speak-btn sm" id="q-speak" type="button">🔊</button>`;
       else if (direction === "trHz") prompt = `<div class="q-text">${esc(tr(w))}</div>${tr2(w) ? `<div class="q-sub">${esc(tr2(w))}</div>` : ""}`;
       else if (direction === "pyHz") prompt = `<div class="q-text">${w.py}</div>`;
       else prompt = `<div class="q-sub">${t("listenPrompt")}</div><button class="btn primary" id="q-play" type="button" style="margin-top:8px">▶︎ ${t("play")}</button><div class="q-sub small">${t("listenHint")}</div>`;
@@ -1045,11 +1127,7 @@
         <div id="fb"></div>`;
       const input = $("#ti"); input.focus();
       if ($("#q-speak")) { $("#q-speak").onclick = () => { speak(w.hz); input.focus(); }; speak(w.hz); }
-      if (C.id === "zh") input.addEventListener("input", (e) => { // tone numbers → tone marks while typing
-        if (e.isComposing || !/[1-5]/.test(input.value)) return;
-        const pos = input.selectionStart, before = numToMarks(input.value.slice(0, pos));
-        input.value = before + numToMarks(input.value.slice(pos)); input.setSelectionRange(before.length, before.length);
-      });
+      if (C.id === "zh") input.addEventListener("input", (e) => liveToneMarks(e, input));
       $("#t-check").onclick = () => check(input.value);
       $("#t-skip").onclick = () => { if (!answered) reveal(false); else next(); };
       input.onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); if (!answered) check(input.value); else next(); } };
@@ -1232,7 +1310,7 @@
     view.innerHTML = `
       <div class="session-head"><div class="grow"><b>${t("matchTitle")}</b> <span class="muted small" id="m-left">${t("pairsLeft", 6)}</span></div><span class="count" id="m-time">0:00</span></div>
       <div class="match-grid">
-        <div class="match-col">${left.map((w) => `<button class="match-card ${pyFirst() ? "" : "hanzi"}" data-side="a" data-id="${w.id}" type="button">${pyFirst() ? esc(w.py) : w.hz}</button>`).join("")}</div>
+        <div class="match-col">${left.map((w) => `<button class="match-card ${pyFirst() ? "" : "hanzi"}" data-side="a" data-id="${w.id}" type="button">${pyFirst() ? pyHtml(w.py) : w.hz}</button>`).join("")}</div>
         <div class="match-col">${right.map((w) => `<button class="match-card" data-side="b" data-id="${w.id}" type="button">${esc(tr(w))}</button>`).join("")}</div>
       </div>`;
     const timeStr = () => { const s = Math.round((Date.now() - start) / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
@@ -1374,6 +1452,36 @@
   // --- pinyin syllable analysis (for finding example words by initial/final/tone) ---
   const PY_FINALS = ["iang", "iong", "uang", "ueng", "ang", "eng", "ing", "ong", "ian", "iao", "uai", "uan", "van", "ai", "ei", "ao", "ou", "an", "en", "in", "un", "vn", "ia", "ie", "iu", "ua", "uo", "ue", "ve", "er", "a", "o", "e", "i", "u", "v"];
   const PY_INITIALS = ["zh", "ch", "sh", "b", "p", "m", "f", "d", "t", "n", "l", "g", "k", "h", "j", "q", "x", "r", "z", "c", "s", "w", "y"];
+  // Pinyin split into syllables (keeping the original letters) and separators, each syllable with its tone
+  const PART_FINALS = ["ui"].concat(PY_FINALS).sort((a, b) => b.length - a.length); // written finals, longest first (ui = uei)
+  function pyParts(py) {
+    const out = [];
+    String(py).split(/([^\p{L}]+)/u).forEach((part, k) => {
+      if (k % 2) { out.push({ text: part, sep: true }); return; }
+      const chars = Array.from(part);
+      const plain = chars.map((c) => { const d = c.normalize("NFD"); return d.includes("\u0308") ? "v" : d[0].toLowerCase(); });
+      let i = 0;
+      while (i < chars.length) {
+        const rest = plain.slice(i).join("");
+        const ini = PY_INITIALS.find((x) => rest.startsWith(x)) || "";
+        const fin = PART_FINALS.find((x) => rest.slice(ini.length).startsWith(x)) || "";
+        const len = (ini.length + fin.length) || 1;
+        const text = chars.slice(i, i + len).join("");
+        out.push({ text, tone: toneSeq(text)[0] || 5 });
+        i += len;
+      }
+    });
+    return out;
+  }
+  // One colour per tone, so the tone pattern of a word is visible at a glance
+  const pyHtml = (py) => pyParts(py).map((x) => (x.sep ? esc(x.text) : `<span class="tn${x.tone}">${esc(x.text)}</span>`)).join("");
+  const pyShow = (py) => (C.id === "zh" ? pyHtml(py) : esc(py));
+  // Typing pinyin: tone numbers turn into marks as you type (ni3 → nǐ), the caret stays in place
+  function liveToneMarks(e, input) {
+    if (e.isComposing || !/[1-5]/.test(input.value)) return;
+    const pos = input.selectionStart, before = numToMarks(input.value.slice(0, pos));
+    input.value = before + numToMarks(input.value.slice(pos)); input.setSelectionRange(before.length, before.length);
+  }
   function pySyllables(py) {
     const out = [];
     for (const part of py.split(/[\s'’]+/)) {
@@ -1432,7 +1540,7 @@
   function renderSounds(view) {
     if (route[1] === "drill") return renderSoundDrill(view);
     const data = window.SOUNDS && window.SOUNDS[C.id];
-    setTopbar(t("sounds") + " · " + C.title.replace(" Trainer", ""), null);
+    setTopbar(t("sounds") + " · " + C.title.replace(" Trainer", ""), "train");
     if (!data) { view.innerHTML = `<div class="empty">🗣️</div>`; return; }
     let gi = Math.max(0, data.groups.findIndex((x) => x.id === soundPrefs.group)); if (gi < 0) gi = 0;
     const g = data.groups[gi];
@@ -1603,48 +1711,389 @@
 
   function renderToday(view) {
     if (route[1] === "session") return startTodaySession(view);
-    if (route[1] === "lesson" && route[2]) return route[3] === "practice" ? startLessonSession(view, route[2]) : renderLesson(view, route[2]);
     setTopbar(t("tabToday"), null);
-    const p = planToday(); const lessons = courseLessons();
-    const n = dayCount(todayKey()), goal = S.settings.dailyGoal;
+    const p = planToday();
+    const n = dayCount(todayKey()), goal = S.settings.dailyGoal, st = streak();
     const known = ALL_WORDS.filter((w) => status(w.id) === "known").length;
-    const hero = p.due.length || p.fresh.length
-      ? `<div class="due-banner today-hero">
-          <div class="grow"><div class="hero-title">${t("sessionTitle")}</div><div>${t("sessionDesc", p.due.length, p.fresh.length)}</div></div>
-          <button class="btn" id="go-session" type="button">▶︎ ${t("start")}</button>
+    const met = ALL_WORDS.filter((w) => status(w.id) !== "new").length;
+    const work = p.due.length || p.fresh.length;
+    const hero = work
+      ? `<div class="card today-hero">
+          <div class="hero-title">${t("sessionTitle")}</div>
+          <div class="muted">${t("sessionDesc", p.due.length, p.fresh.length)}</div>
+          <button class="btn primary block" id="go-session" type="button">${icon("play")} ${t("start")}</button>
         </div>`
-      : `<div class="card today-done">
+      : `<div class="card today-hero">
           <div class="hero-title">${n || introducedToday() ? t("sessionDone") : t("sessionTitle")}</div>
           <div class="muted">${n || introducedToday() ? t("sessionDoneSub") : t("sessionEmpty")}</div>
-          ${p.unseen ? `<button class="btn block" id="more-new" type="button" style="margin-top:12px">🌱 ${t("moreNew", Math.min(5, p.unseen))}</button>` : ""}
+          ${p.unseen ? `<button class="btn block" id="more-new" type="button">${t("moreNew", Math.min(5, p.unseen))}</button>` : ""}
         </div>`;
+    // The next dialogue: the first one not finished in all three ways
+    const dlgs = courseDialogues();
+    const next = dlgs.find((d) => !dlgDone(d.id)) || null;
     view.innerHTML = `
       ${hero}
-      <div class="stats-grid three">
-        <div class="stat blue"><div class="stat-val">${streak()}</div><div class="stat-lbl">${t("statsStreak")}</div></div>
-        <div class="stat accent"><div class="stat-val">${n}<small>/${goal}</small></div><div class="stat-lbl">${t("statsToday")}</div><div class="progress-bar"><span class="${n >= goal ? "green" : ""}" style="width:${Math.min(100, (n / goal) * 100)}%"></span></div></div>
-        <div class="stat green"><div class="stat-val">${known}</div><div class="stat-lbl">${t("statsWords")}</div></div>
-      </div>
-      <div class="section-title row"><span class="grow">${t("lessons")}</span><button class="btn sm" id="new-lesson" type="button">＋ ${t("lessonNew")}</button></div>
-      ${lessons.length ? `<div class="list">${lessons.slice().reverse().map((l) => {
-        const ws = l.words.filter((id) => BY_ID[id]); const k = ws.filter((id) => status(id) === "known").length; const lr = ws.filter((id) => status(id) === "learning").length;
-        return `<button class="list-item" data-lesson="${l.id}" type="button"><span class="li-ico">📘</span><span class="grow"><div class="li-title">${esc(l.name)}</div><div class="li-sub">${t("lessonWords", ws.length)} · ${t("knownOf", k, ws.length)}</div><div class="progress-bar lesson-bar"><span class="green" style="width:${ws.length ? (k / ws.length) * 100 : 0}%"></span><span class="gold" style="width:${ws.length ? (lr / ws.length) * 100 : 0}%"></span></div></span><span class="li-chev">›</span></button>`;
-      }).join("")}</div>` : `<div class="card list-hint" style="margin:0">${t("lessonEmpty")}</div>`}
-      <div class="list" style="margin-top:16px"><button class="list-item" id="go-stats" type="button"><span class="li-ico">📈</span><span class="grow li-title">${t("fullStats")}</span><span class="li-chev">›</span></button></div>
+      ${next ? `<div class="section-title">${t("dialogues")}</div><div class="list">${dialogueRow(next)}</div>` : ""}
+      ${met || n ? `<div class="today-stats">
+        <div><b>${st}</b><span>${t("statsStreak")}</span></div>
+        <div><b>${n}<small>/${goal}</small></b><span>${t("statsToday")}</span></div>
+        <div><b>${met}</b><span>${t("wordsMet")}</span></div>
+        <div><b>${known}</b><span>${t("statsWords")}</span></div>
+      </div>` : ""}
+      <div class="list" style="margin-top:16px"><button class="list-item" id="go-stats" type="button"><span class="li-ico">${icon("stats")}</span><span class="grow li-title">${t("fullStats")}</span><span class="li-chev">›</span></button></div>
       ${DEV.code ? `<div class="list-hint center" id="sync-line">${syncStatusText()}</div>` : ""}`;
     if ($("#go-session")) $("#go-session").onclick = () => navigate("today/session");
     if ($("#more-new")) $("#more-new").onclick = () => { extraNew += 5; navigate("today/session"); };
-    $("#new-lesson").onclick = () => {
-      const id = newId("l");
-      S.lessons[id] = { course: C.id, name: t("lessonDefault", lessons.length + 1), words: [], created: Date.now() };
-      save(); navigate("today/lesson/" + id);
-    };
-    $$("[data-lesson]").forEach((b) => (b.onclick = () => navigate("today/lesson/" + b.dataset.lesson)));
+    $$("[data-dlg]").forEach((b) => (b.onclick = () => navigate("lessons/d/" + b.dataset.dlg)));
     $("#go-stats").onclick = () => navigate("progress");
   }
 
+  /* ================= LESSONS: dialogues + own lessons ================= */
+  function renderLessons(view) {
+    if (route[1] === "d" && route[2]) return renderDialogue(view, route[2], route[3]);
+    if (route[1]) return route[2] === "practice" ? startLessonSession(view, route[1]) : renderLesson(view, route[1]);
+    setTopbar(t("lessons"), null);
+    const dlgs = courseDialogues(), lessons = courseLessons();
+    view.innerHTML = `
+      ${dlgs.length ? `<div class="section-title">${t("dialogues")}</div><div class="list">${dlgs.map(dialogueRow).join("")}</div>` : ""}
+      <div class="section-title row"><span class="grow">${t("myLessons")}</span><button class="btn sm" id="new-lesson" type="button">＋ ${t("lessonNew")}</button></div>
+      ${lessons.length ? `<div class="list">${lessons.slice().reverse().map((l) => {
+        const ws = l.words.filter((id) => BY_ID[id]); const k = ws.filter((id) => status(id) === "known").length; const lr = ws.filter((id) => status(id) === "learning").length;
+        return `<button class="list-item" data-lesson="${l.id}" type="button"><span class="li-ico">${icon("lessons")}</span><span class="grow"><div class="li-title">${esc(l.name)}</div><div class="li-sub">${t("lessonWords", ws.length)} · ${t("knownOf", k, ws.length)}</div><div class="progress-bar lesson-bar"><span class="green" style="width:${ws.length ? (k / ws.length) * 100 : 0}%"></span><span class="gold" style="width:${ws.length ? (lr / ws.length) * 100 : 0}%"></span></div></span><span class="li-chev">›</span></button>`;
+      }).join("")}</div>` : `<div class="card list-hint" style="margin:0">${t("lessonEmpty")}</div>`}`;
+    $("#new-lesson").onclick = () => {
+      const id = newId("l");
+      S.lessons[id] = { course: C.id, name: t("lessonDefault", lessons.length + 1), words: [], created: Date.now() };
+      save(); navigate("lessons/" + id);
+    };
+    $$("[data-lesson]").forEach((b) => (b.onclick = () => navigate("lessons/" + b.dataset.lesson)));
+    $$("[data-dlg]").forEach((b) => (b.onclick = () => navigate("lessons/d/" + b.dataset.dlg)));
+  }
+
+  /* ================= DIALOGUES ================= */
+  const courseDialogues = () => (window.DIALOGUES && window.DIALOGUES[C.id]) || [];
+  const DLG_MODES = ["listen", "read", "turn"];
+  const dlgState = (id) => { const x = S.dlg[id]; return x && !x.gone ? x : {}; };
+  const dlgDone = (id) => DLG_MODES.every((m) => dlgState(id)[m]);
+  function dlgMark(id, patch) { S.dlg[id] = { ...dlgState(id), ...patch }; save(); }
+  const fmtTime = (ms) => { const s = Math.round(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
+  function dialogueRow(d) {
+    const st = dlgState(d.id);
+    return `<button class="list-item" data-dlg="${d.id}" type="button"><span class="li-ico">${icon("chat")}</span>
+      <span class="grow"><div class="li-title">${esc(L(d.topic))}</div>
+      <div class="dlg-steps">${DLG_MODES.map((m) => `<span class="dlg-step ${st[m] ? "done" : ""}">${st[m] ? "✓ " : ""}${t("dlg_" + m)}</span>`).join("")}${st.read && st.read.best ? `<span class="dlg-step">${t("bestTime", fmtTime(st.read.best))}</span>` : ""}</div></span>
+      <span class="li-chev">›</span></button>`;
+  }
+  // Pinyin split into words that can be tapped for their meaning
+  const pyTapWords = (py) => py.split(/(\s+)/).map((tok) => (/\S/.test(tok) ? `<span class="w" data-w="${esc(tok)}">${pyHtml(tok)}</span>` : tok)).join("");
+  function lookupPy(tok) {
+    const key = (s) => s.normalize("NFC").toLowerCase().replace(/[^\p{L}]/gu, "");
+    const k = key(tok); if (!k) return null;
+    return ALL_WORDS.find((w) => key(w.py) === k) || ALL_WORDS.find((w) => stripTones(w.py) === stripTones(tok)) || null;
+  }
+  let dlgGen = 0;
+  function renderDialogue(view, id, mode) {
+    const gen = ++dlgGen, alive = () => gen === dlgGen && !!$("#chat");
+    const d = courseDialogues().find((x) => x.id === id);
+    if (!d) return navigate("lessons");
+    if (!DLG_MODES.includes(mode)) mode = "listen";
+    setTopbar(L(d.topic), "lessons");
+    const st = dlgState(id);
+    const zhPf = pyFirst();
+    const opt = () => ({ hz: zhPf ? !!S.settings.dlgHz : true, tr: S.settings.dlgTr !== false, slow: !!S.settings.dlgSlow });
+    const nameOf = (who) => (zhPf ? esc(d.people[who].py) : d.people[who].hz);
+    const say = (text, onend) => speak(text, { rate: opt().slow ? 0.55 : S.settings.rate, onend });
+    function bubble(l, k, extra) {
+      const o = opt();
+      const main = C.id === "zh" ? (zhPf ? pyTapWords(l.py) : `<span class="hanzi">${l.hz}</span>`) : esc(l.hz);
+      const sub = C.id === "zh" ? (zhPf ? (o.hz ? `<div class="b-sub hanzi">${l.hz}</div>` : "") : `<div class="b-sub">${pyTapWords(l.py)}</div>`) : "";
+      return `<div class="bubble ${l.who ? "right" : "left"} ${extra && extra.cls ? extra.cls : ""}" data-line="${k}">
+        <div class="b-who">${nameOf(l.who)}</div>
+        <div class="b-main">${main}</div>${sub}
+        ${o.tr ? `<div class="b-tr">${esc(L(l))}</div>` : ""}
+        ${extra && extra.html ? extra.html : ""}
+      </div>`;
+    }
+    view.innerHTML = `
+      <div class="seg dlg-modes">${DLG_MODES.map((m) => `<button data-mode="${m}" class="${m === mode ? "active" : ""}" type="button">${st[m] ? "✓ " : ""}${t("dlg_" + m)}</button>`).join("")}</div>
+      <p class="list-hint">${t("dlg_" + mode + "Hint")}</p>
+      <div class="chips dlg-tools">
+        ${zhPf ? `<button class="chip ${opt().hz ? "active" : ""}" data-opt="dlgHz" type="button">${t("showHz")}</button>` : ""}
+        <button class="chip ${opt().tr ? "active" : ""}" data-opt="dlgTr" type="button">${t("showTr")}</button>
+        <button class="chip ${opt().slow ? "active" : ""}" data-opt="dlgSlow" type="button">🐢 ${t("slowly")}</button>
+      </div>
+      <div class="chat" id="chat"></div>
+      <div id="dlg-foot" class="dlg-foot"></div>`;
+    $$("[data-mode]").forEach((b) => (b.onclick = () => navigate(`lessons/d/${id}/${b.dataset.mode}`)));
+    $$("[data-opt]").forEach((b) => (b.onclick = () => {
+      const k = b.dataset.opt; S.settings[k] = !(k === "dlgTr" ? S.settings.dlgTr !== false : !!S.settings[k]); save(); redraw();
+    }));
+    // Tapping a word shows its meaning; tapping elsewhere on a bubble plays the line
+    $("#chat").onclick = (e) => {
+      const w = e.target.closest(".w");
+      if (w) { const hit = lookupPy(w.dataset.w); if (hit) { toast(`${hit.py} · ${hit.hz} · ${tr(hit)}`); speak(hit.hz); } return; }
+      const b = e.target.closest(".bubble"); if (b && !e.target.closest("button")) say(d.lines[+b.dataset.line].hz);
+    };
+    let redraw;
+    if (mode === "listen") runDlgListen(); else if (mode === "read") runDlgRead(); else runDlgTurn();
+
+    function runDlgListen() {
+      let playing = -1, token = 0;
+      redraw = () => {
+        if (!alive()) return;
+        $("#chat").innerHTML = d.lines.map((l, k) => bubble(l, k, { cls: k === playing ? "playing" : "" })).join("");
+        $("#dlg-foot").innerHTML = playing < 0
+          ? `<button class="btn primary block" id="d-play" type="button">${icon("play")} ${t("playAll")}</button>`
+          : `<button class="btn block" id="d-stop" type="button">${icon("stop")} ${t("stop")}</button>`;
+        if ($("#d-play")) $("#d-play").onclick = () => { const my = ++token; step(0, my); };
+        if ($("#d-stop")) $("#d-stop").onclick = () => { token++; playing = -1; speechSynthesis.cancel(); redraw(); };
+      };
+      function step(k, my) {
+        if (my !== token || !alive()) return;
+        if (k >= d.lines.length) { playing = -1; dlgMark(id, { listen: todayKey() }); redraw(); return; }
+        playing = k; redraw();
+        const el = $(`.bubble[data-line="${k}"]`); if (el) el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        let moved = false;
+        const go = () => { if (moved) return; moved = true; setTimeout(() => step(k + 1, my), 450); };
+        say(d.lines[k].hz, go);
+        // Safari sometimes skips onend: move on after a generous estimate
+        setTimeout(go, 1500 + Array.from(d.lines[k].hz).length * (opt().slow ? 700 : 420));
+      }
+      cleanup = () => { token++; };
+      redraw();
+    }
+
+    function runDlgRead() {
+      const res = d.lines.map(() => null); // { score, hit, text, ms, url }
+      redraw = () => {
+        if (!alive()) return;
+        $("#chat").innerHTML = d.lines.map((l, k) => bubble(l, k, { cls: res[k] ? (res[k].score >= 0.8 ? "good" : "weak") : "", html: `<div class="b-act">${micButton(k)}${res[k] ? resultHtml(l, res[k]) : ""}</div>` })).join("");
+        const doneN = res.filter(Boolean).length;
+        const total = res.reduce((a, r) => a + (r ? r.ms : 0), 0);
+        const acc = doneN ? res.reduce((a, r) => a + (r ? r.score : 0), 0) / doneN : 0;
+        $("#dlg-foot").innerHTML = `<div class="read-sum">${doneN}/${d.lines.length} · ${t("readTime", fmtTime(total))}${st.read && st.read.best ? ` · ${t("bestTime", fmtTime(st.read.best))}` : ""}${doneN && SR_OK() ? ` · ${Math.round(acc * 100)}%` : ""}</div>`;
+        bindMics($("#chat"), (k) => d.lines[k].hz, (k, r) => {
+          res[k] = r;
+          if (res.every(Boolean)) {
+            const ms = res.reduce((a, x) => a + x.ms, 0), accAll = res.reduce((a, x) => a + x.score, 0) / res.length;
+            const prev = dlgState(id).read || {};
+            dlgMark(id, { read: { best: Math.min(prev.best || Infinity, ms), last: ms, acc: Math.round(accAll * 100) } });
+          }
+          redraw();
+        });
+      };
+      redraw();
+    }
+
+    function runDlgTurn() {
+      let me = null, i = 0, right = 0, hint = 0; const shown = []; // shown: { k, res }
+      redraw = () => {
+        if (!alive()) return;
+        $("#chat").innerHTML = shown.map((x) => bubble(d.lines[x.k], x.k, x.res ? { cls: x.res.ok ? "good" : "weak", html: `<div class="b-act">${x.res.html}</div>` } : null)).join("");
+        const foot = $("#dlg-foot");
+        if (me === null) {
+          foot.innerHTML = `<div class="section-title">${t("chooseRole")}</div><div class="row">${d.people.map((p, k) => `<button class="btn grow" data-role="${k}" type="button">${t("iAm", zhPf ? p.py : p.hz)}</button>`).join("")}</div>`;
+          $$("[data-role]").forEach((b) => (b.onclick = () => { me = +b.dataset.role; advance(); }));
+          return;
+        }
+        if (i >= d.lines.length) {
+          foot.innerHTML = `<div class="card center"><div class="hero-title">${t("dlgTurnDone", right, d.lines.filter((l) => l.who === me).length)}</div>
+            <div class="row" style="margin-top:12px"><button class="btn grow" id="t-swap" type="button">${t("switchRole")}</button><button class="btn primary grow" id="t-back" type="button">${t("dialogues")}</button></div></div>`;
+          $("#t-swap").onclick = () => { me = 1 - me; i = 0; right = 0; shown.length = 0; advance(); };
+          $("#t-back").onclick = () => navigate("lessons");
+          return;
+        }
+        const l = d.lines[i];
+        const hintTxt = hint === 0 ? "" : hint === 1 ? l.py.split(/\s+/).map((w) => w.replace(/^([^a-zA-Zāáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜü]*)(.)(.*)$/, (_, a, b, c) => a + b + c.replace(/[\p{L}]/gu, "·"))).join(" ") : (C.id === "zh" ? l.py : l.hz);
+        foot.innerHTML = `
+          <div class="card turn-card">
+            <div class="turn-ask">${t("sayIn", t("langName"))}</div>
+            <div class="turn-tr">${esc(L(l))}</div>
+            ${hintTxt ? `<div class="turn-hint">${C.id === "zh" ? pyHtml(hintTxt) : esc(hintTxt)}</div>` : ""}
+            <div class="turn-mic">${micButton("turn")}</div>
+            <form class="row turn-type" id="turn-form">
+              <input class="type-input" name="a" type="text" placeholder="${esc(t("typeOr"))}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" lang="${C.tts}">
+              <button class="btn" type="submit">${t("check")}</button>
+            </form>
+            <div class="row turn-more">${hint < 2 ? `<button class="btn ghost sm" id="t-hint" type="button">💡 ${t("hint")}</button>` : ""}<button class="btn ghost sm" id="t-skip" type="button">${t("skip")}</button></div>
+          </div>`;
+        const input = $("#turn-form").a;
+        if (C.id === "zh") input.addEventListener("input", (e) => liveToneMarks(e, input));
+        $("#turn-form").onsubmit = (e) => { e.preventDefault(); if (input.value.trim()) answer(checkTyped(l, input.value)); };
+        if ($("#t-hint")) $("#t-hint").onclick = () => { hint++; redraw(); };
+        $("#t-skip").onclick = () => answer({ ok: false, skipped: true });
+        bindMics(foot, () => l.hz, (_, r) => answer(r.mode === "rec" ? { ok: r.self, rec: r } : { ok: r.score >= 0.8, heard: r }));
+      };
+      function answer(r) {
+        const l = d.lines[i];
+        if (r.ok) right++;
+        const msg = r.skipped ? "" : r.heard ? resultHtml(l, r.heard) : r.rec ? resultHtml(l, r.rec) : `<div class="heard ${r.ok ? "ok" : "bad"}">${r.ok ? (r.tones === false ? t("tonesMissing") : "✓ " + t("correct")) : r.tonesWrong ? t("tonesWrong") : "✗ " + t("wrong")}</div>`;
+        shown.push({ k: i, res: { ok: r.ok, html: msg } });
+        say(l.hz);
+        i++; hint = 0; advance(true);
+      }
+      // Play the other person's lines until it is my turn again
+      function advance(afterMine) {
+        if (!alive()) return;
+        redraw();
+        const l = d.lines[i];
+        if (!l || l.who === me) { if (i >= d.lines.length) { dlgMark(id, { turn: { best: Math.max((dlgState(id).turn || {}).best || 0, right), last: right } }); redraw(); } return; }
+        setTimeout(() => {
+          if (!alive()) return;
+          shown.push({ k: i, res: null }); i++;
+          redraw();
+          const el = $("#chat .bubble:last-child"); if (el) el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+          let moved = false; const go = () => { if (moved) return; moved = true; setTimeout(() => advance(), 300); };
+          say(l.hz, go); setTimeout(go, 1500 + Array.from(l.hz).length * 420);
+        }, afterMine ? 1400 : 200);
+      }
+      redraw();
+    }
+  }
+  // Typed answer in a dialogue: pinyin (tones optional, but if typed they must match) or the characters
+  function checkTyped(l, v) {
+    if (/\p{Script=Han}/u.test(v)) return { ok: matchHeard(l.hz, [v]).score >= 0.9 };
+    if (C.id !== "zh") return { ok: hasDiacritics(v) ? norm(v) === norm(l.hz) && v.normalize("NFC").toLowerCase().replace(/[^\p{L}\s]/gu, "").replace(/\s+/g, " ").trim() === l.hz.normalize("NFC").toLowerCase().replace(/[^\p{L}\s]/gu, "").replace(/\s+/g, " ").trim() : norm(v) === norm(l.hz) };
+    const clean = (s) => s.replace(/[:;：，。！？、]/g, "");
+    if (stripTones(clean(v)) !== stripTones(clean(l.py))) return { ok: false };
+    if (!toneSeq(v).length) return { ok: true, tones: false };
+    const mine = pyParts(clean(v)).filter((x) => !x.sep), want = pyParts(clean(l.py)).filter((x) => !x.sep);
+    if (mine.length !== want.length) { const same = toneSeq(v).join("") === toneSeq(l.py).join(""); return { ok: same, tonesWrong: !same }; }
+    // Only syllables you gave a tone are checked; untoned ones are just "not typed"
+    const wrong = mine.some((x, k) => x.tone !== 5 && x.tone !== want[k].tone);
+    const missing = mine.some((x, k) => x.tone === 5 && want[k].tone !== 5);
+    return { ok: !wrong, tonesWrong: wrong, tones: missing ? false : undefined };
+  }
+
+  /* ---------------- Speaking: speech recognition, with recording as the fallback ---------------- */
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const MIC = { rec: null, media: null, chunks: [], start: 0, srBroken: false };
+  const SR_OK = () => !!SR && !MIC.srBroken;
+  const CAN_RECORD = !!(navigator.mediaDevices && window.MediaRecorder);
+  // Units to compare: characters for Chinese and Japanese, words for Vietnamese; digits become number words
+  function unitsOf(s) {
+    const x = String(s).replace(/\d+/g, (m) => (+m <= 99 ? numToHanzi(+m) + (C.id === "vi" ? " " : "") : m));
+    return C.id === "vi" ? x.normalize("NFC").toLowerCase().split(/[^\p{L}]+/u).filter(Boolean) : Array.from(x).filter((c) => /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]/u.test(c));
+  }
+  // Which target units were heard (longest common subsequence over the recogniser's alternatives)
+  function matchHeard(target, alts) {
+    const tc = unitsOf(target); let best = { score: 0, hit: tc.map(() => false), text: alts[0] || "" };
+    alts.forEach((a) => {
+      const hc = unitsOf(a), n = tc.length, m = hc.length;
+      const Lm = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0));
+      for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--) Lm[i][j] = tc[i] === hc[j] ? Lm[i + 1][j + 1] + 1 : Math.max(Lm[i + 1][j], Lm[i][j + 1]);
+      const hit = tc.map(() => false); let i = 0, j = 0;
+      while (i < n && j < m) { if (tc[i] === hc[j]) { hit[i] = true; i++; j++; } else if (Lm[i + 1][j] >= Lm[i][j + 1]) i++; else j++; }
+      const score = n ? Lm[0][0] / n : 0;
+      if (score > best.score || !best.text) best = { score, hit, text: a };
+    });
+    return best;
+  }
+  function hearOnce() {
+    return new Promise((resolve, reject) => {
+      if (TTS.available) speechSynthesis.cancel();
+      const r = new SR(); MIC.rec = r;
+      r.lang = C.tts; r.interimResults = false; r.maxAlternatives = 5; r.continuous = false;
+      let got = [];
+      r.onresult = (e) => { got = Array.from(e.results[0] || []).map((a) => a.transcript); };
+      r.onerror = (e) => { MIC.rec = null; reject(e.error || "error"); };
+      r.onend = () => { MIC.rec = null; resolve(got); };
+      try { r.start(); } catch (e) { MIC.rec = null; reject("start"); }
+    });
+  }
+  async function startRecording() {
+    if (!MIC.stream) MIC.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    MIC.chunks = []; MIC.media = new MediaRecorder(MIC.stream);
+    MIC.media.ondataavailable = (e) => { if (e.data.size) MIC.chunks.push(e.data); };
+    MIC.media.start(); MIC.start = Date.now();
+  }
+  function stopRecording() {
+    return new Promise((resolve) => {
+      const m = MIC.media; if (!m) return resolve(null);
+      m.onstop = () => { MIC.media = null; resolve({ url: URL.createObjectURL(new Blob(MIC.chunks, { type: m.mimeType })), ms: Date.now() - MIC.start }); };
+      m.stop();
+    });
+  }
+  const micButton = (k) => `<button class="mic-btn" data-mic="${k}" type="button">${icon("speak")}<span>${SR_OK() ? t("speakBtn") : t("record")}</span></button>`;
+  // Wire every mic button in root. getTarget(k) → text to say; done(k, result) gets
+  // { mode: "sr", score, hit, text, ms } or { mode: "rec", url, ms, self } (self-rated)
+  function bindMics(root, getTarget, done) {
+    $$("[data-mic]", root).forEach((b) => (b.onclick = async () => {
+      const k = b.dataset.mic, label = b.querySelector("span");
+      if (SR_OK()) {
+        if (MIC.rec) { MIC.rec.stop(); return; }
+        b.classList.add("live"); label.textContent = t("listening");
+        const t0 = Date.now();
+        try {
+          const alts = await hearOnce();
+          done(k, { mode: "sr", ...matchHeard(getTarget(k), alts), ms: Date.now() - t0 });
+        } catch (err) {
+          b.classList.remove("live"); label.textContent = t("record");
+          if (["not-allowed", "service-not-allowed", "start", "audio-capture", "network", "language-not-supported"].includes(err)) { MIC.srBroken = true; toast(t("micBlocked")); }
+          else if (err === "no-speech") toast(t("heardNo"));
+        }
+        return;
+      }
+      if (!CAN_RECORD) { toast(t("noMic")); return; }
+      if (MIC.media) { // second tap stops: offer playback and a self-rating
+        const rec = await stopRecording(); b.classList.remove("live"); label.textContent = t("record");
+        if (!rec) return;
+        const box = document.createElement("div"); box.className = "self-rate";
+        box.innerHTML = `<button class="btn sm" data-p="me" type="button">▶ ${t("playMine")}</button><button class="btn sm" data-p="model" type="button">▶ ${t("playModel")}</button>
+          <span class="grow small muted">${t("rateSelf")}</span><button class="btn sm danger" data-r="0" type="button">${t("rateAgain")}</button><button class="btn sm success" data-r="1" type="button">${t("rateGood")}</button>`;
+        b.after(box);
+        box.querySelector('[data-p="me"]').onclick = () => new Audio(rec.url).play();
+        box.querySelector('[data-p="model"]').onclick = () => speak(getTarget(k));
+        new Audio(rec.url).play();
+        $$("[data-r]", box).forEach((x) => (x.onclick = () => done(k, { mode: "rec", url: rec.url, ms: rec.ms, self: x.dataset.r === "1", score: x.dataset.r === "1" ? 1 : 0 })));
+        return;
+      }
+      try { await startRecording(); b.classList.add("live"); label.textContent = t("stopRec"); }
+      catch (e) { toast(t("noMic")); }
+    }));
+  }
+  // Feedback under a spoken line: heard syllables in tone colours, missed ones struck through
+  function resultHtml(l, r) {
+    if (r.mode === "rec") return `<div class="heard ${r.self ? "ok" : "bad"}">${r.self ? "✓ " + t("rateGood") : "↺ " + t("rateAgain")} <button class="btn ghost sm" data-play-url="${r.url}" type="button" onclick="new Audio(this.dataset.playUrl).play()">▶ ${t("playMine")}</button></div>`;
+    const msg = r.score >= 0.8 ? t("heardGreat") : r.score >= 0.4 ? t("heardAlmost") : t("heardNo");
+    let line = "";
+    const parts = C.id === "zh" ? pyParts(l.py) : [];
+    if (parts.filter((x) => !x.sep).length === r.hit.length && r.hit.length) {
+      let k = 0;
+      line = parts.map((x) => (x.sep ? esc(x.text) : `<span class="${r.hit[k++] ? "tn" + x.tone : "missed"}">${esc(x.text)}</span>`)).join("");
+    }
+    return `<div class="heard ${r.score >= 0.8 ? "ok" : "bad"}"><div>${msg} <b>${Math.round(r.score * 100)}%</b></div>${line ? `<div class="heard-line">${line}</div>` : ""}${r.text ? `<div class="small muted">${t("heardAs", esc(r.text))}</div>` : ""}</div>`;
+  }
+
+  /* --- Say the word: speaking practice for single words --- */
+  function runSay(view, list) {
+    let i = 0, correct = 0; const mistakes = [];
+    function draw() {
+      if (i >= list.length) { if (cleanup) { cleanup(); cleanup = null; } return showResult(view, { correct, total: list.length, mistakes, onAgain: () => navigate("train/say") }); }
+      const w = list[i];
+      view.innerHTML = `${sessionHead(i, list.length, `✓ ${correct}`)}
+        <div class="card meet-card">
+          ${pyFirst() ? `<div class="meet-py">${pyHtml(w.py)}</div><div class="meet-hz">${w.hz}</div>` : `<div class="meet-hz big">${w.hz}</div><div class="meet-py sm">${pyShow(w.py)}</div>`}
+          <div class="meet-tr">${esc(tr(w))}</div>
+          <div class="row meet-btns"><button class="btn" id="m-say" type="button">🔊 ${t("playModel")}</button>${micButton("w")}</div>
+          <div id="say-res"></div>
+        </div>
+        <div id="say-next"></div>`;
+      $("#m-say").onclick = () => speak(w.hz);
+      bindMics(view, () => w.hz, (_, r) => {
+        const ok = r.score >= 0.8;
+        $("#say-res").innerHTML = resultHtml({ py: w.py, hz: w.hz }, r);
+        if (r.mode === "rec" && $(".self-rate")) $(".self-rate").remove();
+        $("#say-next").innerHTML = `<div class="row" style="margin-top:12px"><button class="btn grow" id="s-retry" type="button">↺ ${t("again")}</button><button class="btn primary grow" id="s-next" type="button">${t("next")}</button></div>`;
+        $("#s-retry").onclick = () => draw();
+        $("#s-next").onclick = () => { grade(w.id, ok ? 2 : 0); recordAnswer(ok); if (ok) correct++; else mistakes.push(w); i++; draw(); };
+      });
+    }
+    draw();
+  }
+
   /* --- Guided session: a chain of training steps; each step's showResult hands over to the next --- */
-  const STEP_ICO = { review: "🃏", meet: "🌱", listen: "👂", write: "⌨️" };
+  const STEP_ICO = { review: icon("read"), meet: "🌱", listen: icon("listen"), speak: icon("speak"), write: icon("write") };
   function startFlow(view, steps, back) {
     flow = { steps: steps.filter((x) => x.list.length), i: 0, results: [], back };
     if (!flow.steps.length) { flow = null; return navigate(back); }
@@ -1680,7 +2129,7 @@
         <div class="big">🎉</div>
         <div class="sub">${t("sessionSummary")}</div>
         <div class="list summary-list">${f.results.map((r) => `<div class="list-item static"><span class="li-ico">${STEP_ICO[r.step.kind]}</span><span class="grow li-title">${t(r.step.title)}</span><span class="li-sub">${r.step.kind === "meet" ? t("newLearned", r.total) : t("resultScore", r.correct, r.total)}</span></div>`).join("")}</div>
-        ${mistakes.length ? `<div class="result-list"><div class="section-title">${t("reviewMistakes")}</div>${mistakes.map((w) => `<div class="result-item">${pyFirst() ? `<div class="grow"><div class="r-py big">${esc(w.py)}</div><div class="r-tr">${esc(tr(w))}</div></div>` : `<span class="hanzi">${w.hz}</span><div class="grow"><div class="r-py">${w.py}</div><div class="r-tr">${esc(tr(w))}</div></div>`}<button class="speak-btn sm" data-speak="${esc(w.hz)}" type="button">🔊</button></div>`).join("")}</div>` : ""}
+        ${mistakes.length ? `<div class="result-list"><div class="section-title">${t("reviewMistakes")}</div>${mistakes.map((w) => `<div class="result-item">${pyFirst() ? `<div class="grow"><div class="r-py big">${pyHtml(w.py)}</div><div class="r-tr">${esc(tr(w))}</div></div>` : `<span class="hanzi">${w.hz}</span><div class="grow"><div class="r-py">${w.py}</div><div class="r-tr">${esc(tr(w))}</div></div>`}<button class="speak-btn sm" data-speak="${esc(w.hz)}" type="button">🔊</button></div>`).join("")}</div>` : ""}
         <div class="stack" style="margin-top:20px"><button class="btn primary block" id="r-back" type="button">${t("backToday")}</button></div>
       </div>`;
     $("#r-back").onclick = () => navigate(f.back);
@@ -1695,19 +2144,20 @@
       { kind: "review", title: "stepReview", list: p.due, run: runFlash },
       { kind: "meet", title: "stepMeet", list: p.fresh, run: runMeet },
       { kind: "listen", title: "stepListen", list: shuffle(practice), run: (v, l) => runQuiz(v, l, "listen") },
+      { kind: "speak", title: "stepSpeak", list: SR_OK() || CAN_RECORD ? shuffle(practice).slice(0, 6) : [], run: runSay },
       { kind: "write", title: "stepWrite", list: shuffle(practice), run: runType }
     ], "today");
   }
   function startLessonSession(view, lid) {
     const l = S.lessons[lid];
-    if (!l || l.gone || l.course !== C.id) return navigate("today");
+    if (!l || l.gone || l.course !== C.id) return navigate("lessons");
     const ws = l.words.map((id) => BY_ID[id]).filter(Boolean);
     const pick = shuffle(ws).slice(0, 15);
     startFlow(view, [
       { kind: "meet", title: "stepMeet", list: ws.filter((w) => status(w.id) === "new"), run: runMeet },
       { kind: "listen", title: "stepListen", list: pick, run: (v, x) => runQuiz(v, x, "listen") },
       { kind: "write", title: "stepWrite", list: shuffle(pick), run: runType }
-    ], "today/lesson/" + lid);
+    ], "lessons/" + lid);
   }
 
   /* --- Meet: first contact with a new word, listen and repeat --- */
@@ -1718,7 +2168,7 @@
       const w = list[i];
       view.innerHTML = `${sessionHead(i, list.length)}
         <div class="card meet-card">
-          ${pyFirst() ? `<div class="meet-py">${esc(w.py)}</div><div class="meet-hz">${w.hz}</div>` : `<div class="meet-hz big">${w.hz}</div><div class="meet-py sm">${esc(w.py)}</div>`}
+          ${pyFirst() ? `<div class="meet-py">${pyHtml(w.py)}</div><div class="meet-hz">${w.hz}</div>` : `<div class="meet-hz big">${w.hz}</div><div class="meet-py sm">${pyShow(w.py)}</div>`}
           <div class="meet-tr">${esc(tr(w))}</div>
           <div class="row meet-btns"><button class="btn" id="m-say" type="button">🔊 ${t("play")}</button><button class="btn ghost" id="m-slow" type="button">🐢 ${t("slowly")}</button></div>
           ${w.ex ? `<div class="example"><div class="row"><div class="grow">${pyFirst() && w.exPy ? `<div class="ex-py big">${w.exPy}</div><div class="ex-hz small">${w.ex}</div>` : `<div class="ex-hz">${w.ex}</div>${w.exPy ? `<div class="ex-py">${w.exPy}</div>` : ""}`}<div class="ex-tr">${esc(exTr(w))}</div></div><button class="speak-btn sm" id="m-ex" type="button">🔊</button></div></div>` : ""}
@@ -1739,8 +2189,8 @@
   /* --- Lesson editor --- */
   function renderLesson(view, lid) {
     const l = S.lessons[lid];
-    if (!l || l.gone || l.course !== C.id) return navigate("today");
-    setTopbar(l.name, "today");
+    if (!l || l.gone || l.course !== C.id) return navigate("lessons");
+    setTopbar(l.name, "lessons");
     const own = C.id === "zh" ? [["py", t("ownPy")], ["hz", t("ownHz")], ["en", t("ownEn")]]
       : C.id === "ja" ? [["hz", t("ownWord")], ["py", t("ownReading")], ["en", t("ownEn")]] : [["hz", t("ownWord")], ["en", t("ownEn")]];
     view.innerHTML = `
@@ -1759,7 +2209,7 @@
       <button class="btn danger block" id="l-delete" type="button" style="margin-top:20px">${t("deleteLesson")}</button>`;
     const row = (w, inLesson) => `
       <div class="list-item static lw-row">
-        <span class="grow">${pyFirst() ? `<div class="li-title py-face">${esc(w.py)}</div><div class="li-sub"><span class="hanzi">${w.hz}</span> · ${esc(tr(w))}</div>` : `<div class="li-title"><span class="hanzi">${w.hz}</span> <span class="muted">${esc(w.py)}</span></div><div class="li-sub">${esc(tr(w))}</div>`}</span>
+        <span class="grow">${pyFirst() ? `<div class="li-title py-face">${pyHtml(w.py)}</div><div class="li-sub"><span class="hanzi">${w.hz}</span> · ${esc(tr(w))}</div>` : `<div class="li-title"><span class="hanzi">${w.hz}</span> <span class="muted">${esc(w.py)}</span></div><div class="li-sub">${esc(tr(w))}</div>`}</span>
         <button class="speak-btn sm" data-say="${w.id}" type="button" aria-label="${t("speak")}">🔊</button>
         ${inLesson ? `<button class="btn ghost sm" data-del="${w.id}" type="button" aria-label="${t("remove")}">✕</button>` : `<button class="btn sm" data-add="${w.id}" type="button">＋</button>`}
       </div>`;
@@ -1785,15 +2235,11 @@
       bindRows(box);
     }
     drawWords();
-    $("#l-name").onchange = () => { l.name = $("#l-name").value.trim() || l.name; save(); setTopbar(l.name, "today"); };
+    $("#l-name").onchange = () => { l.name = $("#l-name").value.trim() || l.name; save(); setTopbar(l.name, "lessons"); };
     $("#l-search").oninput = drawResults;
-    $("#l-practice").onclick = () => navigate("today/lesson/" + lid + "/practice");
+    $("#l-practice").onclick = () => navigate("lessons/" + lid + "/practice");
     const form = $("#l-own");
-    if (C.id === "zh") form.py.addEventListener("input", (e) => { // tone numbers → marks, as in Typewriter
-      const input = form.py; if (e.isComposing || !/[1-5]/.test(input.value)) return;
-      const pos = input.selectionStart, before = numToMarks(input.value.slice(0, pos));
-      input.value = before + numToMarks(input.value.slice(pos)); input.setSelectionRange(before.length, before.length);
-    });
+    if (C.id === "zh") form.py.addEventListener("input", (e) => liveToneMarks(e, form.py));
     form.onsubmit = (e) => {
       e.preventDefault();
       const v = (k) => (form[k] ? form[k].value.trim() : "");
@@ -1806,7 +2252,7 @@
       save(); applyCourse();
       form.reset(); drawWords(); toast(t("added"));
     };
-    $("#l-delete").onclick = () => { if (confirm(t("deleteLessonConfirm"))) { delete S.lessons[lid]; save(); navigate("today"); } };
+    $("#l-delete").onclick = () => { if (confirm(t("deleteLessonConfirm"))) { delete S.lessons[lid]; save(); navigate("lessons"); } };
   }
 
   /* ================= PROGRESS ================= */

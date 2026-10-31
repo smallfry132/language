@@ -684,3 +684,102 @@ html.latin .sex-hz { font-size: 16px; font-weight: 600; min-width: 80px; }
 /* Sync */
 .sync-code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 21px; font-weight: 700; letter-spacing: 0.04em; user-select: all; -webkit-user-select: all; padding: 4px 0; word-break: break-all; }
 .sync-code-input { font-family: ui-monospace, "SF Mono", Menlo, monospace; text-transform: uppercase; }
+
+/* ============================================================
+   Calmer look: one accent for the main action, tone colours carry meaning
+   ============================================================ */
+:root { --tone1: #c8372d; --tone2: #b8730c; --tone3: #2e8b57; --tone4: #2f6fd6; --tone5: #8d8994; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --tone1: #f0776c; --tone2: #e3a447; --tone3: #5fca8a; --tone4: #7ea7f2; --tone5: #8f8b96; }
+}
+:root[data-theme="dark"] { --tone1: #f0776c; --tone2: #e3a447; --tone3: #5fca8a; --tone4: #7ea7f2; --tone5: #8f8b96; }
+.tn1 { color: var(--tone1); } .tn2 { color: var(--tone2); } .tn3 { color: var(--tone3); } .tn4 { color: var(--tone4); } .tn5 { color: var(--tone5); }
+.py-face { color: var(--text); }
+
+/* Selected chips in ink, so the accent stays reserved for the main button */
+.chip.active { background: var(--text); border-color: var(--text); color: var(--bg-elev); }
+
+/* Icons */
+.ico { width: 20px; height: 20px; flex: none; vertical-align: -4px; }
+.tab .tab-ico .ico { width: 24px; height: 24px; }
+.nav .tab .tab-ico .ico { width: 20px; height: 20px; }
+.lang-toggle { display: inline-flex; align-items: center; justify-content: center; min-width: 36px; width: 36px; height: 36px; padding: 0; }
+.lang-toggle .ico { width: 20px; height: 20px; }
+.lang-toggle.active { color: var(--accent); }
+.list-item .li-ico .ico { width: 22px; height: 22px; color: var(--text-2); }
+.btn .ico { width: 18px; height: 18px; vertical-align: -3px; }
+
+/* Today */
+.today-hero { display: flex; flex-direction: column; gap: 4px; margin-bottom: 4px; }
+.today-hero .btn { margin-top: 12px; min-width: 0; }
+.today-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 18px; text-align: center; }
+.today-stats b { display: block; font-size: 22px; font-weight: 800; }
+.today-stats b small { font-size: 13px; color: var(--text-3); font-weight: 600; }
+.today-stats span { font-size: 11px; color: var(--text-3); line-height: 1.2; display: block; }
+.step-dot .ico { width: 22px; height: 22px; }
+.step-card .step-ico .ico { width: 44px; height: 44px; color: var(--accent); }
+.summary-list .li-ico .ico { color: var(--text-2); }
+
+/* Practice by skill */
+.due-note { display: block; width: 100%; text-align: left; background: none; border: 0; padding: 0; cursor: pointer; color: var(--accent); font-weight: 600; margin-bottom: 4px; }
+.skill { margin-top: 18px; }
+.skill:first-child { margin-top: 4px; }
+.skill-head { display: flex; align-items: center; gap: 12px; margin: 0 2px 8px; }
+.skill-head > .ico { width: 36px; height: 36px; padding: 8px; border-radius: 12px; background: var(--accent-soft); color: var(--accent); }
+.skill-head h3 { font-size: 17px; }
+@media (min-width: 860px) { .skills { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; } .skill:first-child { margin-top: 18px; } }
+details.adjust { margin-top: 2px; }
+details.adjust summary { cursor: pointer; color: var(--text-2); font-weight: 600; font-size: 14px; padding: 6px 0; }
+
+/* Dialogues */
+.dlg-steps { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.dlg-step { font-size: 11px; padding: 2px 7px; border-radius: 999px; background: var(--bg-sunken); color: var(--text-3); }
+.dlg-step.done { background: var(--green-soft); color: var(--green); }
+.dlg-modes { display: flex; width: 100%; }
+.dlg-modes button { flex: 1; }
+.dlg-tools { margin-bottom: 4px; }
+.chat { display: flex; flex-direction: column; gap: 10px; margin: 6px 0 14px; }
+.bubble { max-width: 86%; padding: 10px 14px; border-radius: 18px; background: var(--bg-elev); border: 1px solid var(--line); box-shadow: var(--shadow); cursor: pointer; transition: border-color .2s, background .2s; }
+.bubble.left { align-self: flex-start; border-bottom-left-radius: 6px; }
+.bubble.right { align-self: flex-end; border-bottom-right-radius: 6px; background: var(--bg-sunken); }
+.bubble.playing { border-color: var(--accent); background: var(--accent-soft); }
+.bubble.good { border-color: var(--green); }
+.bubble.weak { border-color: var(--gold); }
+.b-who { font-size: 11px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 2px; }
+.b-main { font-size: 21px; font-weight: 600; line-height: 1.35; }
+.b-main .hanzi { font-size: 24px; font-weight: 500; }
+.b-main .w { border-radius: 4px; }
+.b-main .w:hover { background: var(--bg-sunken); }
+.b-sub { font-size: 15px; color: var(--text-3); margin-top: 2px; }
+.b-sub.hanzi { font-size: 17px; }
+.b-tr { font-size: 14px; color: var(--text-2); margin-top: 4px; }
+.b-act { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; align-items: flex-start; cursor: default; }
+.dlg-foot { position: sticky; bottom: calc(var(--tab-h) + var(--sab) + 8px); }
+@media (min-width: 860px) { .dlg-foot { bottom: 16px; } }
+.read-sum { text-align: center; font-size: 14px; font-weight: 600; color: var(--text-2); background: var(--bg-elev); border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px; box-shadow: var(--shadow); }
+.turn-card { display: flex; flex-direction: column; gap: 8px; box-shadow: 0 -4px 24px rgba(0,0,0,0.08), var(--shadow); }
+.turn-ask { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-3); }
+.turn-tr { font-size: 19px; font-weight: 600; }
+.turn-hint { font-size: 18px; font-weight: 600; letter-spacing: 0.02em; }
+.turn-mic { display: flex; justify-content: center; }
+.turn-type .type-input { flex: 1; min-width: 0; font-size: 17px; text-align: left; }
+.turn-more { justify-content: space-between; }
+
+/* Microphone */
+.mic-btn { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--bg-elev); color: var(--text); border-radius: 999px; padding: 8px 16px 8px 12px; font-size: 15px; font-weight: 600; cursor: pointer; min-height: 40px; }
+.mic-btn .ico { color: var(--accent); }
+.mic-btn.live { background: var(--accent); border-color: var(--accent); color: var(--accent-text); animation: mic-pulse 1.2s ease-in-out infinite; }
+.mic-btn.live .ico { color: var(--accent-text); }
+@keyframes mic-pulse { 0%, 100% { box-shadow: 0 0 0 0 var(--accent-soft); } 50% { box-shadow: 0 0 0 8px var(--accent-soft); } }
+@media (prefers-reduced-motion: reduce) { .mic-btn.live { animation: none; } }
+.turn-mic .mic-btn { padding: 12px 22px 12px 16px; font-size: 17px; }
+.heard { font-size: 14px; border-radius: 10px; padding: 8px 10px; width: 100%; }
+.heard.ok { background: var(--green-soft); }
+.heard.bad { background: var(--gold-soft); }
+.heard-line { font-size: 17px; font-weight: 600; margin-top: 4px; }
+.heard-line .missed { color: var(--red); text-decoration: line-through; text-decoration-thickness: 2px; }
+.self-rate { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; width: 100%; }
+.meet-btns .mic-btn { min-height: 44px; }
+#say-res { margin-top: 12px; text-align: left; }
+.skill-head .li-sub { font-size: 13px; color: var(--text-2); line-height: 1.35; }
+.chat { padding-bottom: 64px; }

@@ -162,6 +162,11 @@
       modeListen: "Listening", modeListenDesc: "Hear the word, choose the character.",
       modeMatch: "Matching", modeMatchDesc: "Match characters with their meanings against the clock.",
       modeTones: "Tone drill", modeTonesDesc: "Hear a syllable and identify its tone.",
+      modeTyper: "Typewriter", modeTyperDesc: "Copy-type pinyin as fast as you can. Enter reads it aloud.",
+      typerIntro: "Type the line exactly as shown, tone marks included. Press Enter when you are done: the app reads it aloud and moves on.",
+      typerHint: "Tone numbers turn into marks: ni3 → nǐ, lv4 → lǜ, ma5 → ma. Enter = done + speak.",
+      typerContent: "Content", typerWords: "Words", typerSentences: "Sentences", typerMixed: "Mixed",
+      typerBest: "Personal best", typerRecord: "New record", wpm: "WPM", accuracy: "accuracy",
       modeNumbers: "Numbers", modeNumbersDesc: "Read and write Chinese numbers 1–99.",
       setupTitle: "Session setup", whichWords: "Which words?", allWords: "All words", dueWords: "Due & new", favsOnly: "Favorites", learningOnly: "Learning", howMany: "How many?",
       direction: "Direction", dirHzTr: "Character → Meaning", dirTrHz: "Meaning → Character", dirHzPy: "Character → Pinyin", dirPyHz: "Pinyin → Character",
@@ -216,6 +221,11 @@
       modeListen: "Hören", modeListenDesc: "Wort anhören, richtiges Zeichen wählen.",
       modeMatch: "Zuordnen", modeMatchDesc: "Zeichen und Bedeutungen auf Zeit zuordnen.",
       modeTones: "Ton-Training", modeTonesDesc: "Silbe hören und den Ton erkennen.",
+      modeTyper: "Schreibmaschine", modeTyperDesc: "Pinyin so schnell wie möglich abtippen. Enter liest es vor.",
+      typerIntro: "Tippe die Zeile genau ab, mit Tonzeichen. Mit Enter bist du fertig: die App liest sie vor und geht weiter.",
+      typerHint: "Tonzahlen werden zu Zeichen: ni3 → nǐ, lv4 → lǜ, ma5 → ma. Enter = fertig + vorlesen.",
+      typerContent: "Inhalt", typerWords: "Wörter", typerSentences: "Sätze", typerMixed: "Gemischt",
+      typerBest: "Bestwert", typerRecord: "Neuer Rekord", wpm: "WPM", accuracy: "Genauigkeit",
       modeNumbers: "Zahlen", modeNumbersDesc: "Chinesische Zahlen 1–99 lesen und schreiben.",
       setupTitle: "Übung einrichten", whichWords: "Welche Wörter?", allWords: "Alle Wörter", dueWords: "Fällig & neu", favsOnly: "Favoriten", learningOnly: "In Arbeit", howMany: "Wie viele?",
       direction: "Richtung", dirHzTr: "Zeichen → Bedeutung", dirTrHz: "Bedeutung → Zeichen", dirHzPy: "Zeichen → Pinyin", dirPyHz: "Pinyin → Zeichen",
@@ -307,6 +317,9 @@
         brandSub: "Vietnamese", search: "Search word or meaning…", tilePinyin: "Pronunciation on tiles",
         modeType: "Type the word", modeTypeDesc: "See the meaning, type the Vietnamese word.",
         modeTones: "Tone drill", modeTonesDesc: "Hear a syllable and identify one of the six tones.",
+        modeTyperDesc: "Copy-type Vietnamese with all diacritics. Enter reads it aloud.",
+        typerIntro: "Type the line exactly as shown, with all diacritics (ă â ê ô ơ ư đ and the tone marks). Press Enter when you are done: the app reads it aloud and moves on.",
+        typerHint: "Use a Vietnamese keyboard (Telex or VNI) for diacritics. Enter = done + speak.",
         modeNumbers: "Numbers", modeNumbersDesc: "Read and write Vietnamese numbers 1–99.",
         dirHzTr: "Word → Meaning", dirTrHz: "Meaning → Word", dirHzPy: "Word → Pronunciation", dirPyHz: "Pronunciation → Word",
         typeHint: "Diacritics are optional (cảm ơn = cam on). If you type them, they must be right.", typePlaceholder: "Vietnamese…",
@@ -333,6 +346,9 @@
         brandSub: "Vietnamesisch", search: "Wort oder Bedeutung suchen…", tilePinyin: "Aussprache auf Kacheln",
         modeType: "Wort tippen", modeTypeDesc: "Bedeutung sehen, vietnamesisches Wort eingeben.",
         modeTones: "Ton-Training", modeTonesDesc: "Silbe hören und einen der sechs Töne erkennen.",
+        modeTyperDesc: "Vietnamesisch mit allen Diakritika abtippen. Enter liest es vor.",
+        typerIntro: "Tippe die Zeile genau ab, mit allen Diakritika (ă â ê ô ơ ư đ und Tonzeichen). Mit Enter bist du fertig: die App liest sie vor und geht weiter.",
+        typerHint: "Nutze eine vietnamesische Tastatur (Telex oder VNI) für die Diakritika. Enter = fertig + vorlesen.",
         modeNumbers: "Zahlen", modeNumbersDesc: "Vietnamesische Zahlen 1–99 lesen und schreiben.",
         dirHzTr: "Wort → Bedeutung", dirTrHz: "Bedeutung → Wort", dirHzPy: "Wort → Aussprache", dirPyHz: "Aussprache → Wort",
         typeHint: "Diakritika sind optional (cảm ơn = cam on). Wenn du sie tippst, müssen sie stimmen.", typePlaceholder: "Vietnamesisch…",
@@ -662,6 +678,7 @@
     { id: "flash", ico: "🃏", key: "modeFlash" },
     { id: "quiz", ico: "✅", key: "modeQuiz" },
     { id: "type", ico: "⌨️", key: "modeType" },
+    { id: "typer", ico: "⚡", key: "modeTyper" },
     { id: "listen", ico: "👂", key: "modeListen" },
     { id: "match", ico: "🧩", key: "modeMatch" },
     { id: "tones", ico: "🎵", key: "modeTones" },
@@ -677,6 +694,7 @@
     if (mode === "quiz") return setupSession(view, mode, { pool: true, count: [10, 20, 40], direction: true });
     if (mode === "type") return setupSession(view, mode, { pool: true, count: [10, 20, 40] });
     if (mode === "listen") return setupSession(view, mode, { pool: true, count: [10, 20, 40] });
+    if (mode === "typer") return C.id === "ja" ? renderTrainHome(view) : startTyper(view);
     if (mode === "match") return startMatch(view);
     if (mode === "tones") return C.toneOptions ? startTones(view) : renderTrainHome(view);
     if (mode === "numbers") return startNumbers(view);
@@ -690,7 +708,7 @@
         <button class="btn" id="review-now" type="button">${due ? t("reviewNow") : t("modeFlash")}</button>
       </div>
       <div class="mode-grid">
-        ${MODES.filter((m) => m.id !== "tones" || C.toneOptions).map((m) => `<button class="mode-card" data-mode="${m.id}" type="button"><span class="mode-ico">${m.ico}</span><span class="mode-title">${t(m.key)}</span><span class="mode-desc">${t(m.key + "Desc")}</span></button>`).join("")}
+        ${MODES.filter((m) => (m.id !== "tones" || C.toneOptions) && (m.id !== "typer" || C.id !== "ja")).map((m) => `<button class="mode-card" data-mode="${m.id}" type="button"><span class="mode-ico">${m.ico}</span><span class="mode-title">${t(m.key)}</span><span class="mode-desc">${t(m.key + "Desc")}</span></button>`).join("")}
       </div>`;
     $("#review-now").onclick = () => navigate("train/flash");
     $$("[data-mode]").forEach((b) => (b.onclick = () => navigate("train/" + b.dataset.mode)));
@@ -923,6 +941,144 @@
     }
     function next() { i++; draw(); }
     bindKeys((e) => { if (e.key === "Enter" && answered && e.target.id !== "ti") { e.preventDefault(); next(); } });
+    draw();
+  }
+
+  /* --- Typewriter: copy-type pinyin / Vietnamese for speed; Enter speaks the line --- */
+  const PY_TONE = { a: "āáǎà", e: "ēéěè", i: "īíǐì", o: "ōóǒò", u: "ūúǔù", "ü": "ǖǘǚǜ" };
+  // One syllable + tone number → tone mark (a/e first, then the o of "ou", else the last vowel); v → ü
+  function markSyllable(syl, tone) {
+    const s = syl.replace(/v/g, "ü").replace(/V/g, "Ü");
+    if (tone === 5) return s;
+    const low = s.toLowerCase();
+    let k = low.indexOf("a");
+    if (k < 0) k = low.indexOf("e");
+    if (k < 0) k = low.indexOf("ou");
+    if (k < 0) for (let j = low.length - 1; j >= 0; j--) if (PY_TONE[low[j]]) { k = j; break; }
+    if (k < 0) return s + tone;
+    const m = PY_TONE[low[k]][tone - 1];
+    return s.slice(0, k) + (s[k] === low[k] ? m : m.toUpperCase()) + s.slice(k + 1);
+  }
+  const numToMarks = (s) => s.replace(/([a-zA-ZüÜ]+)([1-5])/g, (_, syl, d) => markSyllable(syl, +d));
+  // Typing comparison: NFC, curly apostrophes and dashes count as their plain keyboard versions
+  const typerNorm = (s) => s.normalize("NFC").replace(/[’‘]/g, "'").replace(/[—–]/g, "-").replace(/\s+/g, " ");
+  const typerPrefs = { content: "mixed", count: 10 };
+  function typerItems(list, content) {
+    const zh = C.id === "zh";
+    const word = (w) => ({ w, text: typerNorm(zh ? w.py : w.hz), show: zh ? w.hz : "", sub: tr(w), say: w.hz });
+    const sent = (w) => (w.ex ? { w, text: typerNorm(zh ? w.exPy : w.ex), show: zh ? w.ex : "", sub: exTr(w), say: w.ex } : null);
+    return list.map((w) => (content === "words" ? word(w) : content === "sentences" ? sent(w) || word(w) : Math.random() < 0.5 ? word(w) : sent(w) || word(w)));
+  }
+  function startTyper(view) {
+    const contents = [["words", t("typerWords")], ["sentences", t("typerSentences")], ["mixed", t("typerMixed")]];
+    const best = (S.typer && S.typer[C.id]) || 0;
+    view.innerHTML = `
+      <div class="card stack">
+        <h2>${t("modeTyper")}</h2>
+        <p class="list-hint" style="margin:0">${t("typerIntro")}</p>
+        <div class="section-title" style="margin-top:4px">${t("levels")}</div>
+        ${levelChips("ty-lvl-chips")}
+        <div class="section-title">${t("typerContent")}</div>
+        <div class="chips" id="ty-content">${contents.map(([k, l]) => `<button class="chip ${typerPrefs.content === k ? "active" : ""}" data-v="${k}" type="button">${l}</button>`).join("")}</div>
+        <div class="section-title">${t("howMany")}</div>
+        <div class="chips" id="ty-count">${[10, 20, 40].map((n) => `<button class="chip ${typerPrefs.count === n ? "active" : ""}" data-v="${n}" type="button">${n}</button>`).join("")}</div>
+        ${best ? `<div class="list-hint">${t("typerBest")}: <b>${best} ${t("wpm")}</b></div>` : ""}
+        <button class="btn primary block" id="start" type="button">${t("start")}</button>
+      </div>`;
+    const bind = (sel, key) => $$(sel + " .chip").forEach((b) => (b.onclick = () => { typerPrefs[key] = key === "count" ? +b.dataset.v : b.dataset.v; $$(sel + " .chip").forEach((x) => x.classList.toggle("active", x === b)); }));
+    bind("#ty-content", "content"); bind("#ty-count", "count");
+    bindLevelChips("ty-lvl-chips", () => {});
+    $("#start").onclick = () => runTyper(view, typerItems(sample(WORDS, typerPrefs.count), typerPrefs.content));
+  }
+  function runTyper(view, items) {
+    let i = 0, startedAt = 0, last = null; const done = [];
+    const chars = (s) => Array.from(s);
+    function lineHtml(target, typed, live) {
+      const tc = chars(target), yc = chars(typed);
+      let html = tc.map((c, k) => {
+        const cls = k < yc.length ? (yc[k] === c ? "ok" : "bad") : live && k === yc.length ? "cur" : "todo";
+        return `<span class="tc ${cls}${c === " " ? " sp" : ""}">${c === " " ? " " : esc(c)}</span>`;
+      }).join("");
+      if (yc.length > tc.length) html += `<span class="tc bad extra">${esc(yc.slice(tc.length).join(""))}</span>`;
+      return html;
+    }
+    const scoreOf = (target, typed) => {
+      const tc = chars(target), yc = chars(typed); let ok = 0;
+      tc.forEach((c, k) => { if (yc[k] === c) ok++; });
+      return Math.round((ok / Math.max(tc.length, yc.length)) * 100);
+    };
+    // Net speed: only correctly typed characters count (5 characters = 1 word)
+    const wpmOf = (target, typed, ms) => { const tc = chars(target); const ok = chars(typed).filter((c, k) => c === tc[k]).length; return Math.round((ok / 5) / Math.max(ms / 60000, 1 / 600)); };
+    function lastHtml() {
+      if (!last) return "";
+      return `<div class="typer-last ${last.acc === 100 ? "ok" : "bad"}">
+        <div class="grow"><div class="typer-line small">${lineHtml(last.item.text, last.typed, false)}</div>
+        ${last.item.show ? `<div class="hanzi small">${last.item.show}</div>` : ""}</div>
+        <div class="typer-num"><b>${last.wpm}</b><small>${t("wpm")}</small></div>
+        <div class="typer-num"><b>${last.acc}%</b><small>${t("accuracy")}</small></div>
+        <button class="speak-btn sm" id="ty-replay" type="button">🔊</button>
+      </div>`;
+    }
+    function draw() {
+      if (i >= items.length) return finish();
+      const it = items[i]; startedAt = 0;
+      view.innerHTML = `${sessionHead(i, items.length)}
+        <div class="card typer-card">
+          ${it.show ? `<div class="typer-show hanzi">${it.show}</div>` : ""}
+          <div class="typer-line" id="ty-line" aria-hidden="true">${lineHtml(it.text, "", true)}</div>
+          <div class="typer-sub">${esc(it.sub || "")}</div>
+          <input class="type-input" id="ty-in" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" aria-label="${esc(it.text)}">
+          <div class="typer-stats"><span id="ty-wpm">0 ${t("wpm")}</span><span id="ty-acc">100%</span><button class="btn ghost sm" id="ty-hear" type="button">🔊 ${t("play")}</button></div>
+        </div>
+        ${lastHtml()}
+        <div class="kbd-hint">${t("typerHint")}</div>`;
+      const input = $("#ty-in"); input.focus();
+      if ($("#ty-replay")) $("#ty-replay").onclick = () => speak(last.item.say);
+      $("#ty-hear").onclick = () => { speak(it.say); input.focus(); };
+      input.addEventListener("input", (e) => {
+        if (e.isComposing) return;
+        if (!startedAt && input.value) startedAt = Date.now();
+        if (C.id === "zh" && /[1-5]/.test(input.value)) { // live tone numbers → tone marks, keep the caret in place
+          const pos = input.selectionStart, before = numToMarks(input.value.slice(0, pos));
+          input.value = before + numToMarks(input.value.slice(pos));
+          input.setSelectionRange(before.length, before.length);
+        }
+        update();
+      });
+      input.addEventListener("compositionend", update);
+      input.addEventListener("keydown", (e) => {
+        if (e.key !== "Enter" || e.isComposing || e.keyCode === 229) return;
+        e.preventDefault(); submit();
+      });
+    }
+    function update() {
+      const it = items[i], typed = typerNorm($("#ty-in").value);
+      $("#ty-line").innerHTML = lineHtml(it.text, typed, true);
+      if (startedAt && Date.now() - startedAt > 1000) $("#ty-wpm").textContent = `${wpmOf(it.text, typed, Date.now() - startedAt)} ${t("wpm")}`;
+      $("#ty-acc").textContent = `${typed ? scoreOf(chars(it.text).slice(0, chars(typed).length).join(""), typed) : 100}%`;
+    }
+    function submit() {
+      const it = items[i], typed = typerNorm($("#ty-in").value).trim();
+      if (!typed) return;
+      const acc = scoreOf(it.text, typed), wpm = startedAt ? wpmOf(it.text, typed, Date.now() - startedAt) : 0;
+      speak(it.say);
+      recordAnswer(acc === 100);
+      last = { item: it, typed, acc, wpm }; done.push(last);
+      i++; draw();
+    }
+    function finish() {
+      const n = done.length || 1;
+      const avgWpm = Math.round(done.reduce((a, d) => a + d.wpm, 0) / n);
+      const avgAcc = Math.round(done.reduce((a, d) => a + d.acc, 0) / n);
+      const topWpm = Math.max(0, ...done.filter((d) => d.acc >= 90).map((d) => d.wpm));
+      S.typer = S.typer || {};
+      const record = topWpm > (S.typer[C.id] || 0);
+      if (record) S.typer[C.id] = topWpm;
+      const misses = done.filter((d) => d.acc < 100).map((d) => ({ hz: d.item.show || d.item.text, py: d.item.show ? d.item.text : "", en: d.item.sub, say: d.item.say }));
+      showResult(view, { correct: done.length - misses.length, total: done.length, mistakes: misses, extra: `${avgWpm} ${t("wpm")} · ${avgAcc}%${record ? " · 🏆 " + t("typerRecord") : ""}`, onAgain: () => runTyper(view, typerItems(sample(WORDS, typerPrefs.count), typerPrefs.content)) });
+      // showResult speaks w.hz; for sentences speak the original text instead of the pinyin line
+      $$("[data-speak]").forEach((b, k) => (b.onclick = () => speak(misses[k].say)));
+    }
     draw();
   }
 

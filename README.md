@@ -17,6 +17,7 @@ No build step, no dependencies, no backend: plain HTML, CSS and JavaScript. Prog
   - Type the pinyin (tones optional; tone numbers like `ni3hao3` are checked when given)
   - Listening: hear a word, pick the character
   - Matching game with timer
+  - Typewriter: copy-type pinyin (with tone marks) or Vietnamese (with all diacritics) as fast as you can, with live per-character highlighting, words per minute and accuracy. Enter finishes the line, reads it aloud and moves to the next one. In Chinese, tone numbers turn into marks as you type (`ni3` → `nǐ`, `lv4` → `lǜ`); for Vietnamese use the system's Telex or VNI keyboard. Words, example sentences or both; personal best WPM is kept per course.
   - Tone drill: hear a syllable and identify its tone (4 Mandarin tones, 6 Vietnamese tones)
   - Number trainer for 1–99 (read and write), Chinese and Vietnamese
 - **Sounds** – a textbook-style pronunciation chart per language: one base sound per row with its variants as playable cells (Mandarin finals and initials across the four tones, Vietnamese vowels across the six tones plus consonants and final consonants, the Japanese kana tables plus length and double-consonant contrasts). Tapping a cell plays it and lists real words from the word lists containing that sound. A listen-and-pick drill trains minimal pairs (tones, similar consonants, similar vowels, long vs short vowels).

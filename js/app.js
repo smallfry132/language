@@ -278,11 +278,15 @@
       skill_speak: "Speak", skill_speakDesc: "Say words and sentences out loud and get feedback.",
       skill_read: "Read", skill_readDesc: "Recognise words and what they mean.",
       skill_write: "Write", skill_writeDesc: "Type pinyin from memory and from hearing.",
-      modeSay: "Say the word", modeSayDesc: "See a word and say it. The microphone checks it, or you record and compare.",
+      modeSay: "Say the word", modeSayDesc: "Say a word and see your pitch curve against the tone shape.",
       soundDrill: "Similar sounds", soundDrillDesc: "Hear two sounds that are easy to mix up and pick the right one.",
       soundChart: "Sound chart", soundChartDesc: "Every sound with its tones, to listen and repeat.",
       dialoguesRead: "Read dialogues aloud", dialoguesReadDesc: "Short conversations: listen, read aloud, answer.",
-      stepSpeak: "Speak", stepSpeakDesc: "Say each word out loud. The microphone checks it, or you record yourself and compare.",
+      stepSpeak: "Speak", stepSpeakDesc: "Say each word out loud and compare your pitch curve with the tone shape.",
+      noVoice: "No voice detected. Speak a little louder or closer to the microphone.", toneAllGood: "✓ The tones sound right.",
+      toneLike: (n) => `sounded like a ${["", "1st", "2nd", "3rd", "4th"][n]} tone`,
+      tipFlat: "Keep it high and level", tipHigher: "Start higher and hold it", tipRise: "Let it rise more toward the end", tipLower: "Go lower and let it dip", tipFall: "Start high and fall all the way down",
+      sandhiNote: "Two 3rd tones in a row: the first one is said as a 2nd tone.", pitchHint: "A rough guide: your voice (solid line) against the tone shape (dashed).",
       dlg_listen: "Listen", dlg_read: "Read aloud", dlg_turn: "Your turn",
       dlg_listenHint: "Play the whole dialogue, then tap a line to hear it again. Tap a word to see what it means.",
       dlg_readHint: "Read each line aloud: tap the microphone, speak, and see which words came through. Your reading time is kept, so you can see yourself get faster.",
@@ -385,11 +389,15 @@
       skill_speak: "Sprechen", skill_speakDesc: "Sprich Wörter und Sätze laut und bekomme Rückmeldung.",
       skill_read: "Lesen", skill_readDesc: "Wörter und ihre Bedeutung erkennen.",
       skill_write: "Schreiben", skill_writeDesc: "Pinyin aus dem Kopf und nach Gehör tippen.",
-      modeSay: "Wort sprechen", modeSayDesc: "Wort sehen und laut sagen. Das Mikrofon prüft es, oder du nimmst dich auf und vergleichst.",
+      modeSay: "Wort sprechen", modeSayDesc: "Sag ein Wort und sieh deine Tonhöhenkurve neben der Tonform.",
       soundDrill: "Ähnliche Laute", soundDrillDesc: "Zwei leicht verwechselbare Laute hören und den richtigen wählen.",
       soundChart: "Lauttabelle", soundChartDesc: "Jeder Laut mit seinen Tönen, zum Anhören und Nachsprechen.",
       dialoguesRead: "Dialoge laut lesen", dialoguesReadDesc: "Kurze Gespräche: hören, laut lesen, antworten.",
-      stepSpeak: "Sprechen", stepSpeakDesc: "Sag jedes Wort laut. Das Mikrofon prüft es, oder du nimmst dich auf und vergleichst.",
+      stepSpeak: "Sprechen", stepSpeakDesc: "Sag jedes Wort laut und vergleiche deine Tonhöhenkurve mit der Tonform.",
+      noVoice: "Keine Stimme erkannt. Sprich etwas lauter oder näher am Mikrofon.", toneAllGood: "✓ Die Töne klingen richtig.",
+      toneLike: (n) => `klang wie ein ${n}. Ton`,
+      tipFlat: "Bleib hoch und gleichmäßig", tipHigher: "Setz höher an und halte den Ton", tipRise: "Lass ihn zum Ende hin stärker steigen", tipLower: "Geh tiefer und lass ihn absinken", tipFall: "Setz hoch an und fall ganz nach unten",
+      sandhiNote: "Zwei 3. Töne hintereinander: der erste wird als 2. Ton gesprochen.", pitchHint: "Eine grobe Orientierung: deine Stimme (durchgezogen) neben der Tonform (gestrichelt).",
       dlg_listen: "Hören", dlg_read: "Laut lesen", dlg_turn: "Du bist dran",
       dlg_listenHint: "Spiel den ganzen Dialog ab, dann tippe eine Zeile, um sie noch einmal zu hören. Tippe ein Wort, um seine Bedeutung zu sehen.",
       dlg_readHint: "Lies jede Zeile laut: tippe aufs Mikrofon, sprich, und sieh, welche Wörter angekommen sind. Deine Lesezeit wird gespeichert, so siehst du, wie du schneller wirst.",
@@ -425,6 +433,7 @@
   const COURSE_I18N = {
     ja: {
       en: {
+        modeSayDesc: "See a word and say it. The microphone checks it, or you record and compare.", stepSpeakDesc: "Say each word out loud. The microphone checks it, or you record yourself and compare.",
         brandSub: "Japanese", search: "Search kanji, kana, romaji or meaning…", tilePinyin: "Reading on tiles", langName: "Japanese", typeOr: "…or type it",
         modeType: "Type the reading", modeTypeDesc: "See the word, type its reading in kana or romaji.",
         modeNumbers: "Numbers", modeNumbersDesc: "Read and write Japanese numbers 1–99.",
@@ -445,6 +454,7 @@
         ]
       },
       de: {
+        modeSayDesc: "Wort sehen und laut sagen. Das Mikrofon prüft es, oder du nimmst dich auf und vergleichst.", stepSpeakDesc: "Sag jedes Wort laut. Das Mikrofon prüft es, oder du nimmst dich auf und vergleichst.",
         brandSub: "Japanisch", search: "Kanji, Kana, Romaji oder Bedeutung suchen…", tilePinyin: "Lesung auf Kacheln", langName: "Japanisch", typeOr: "…oder tippe es",
         modeType: "Lesung tippen", modeTypeDesc: "Wort sehen, Lesung in Kana oder Romaji eingeben.",
         modeNumbers: "Zahlen", modeNumbersDesc: "Japanische Zahlen 1–99 lesen und schreiben.",
@@ -467,6 +477,7 @@
     },
     vi: {
       en: {
+        modeSayDesc: "See a word and say it. The microphone checks it, or you record and compare.", stepSpeakDesc: "Say each word out loud. The microphone checks it, or you record yourself and compare.",
         brandSub: "Vietnamese", search: "Search word or meaning…", tilePinyin: "Pronunciation on tiles", typeOr: "…or type it",
         modeType: "Type the word", modeTypeDesc: "See the meaning, type the Vietnamese word.",
         modeTones: "Tone drill", modeTonesDesc: "Hear a syllable and identify one of the six tones.",
@@ -496,6 +507,7 @@
         tone1d: "Flat, mid-high, no mark: ma.", tone2d: "Starts mid and falls gently, grave accent: mà.", tone3d: "Rises sharply, acute accent: má.", tone4d: "Dips then rises, hook: mả.", tone5d: "Rises with a catch in the throat, tilde: mã.", tone6d: "Drops abruptly and stops, dot below: mạ."
       },
       de: {
+        modeSayDesc: "Wort sehen und laut sagen. Das Mikrofon prüft es, oder du nimmst dich auf und vergleichst.", stepSpeakDesc: "Sag jedes Wort laut. Das Mikrofon prüft es, oder du nimmst dich auf und vergleichst.",
         brandSub: "Vietnamesisch", search: "Wort oder Bedeutung suchen…", tilePinyin: "Aussprache auf Kacheln", typeOr: "…oder tippe es",
         modeType: "Wort tippen", modeTypeDesc: "Bedeutung sehen, vietnamesisches Wort eingeben.",
         modeTones: "Ton-Training", modeTonesDesc: "Silbe hören und einen der sechs Töne erkennen.",
@@ -742,6 +754,9 @@
     closeSheet();
     if (cleanup) { cleanup(); cleanup = null; }
     flow = null;
+    // Leaving a screen ends any listening or recording that is still running
+    if (MIC.cap) { MIC.cap.aborted = true; MIC.cap.finish(); }
+    if (MIC.rec) { MIC.rec.onresult = null; MIC.rec.abort ? MIC.rec.abort() : MIC.rec.stop(); }
     route = parseRoute();
     renderNav();
     const view = $("#view");
@@ -1872,7 +1887,7 @@
         const total = res.reduce((a, r) => a + (r ? r.ms : 0), 0);
         const acc = doneN ? res.reduce((a, r) => a + (r ? r.score : 0), 0) / doneN : 0;
         $("#dlg-foot").innerHTML = `<div class="read-sum">${doneN}/${d.lines.length} · ${t("readTime", fmtTime(total))}${st.read && st.read.best ? ` · ${t("bestTime", fmtTime(st.read.best))}` : ""}${doneN && SR_OK() ? ` · ${Math.round(acc * 100)}%` : ""}</div>`;
-        bindMics($("#chat"), (k) => d.lines[k].hz, (k, r) => {
+        bindMics($("#chat"), (k) => d.lines[k], (k, r) => {
           res[k] = r;
           if (res.every(Boolean)) {
             const ms = res.reduce((a, x) => a + x.ms, 0), accAll = res.reduce((a, x) => a + x.score, 0) / res.length;
@@ -1922,7 +1937,7 @@
         $("#turn-form").onsubmit = (e) => { e.preventDefault(); if (input.value.trim()) answer(checkTyped(l, input.value)); };
         if ($("#t-hint")) $("#t-hint").onclick = () => { hint++; redraw(); };
         $("#t-skip").onclick = () => answer({ ok: false, skipped: true });
-        bindMics(foot, () => l.hz, (_, r) => answer(r.mode === "rec" ? { ok: r.self, rec: r } : { ok: r.score >= 0.8, heard: r }));
+        bindMics(foot, () => l, (_, r) => answer(r.mode === "rec" ? { ok: r.self, rec: r } : { ok: r.score >= 0.8, heard: r }));
       };
       function answer(r) {
         const l = d.lines[i];
@@ -1967,9 +1982,10 @@
 
   /* ---------------- Speaking: speech recognition, with recording as the fallback ---------------- */
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const MIC = { rec: null, media: null, chunks: [], start: 0, srBroken: false };
+  const MIC = { rec: null, cap: null, srBroken: false };
   const SR_OK = () => !!SR && !MIC.srBroken;
-  const CAN_RECORD = !!(navigator.mediaDevices && window.MediaRecorder);
+  const AC = window.AudioContext || window.webkitAudioContext;
+  const CAN_RECORD = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && AC);
   // Units to compare: characters for Chinese and Japanese, words for Vietnamese; digits become number words
   function unitsOf(s) {
     const x = String(s).replace(/\d+/g, (m) => (+m <= 99 ? numToHanzi(+m) + (C.id === "vi" ? " " : "") : m));
@@ -2001,60 +2017,220 @@
       try { r.start(); } catch (e) { MIC.rec = null; reject("start"); }
     });
   }
-  async function startRecording() {
-    if (!MIC.stream) MIC.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    MIC.chunks = []; MIC.media = new MediaRecorder(MIC.stream);
-    MIC.media.ondataavailable = (e) => { if (e.data.size) MIC.chunks.push(e.data); };
-    MIC.media.start(); MIC.start = Date.now();
+  /* ---------------- Voice capture: raw samples for playback and pitch, all on the device ---------------- */
+  const CAP_RATE = 16000;
+  // Records the microphone; stops by itself once you have spoken and gone quiet (or after 6 s).
+  // Returns a handle whose stop() resolves to { samples (16 kHz), url (WAV), ms }.
+  function startCapture(onAutoStop) {
+    const ctx = new AC(); // created inside the tap so iOS lets it run
+    const cap = { chunks: [], t0: Date.now(), heard: false, quiet: 0, done: false, nodes: [], stream: null };
+    cap.ready = navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } }).then((stream) => {
+      cap.stream = stream;
+      const src = ctx.createMediaStreamSource(stream), proc = ctx.createScriptProcessor(2048, 1, 1);
+      proc.onaudioprocess = (e) => {
+        const x = e.inputBuffer.getChannelData(0); cap.chunks.push(new Float32Array(x));
+        let s = 0; for (let i = 0; i < x.length; i++) s += x[i] * x[i];
+        if (Math.sqrt(s / x.length) > 0.02) { cap.heard = true; cap.quiet = 0; } else if (cap.heard) cap.quiet += x.length / ctx.sampleRate;
+        if (!cap.done && ((cap.heard && cap.quiet > 0.8) || Date.now() - cap.t0 > 6000)) { cap.done = true; if (onAutoStop) onAutoStop(); }
+      };
+      src.connect(proc); proc.connect(ctx.destination); // the processor only runs when connected; its output is silent
+      cap.nodes = [src, proc];
+      return ctx.resume ? ctx.resume() : null;
+    });
+    cap.stop = async () => {
+      cap.done = true;
+      try { await cap.ready; } catch (e) { ctx.close(); throw e; }
+      cap.nodes.forEach((n) => n.disconnect());
+      cap.stream.getTracks().forEach((tr) => tr.stop()); // releases the mic: iOS then plays speech at full volume again
+      const rate = ctx.sampleRate; ctx.close();
+      const all = new Float32Array(cap.chunks.reduce((a, c) => a + c.length, 0)); let o = 0;
+      cap.chunks.forEach((c) => { all.set(c, o); o += c.length; });
+      const samples = resample(all, rate, CAP_RATE);
+      return { samples, ms: Date.now() - cap.t0, url: URL.createObjectURL(wavBlob(samples, CAP_RATE)) };
+    };
+    return cap;
   }
-  function stopRecording() {
-    return new Promise((resolve) => {
-      const m = MIC.media; if (!m) return resolve(null);
-      m.onstop = () => { MIC.media = null; resolve({ url: URL.createObjectURL(new Blob(MIC.chunks, { type: m.mimeType })), ms: Date.now() - MIC.start }); };
-      m.stop();
+  function resample(x, from, to) {
+    if (from === to) return x;
+    const n = Math.floor((x.length * to) / from), out = new Float32Array(n), step = from / to;
+    for (let i = 0; i < n; i++) { const p = i * step, k = Math.floor(p), f = p - k; out[i] = x[k] * (1 - f) + (x[k + 1] || 0) * f; }
+    return out;
+  }
+  function wavBlob(x, rate) {
+    const buf = new ArrayBuffer(44 + x.length * 2), v = new DataView(buf);
+    const str = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+    str(0, "RIFF"); v.setUint32(4, 36 + x.length * 2, true); str(8, "WAVEfmt "); v.setUint32(16, 16, true);
+    v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, rate, true); v.setUint32(28, rate * 2, true);
+    v.setUint16(32, 2, true); v.setUint16(34, 16, true); str(36, "data"); v.setUint32(40, x.length * 2, true);
+    for (let i = 0; i < x.length; i++) v.setInt16(44 + i * 2, Math.max(-1, Math.min(1, x[i])) * 0x7fff, true);
+    return new Blob([buf], { type: "audio/wav" });
+  }
+
+  /* ---------------- Pitch and tones ----------------
+   * YIN pitch tracking every 10 ms, split into syllables, each syllable's contour compared with the
+   * shape of the tone it should have. A rough guide, not a verdict: it shows what to change. */
+  function pitchTrack(x, sr) {
+    const hop = Math.round(sr * 0.01), W = Math.round(sr * 0.032), tMin = Math.floor(sr / 450), tMax = Math.floor(sr / 70);
+    const d = new Float32Array(tMax + 1), frames = [];
+    for (let s = 0; s + W + tMax < x.length; s += hop) {
+      let e = 0; for (let j = 0; j < W; j++) e += x[s + j] * x[s + j];
+      let run = 0, tau = -1;
+      for (let k = 1; k <= tMax; k++) {
+        let sum = 0; for (let j = 0; j < W; j++) { const v = x[s + j] - x[s + j + k]; sum += v * v; }
+        run += sum; d[k] = run ? (sum * k) / run : 1;
+      }
+      for (let k = tMin; k <= tMax; k++) if (d[k] < 0.15) { while (k < tMax && d[k + 1] < d[k]) k++; tau = k; break; }
+      let f0 = null;
+      if (tau > 0) { const a = d[tau - 1], b = d[tau], c = tau < tMax ? d[tau + 1] : b, den = a - 2 * b + c; const p = den ? (a - c) / (2 * den) : 0; f0 = sr / (tau + (Math.abs(p) < 1 ? p : 0)); }
+      frames.push({ rms: Math.sqrt(e / W), f0 });
+    }
+    const maxR = Math.max(0, ...frames.map((f) => f.rms));
+    frames.forEach((f) => { if (f.rms < Math.max(0.008, maxR * 0.12)) f.f0 = null; });
+    // Octave errors: fold values far from the median back; then a 5-frame median filter
+    const med = median(frames.filter((f) => f.f0).map((f) => f.f0));
+    frames.forEach((f) => { if (f.f0 && f.f0 > med * 1.7) f.f0 /= 2; else if (f.f0 && f.f0 < med * 0.6) f.f0 *= 2; });
+    return frames.map((f, i) => (f.f0 ? { f0: median(frames.slice(Math.max(0, i - 2), i + 3).filter((g) => g.f0).map((g) => g.f0)) } : { f0: null }));
+  }
+  function median(a) { if (!a.length) return 0; const s = a.slice().sort((x, y) => x - y); return s[Math.floor(s.length / 2)]; }
+  // Voiced stretches (short gaps bridged, tiny blips dropped) as arrays of frame indices
+  function voicedRuns(frames) {
+    const runs = []; let cur = null, gap = 0;
+    frames.forEach((f, i) => {
+      if (f.f0) { if (cur && gap <= 3) cur.push(i); else { cur = [i]; runs.push(cur); } gap = 0; }
+      else gap++;
+    });
+    return runs.filter((r) => r.length >= 4).map((r) => r.filter((i) => frames[i].f0));
+  }
+  // Tone shapes on a 1–5 scale (5 = high), five points each; the 3rd tone stays low inside words
+  const TONE_SHAPES = { 1: [4.5, 4.5, 4.5, 4.5, 4.5], 2: [2.8, 3.1, 3.6, 4.2, 4.8], 3: [2.2, 1.6, 1.2, 1.3, 1.8], 4: [4.8, 4.2, 3.3, 2.4, 1.6] };
+  const TONE3_END = [2.2, 1.5, 1.2, 2, 3.3]; // a 3rd tone at the end may rise again
+  function toneCheck(py, frames) {
+    const sylls = pyParts(py).filter((x) => !x.sep);
+    // Tone change: 3rd + 3rd is said 2nd + 3rd (nǐ hǎo → ní hǎo)
+    const want = sylls.map((x) => x.tone);
+    let sandhi = false;
+    for (let i = 0; i < want.length - 1; i++) if (want[i] === 3 && want[i + 1] === 3) { want[i] = 2; sandhi = true; }
+    let runs = voicedRuns(frames);
+    if (!runs.length || runs.flat().length < sylls.length) return { none: true };
+    const n = sylls.length;
+    while (runs.length > n) { // merge across the smallest gap
+      let k = 0, g = Infinity;
+      for (let i = 0; i < runs.length - 1; i++) { const gi = runs[i + 1][0] - runs[i][runs[i].length - 1]; if (gi < g) { g = gi; k = i; } }
+      runs.splice(k, 2, runs[k].concat(runs[k + 1]));
+    }
+    while (runs.length < n) { // split the longest stretch in two
+      let k = 0; runs.forEach((r, i) => { if (r.length > runs[k].length) k = i; });
+      const r = runs[k], h = Math.ceil(r.length / 2); runs.splice(k, 1, r.slice(0, h), r.slice(h));
+    }
+    const all = runs.flat().map((i) => frames[i].f0), med = median(all), base = S.settings.f0base;
+    const center = base ? (n > 1 ? Math.sqrt(base * med) : base) : med;
+    S.settings.f0base = Math.round(base ? Math.pow(base, 0.85) * Math.pow(med, 0.15) : med); save(); // your voice's middle, learnt over time
+    const level = (f0) => Math.max(0.3, Math.min(5.7, 3 + (12 * Math.log2(f0 / center)) / 3.5));
+    const res = sylls.map((x, i) => {
+      const lv = runs[i].map((k) => level(frames[k].f0));
+      const cut = lv.length >= 10 ? Math.floor(lv.length * 0.15) : 0; // edges are consonants and creak
+      const core = lv.slice(cut, lv.length - cut || undefined);
+      const pts = [0, 1, 2, 3, 4].map((b) => { const part = core.slice(Math.floor((b * core.length) / 5), Math.max(Math.floor(((b + 1) * core.length) / 5), Math.floor((b * core.length) / 5) + 1)); return part.reduce((a, v) => a + v, 0) / part.length; });
+      const w = want[i];
+      if (w === 5) return { text: x.text, want: w, lv, ok: null };
+      const mean = (a) => a.reduce((s, v) => s + v, 0) / a.length;
+      const dist = (tpl) => { const ms = mean(pts), mt = mean(tpl); return pts.reduce((s, v, j) => s + ((v - ms) - (tpl[j] - mt)) ** 2, 0) / 5 + 0.3 * (ms - mt) ** 2; };
+      const ds = { 1: dist(TONE_SHAPES[1]), 2: dist(TONE_SHAPES[2]), 3: Math.min(dist(TONE_SHAPES[3]), i === n - 1 ? dist(TONE3_END) : Infinity), 4: dist(TONE_SHAPES[4]) };
+      const got = +Object.keys(ds).reduce((a, b) => (ds[b] < ds[a] ? b : a));
+      const ok = got === w || ds[w] <= ds[got] + 0.35;
+      const slope = pts[4] - pts[0], m = mean(pts);
+      const tip = ok ? "" : w === 1 ? (Math.abs(slope) > 1.2 ? "tipFlat" : "tipHigher") : w === 2 ? "tipRise" : w === 3 ? "tipLower" : "tipFall";
+      return { text: x.text, want: w, got, ok, lv, tip, m };
+    });
+    const scored = res.filter((r) => r.ok !== null);
+    return { res, sandhi, score: scored.length ? scored.filter((r) => r.ok).length / scored.length : 1 };
+  }
+  // Your pitch (solid) over the tone shape (dashed), one column per syllable
+  function pitchChart(a) {
+    if (a.none) return `<div class="heard bad">${t("noVoice")}</div>`;
+    const CW = 110, H = 132, top = 8, bottom = 30, n = a.res.length;
+    const y = (lv) => (top + ((5.5 - lv) / 5) * (H - top - bottom)).toFixed(1);
+    const grid = [1, 2, 3, 4, 5].map((lv) => `<line x1="0" x2="${n * CW}" y1="${y(lv)}" y2="${y(lv)}" class="pc-grid"/>`).join("");
+    const cols = a.res.map((r, i) => {
+      const x0 = i * CW + 14, x1 = (i + 1) * CW - 14, xs = (j, len) => (x0 + (len > 1 ? (j / (len - 1)) * (x1 - x0) : (x1 - x0) / 2)).toFixed(1);
+      const shape = r.want === 3 && i === n - 1 ? TONE3_END : TONE_SHAPES[r.want];
+      const target = shape ? `<polyline class="pc-target tn${r.want}" points="${shape.map((v, j) => `${xs(j, 5)},${y(v)}`).join(" ")}"/>` : "";
+      const you = r.lv.length > 1 ? `<polyline class="pc-you" points="${r.lv.map((v, j) => `${xs(j, r.lv.length)},${y(v)}`).join(" ")}"/>` : `<circle class="pc-dot" cx="${xs(0, 1)}" cy="${y(r.lv[0])}" r="3"/>`;
+      const mark = r.ok === null ? "" : r.ok ? " ✓" : " ✗";
+      return `${i ? `<line class="pc-sep" x1="${i * CW}" x2="${i * CW}" y1="${top}" y2="${H - bottom + 4}"/>` : ""}${target}${you}
+        <text x="${(x0 + x1) / 2}" y="${H - 8}" class="pc-label tn${r.want}" text-anchor="middle">${esc(r.text)}${mark}</text>`;
+    }).join("");
+    const notes = a.res.filter((r) => r.ok === false).map((r) => `<li><b class="tn${r.want}">${esc(r.text)}</b>: ${t("toneLike", r.got)}. ${t(r.tip)}.</li>`).join("");
+    return `<div class="pitch ${a.score === 1 ? "ok" : "bad"}">
+      <svg class="pitch-chart" viewBox="0 0 ${n * CW} ${H}" style="max-width:${n * CW * 1.5}px" role="img" aria-label="${esc(t("pitchHint"))}">${grid}${cols}</svg>
+      <div class="pitch-msg">${a.score === 1 ? t("toneAllGood") : `<ul>${notes}</ul>`}</div>
+      ${a.sandhi ? `<div class="small muted">${t("sandhiNote")}</div>` : ""}
+      <div class="small muted">${t("pitchHint")}</div>
+    </div>`;
+  }
+
+  const micButton = (k) => `<button class="mic-btn" data-mic="${k}" type="button">${icon("speak")}<span>${SR_OK() ? t("speakBtn") : t("record")}</span></button>`;
+  const playBtns = (url) => `<button class="btn sm" data-play-url="${url}" type="button">▶ ${t("playMine")}</button>`;
+  document.addEventListener("click", (e) => { const b = e.target.closest("[data-play-url]"); if (b) new Audio(b.dataset.playUrl).play(); });
+  // Wire every mic button in root. getTarget(k) → { hz, py } to say; done(k, result) receives
+  //   { mode: "sr", score, hit, text, ms }                 speech recognition (words)
+  //   { mode: "pitch", score, tones, url, ms }             tone curve (Chinese words, opts.pitch)
+  //   { mode: "rec", url, ms, self, score }                recording, self-rated
+  function bindMics(root, getTarget, done, opts) {
+    const pitch = !!(opts && opts.pitch) && C.id === "zh" && CAN_RECORD;
+    $$("[data-mic]", root).forEach((b) => {
+      if (pitch) b.querySelector("span").textContent = t("speakBtn");
+      b.onclick = async () => {
+        const k = b.dataset.mic, label = b.querySelector("span"), target = getTarget(k);
+        const idle = () => { b.classList.remove("live"); label.textContent = pitch || SR_OK() ? t("speakBtn") : t("record"); };
+        if (!pitch && SR_OK()) {
+          if (MIC.rec) { MIC.rec.stop(); return; }
+          b.classList.add("live"); label.textContent = t("listening");
+          const t0 = Date.now();
+          try {
+            const alts = await hearOnce();
+            done(k, { mode: "sr", ...matchHeard(target.hz, alts), ms: Date.now() - t0 });
+          } catch (err) {
+            idle();
+            if (["not-allowed", "service-not-allowed", "start", "audio-capture", "network", "language-not-supported"].includes(err)) { MIC.srBroken = true; idle(); toast(t("micBlocked")); }
+            else if (err === "no-speech") toast(t("heardNo"));
+          }
+          return;
+        }
+        if (!CAN_RECORD) { toast(t("noMic")); return; }
+        if (MIC.cap) { MIC.cap.finish(); return; } // second tap stops early
+        if (TTS.available) speechSynthesis.cancel();
+        let finished = false;
+        const cap = startCapture(() => cap.finish());
+        MIC.cap = cap;
+        cap.finish = async () => {
+          if (finished) return; finished = true; MIC.cap = null;
+          let rec; try { rec = await cap.stop(); } catch (e) { if (!cap.aborted) { idle(); toast(t("noMic")); } return; }
+          if (cap.aborted) return;
+          idle();
+          if (pitch) {
+            const tones = toneCheck(target.py, pitchTrack(rec.samples, CAP_RATE));
+            done(k, { mode: "pitch", tones, score: tones.none ? 0 : tones.score, url: rec.url, ms: rec.ms });
+            return;
+          }
+          // Recording without a check: listen to yourself next to the model and rate it
+          const box = document.createElement("div"); box.className = "self-rate";
+          box.innerHTML = `${playBtns(rec.url)}<button class="btn sm" data-p="model" type="button">▶ ${t("playModel")}</button>
+            <span class="grow small muted">${t("rateSelf")}</span><button class="btn sm danger" data-r="0" type="button">${t("rateAgain")}</button><button class="btn sm success" data-r="1" type="button">${t("rateGood")}</button>`;
+          b.after(box);
+          box.querySelector('[data-p="model"]').onclick = () => speak(target.hz);
+          new Audio(rec.url).play();
+          $$("[data-r]", box).forEach((x) => (x.onclick = () => done(k, { mode: "rec", url: rec.url, ms: rec.ms, self: x.dataset.r === "1", score: x.dataset.r === "1" ? 1 : 0 })));
+        };
+        b.classList.add("live"); label.textContent = t("listening");
+        cap.ready.catch(() => cap.finish());
+      };
     });
   }
-  const micButton = (k) => `<button class="mic-btn" data-mic="${k}" type="button">${icon("speak")}<span>${SR_OK() ? t("speakBtn") : t("record")}</span></button>`;
-  // Wire every mic button in root. getTarget(k) → text to say; done(k, result) gets
-  // { mode: "sr", score, hit, text, ms } or { mode: "rec", url, ms, self } (self-rated)
-  function bindMics(root, getTarget, done) {
-    $$("[data-mic]", root).forEach((b) => (b.onclick = async () => {
-      const k = b.dataset.mic, label = b.querySelector("span");
-      if (SR_OK()) {
-        if (MIC.rec) { MIC.rec.stop(); return; }
-        b.classList.add("live"); label.textContent = t("listening");
-        const t0 = Date.now();
-        try {
-          const alts = await hearOnce();
-          done(k, { mode: "sr", ...matchHeard(getTarget(k), alts), ms: Date.now() - t0 });
-        } catch (err) {
-          b.classList.remove("live"); label.textContent = t("record");
-          if (["not-allowed", "service-not-allowed", "start", "audio-capture", "network", "language-not-supported"].includes(err)) { MIC.srBroken = true; toast(t("micBlocked")); }
-          else if (err === "no-speech") toast(t("heardNo"));
-        }
-        return;
-      }
-      if (!CAN_RECORD) { toast(t("noMic")); return; }
-      if (MIC.media) { // second tap stops: offer playback and a self-rating
-        const rec = await stopRecording(); b.classList.remove("live"); label.textContent = t("record");
-        if (!rec) return;
-        const box = document.createElement("div"); box.className = "self-rate";
-        box.innerHTML = `<button class="btn sm" data-p="me" type="button">▶ ${t("playMine")}</button><button class="btn sm" data-p="model" type="button">▶ ${t("playModel")}</button>
-          <span class="grow small muted">${t("rateSelf")}</span><button class="btn sm danger" data-r="0" type="button">${t("rateAgain")}</button><button class="btn sm success" data-r="1" type="button">${t("rateGood")}</button>`;
-        b.after(box);
-        box.querySelector('[data-p="me"]').onclick = () => new Audio(rec.url).play();
-        box.querySelector('[data-p="model"]').onclick = () => speak(getTarget(k));
-        new Audio(rec.url).play();
-        $$("[data-r]", box).forEach((x) => (x.onclick = () => done(k, { mode: "rec", url: rec.url, ms: rec.ms, self: x.dataset.r === "1", score: x.dataset.r === "1" ? 1 : 0 })));
-        return;
-      }
-      try { await startRecording(); b.classList.add("live"); label.textContent = t("stopRec"); }
-      catch (e) { toast(t("noMic")); }
-    }));
-  }
-  // Feedback under a spoken line: heard syllables in tone colours, missed ones struck through
+  // Feedback under a spoken line or word
   function resultHtml(l, r) {
-    if (r.mode === "rec") return `<div class="heard ${r.self ? "ok" : "bad"}">${r.self ? "✓ " + t("rateGood") : "↺ " + t("rateAgain")} <button class="btn ghost sm" data-play-url="${r.url}" type="button" onclick="new Audio(this.dataset.playUrl).play()">▶ ${t("playMine")}</button></div>`;
+    if (r.mode === "pitch") return `${pitchChart(r.tones)}<div class="row">${playBtns(r.url)}<button class="btn sm" data-say-model="${esc(l.hz)}" type="button">▶ ${t("playModel")}</button></div>`;
+    if (r.mode === "rec") return `<div class="heard ${r.self ? "ok" : "bad"}">${r.self ? "✓ " + t("rateGood") : "↺ " + t("rateAgain")} ${playBtns(r.url)}</div>`;
     const msg = r.score >= 0.8 ? t("heardGreat") : r.score >= 0.4 ? t("heardAlmost") : t("heardNo");
     let line = "";
     const parts = C.id === "zh" ? pyParts(l.py) : [];
@@ -2064,8 +2240,9 @@
     }
     return `<div class="heard ${r.score >= 0.8 ? "ok" : "bad"}"><div>${msg} <b>${Math.round(r.score * 100)}%</b></div>${line ? `<div class="heard-line">${line}</div>` : ""}${r.text ? `<div class="small muted">${t("heardAs", esc(r.text))}</div>` : ""}</div>`;
   }
+  document.addEventListener("click", (e) => { const b = e.target.closest("[data-say-model]"); if (b) speak(b.dataset.sayModel); });
 
-  /* --- Say the word: speaking practice for single words --- */
+  /* --- Say the word: speaking practice for single words; Chinese shows the tone curve --- */
   function runSay(view, list) {
     let i = 0, correct = 0; const mistakes = [];
     function draw() {
@@ -2080,14 +2257,14 @@
         </div>
         <div id="say-next"></div>`;
       $("#m-say").onclick = () => speak(w.hz);
-      bindMics(view, () => w.hz, (_, r) => {
+      bindMics(view, () => w, (_, r) => {
         const ok = r.score >= 0.8;
-        $("#say-res").innerHTML = resultHtml({ py: w.py, hz: w.hz }, r);
+        $("#say-res").innerHTML = resultHtml(w, r);
         if (r.mode === "rec" && $(".self-rate")) $(".self-rate").remove();
         $("#say-next").innerHTML = `<div class="row" style="margin-top:12px"><button class="btn grow" id="s-retry" type="button">↺ ${t("again")}</button><button class="btn primary grow" id="s-next" type="button">${t("next")}</button></div>`;
         $("#s-retry").onclick = () => draw();
         $("#s-next").onclick = () => { grade(w.id, ok ? 2 : 0); recordAnswer(ok); if (ok) correct++; else mistakes.push(w); i++; draw(); };
-      });
+      }, { pitch: w.py.split(/\s+/).length <= 2 && pyParts(w.py).filter((x) => !x.sep).length <= 4 });
     }
     draw();
   }

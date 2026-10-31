@@ -783,3 +783,17 @@ details.adjust summary { cursor: pointer; color: var(--text-2); font-weight: 600
 #say-res { margin-top: 12px; text-align: left; }
 .skill-head .li-sub { font-size: 13px; color: var(--text-2); line-height: 1.35; }
 .chat { padding-bottom: 64px; }
+
+/* Tone curve */
+.pitch { border-radius: 12px; padding: 10px 12px; background: var(--bg-sunken); width: 100%; }
+.pitch.ok { background: var(--green-soft); }
+.pitch-chart { display: block; width: 100%; margin: 0 auto 6px; overflow: visible; }
+.pc-grid { stroke: var(--line); stroke-width: 1; }
+.pc-sep { stroke: var(--line); stroke-width: 1; stroke-dasharray: 2 4; }
+.pc-target { fill: none; stroke: currentColor; stroke-width: 5; stroke-dasharray: 2 9; stroke-linecap: round; stroke-linejoin: round; opacity: 0.9; }
+.pc-you { fill: none; stroke: var(--text); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.pc-dot { fill: var(--text); }
+.pc-label { font-size: 15px; font-weight: 700; fill: currentColor; }
+.pitch-msg { font-size: 14px; }
+.pitch-msg ul { margin: 0; padding-left: 18px; }
+#say-res .row { margin-top: 8px; }

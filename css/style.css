@@ -618,3 +618,69 @@ html.latin .sex-hz { font-size: 16px; font-weight: 600; min-width: 80px; }
 .typer-last .hanzi { color: var(--text-2); margin-top: 2px; }
 .typer-num { display: flex; flex-direction: column; align-items: center; min-width: 44px; font-variant-numeric: tabular-nums; }
 .typer-num small { font-size: 11px; color: var(--text-3); }
+
+/* ---------- Pinyin first: pinyin is the word's face while characters are not studied yet ---------- */
+.py-face { font-weight: 600; color: var(--accent); }
+.q-text.py-face { font-size: 34px; }
+.tile .tile-hz.py { font-family: var(--font); font-size: 22px; font-weight: 700; color: var(--accent); }
+.tile .tile-hz.py.long { font-size: 17px; }
+.tile .tile-sub-hz { font-family: var(--font-hanzi); font-size: 14px; color: var(--text-3); }
+.detail-py.big { font-size: 38px; font-weight: 700; margin-top: 8px; }
+.detail-sub-hz { font-family: var(--font-hanzi); font-size: 22px; color: var(--text-3); text-align: center; }
+.example .ex-py.big { font-size: 17px; font-weight: 600; }
+.example .ex-hz.small { font-size: 14px; color: var(--text-3); }
+.flashcard .fc-py.big { font-size: 44px; font-weight: 700; line-height: 1.15; }
+.flashcard .fc-sub-hz { font-family: var(--font-hanzi); font-size: 20px; color: var(--text-3); }
+.flashcard .fc-ex .hanzi.small { font-size: 14px; color: var(--text-3); }
+.r-py.big { font-size: 17px; font-weight: 600; }
+.detail-actions .block { grid-column: 1 / -1; }
+.detail-actions .section-title { margin-top: 6px; }
+
+/* ---------- Today ---------- */
+.today-hero .hero-title, .today-done .hero-title { font-size: 20px; font-weight: 800; margin-bottom: 2px; }
+.today-hero .btn { min-width: 96px; }
+.today-done { margin-bottom: 16px; }
+.stats-grid.three { grid-template-columns: repeat(3, 1fr); }
+.stats-grid.three .stat-val small { font-size: 15px; color: var(--text-3); font-weight: 600; }
+.stats-grid.three .progress-bar { height: 5px; margin-top: 8px; }
+.section-title.row { display: flex; }
+.section-title.row .btn { text-transform: none; letter-spacing: 0; color: var(--text); }
+.progress-bar.lesson-bar { display: flex; height: 5px; margin-top: 6px; }
+.progress-bar.lesson-bar > span { border-radius: 0; }
+
+/* Guided session */
+.steps { display: flex; justify-content: center; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+.step-dot { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 64px; padding: 6px 8px; border-radius: 12px; font-size: 20px; opacity: 0.45; }
+.step-dot small { font-size: 11px; color: var(--text-2); }
+.step-dot.cur { opacity: 1; background: var(--accent-soft); }
+.step-dot.done { opacity: 0.8; }
+.step-card { text-align: center; padding: 24px 20px; }
+.step-card .step-of { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); }
+.step-card .step-ico { font-size: 44px; margin: 10px 0 4px; }
+.step-card h2 { margin-bottom: 6px; }
+.step-card p { margin: 0 auto 6px; max-width: 34em; }
+.step-card .btn { margin-top: 16px; }
+.summary-list { margin-top: 16px; text-align: left; }
+
+/* Meet a new word */
+.meet-card { text-align: center; padding: 26px 18px 16px; }
+.meet-card .meet-py { font-size: 46px; font-weight: 700; color: var(--accent); line-height: 1.15; }
+.meet-card .meet-hz { font-family: var(--font-hanzi); font-size: 22px; color: var(--text-3); margin-top: 2px; }
+.meet-card .meet-hz.big { font-size: 72px; color: var(--text); line-height: 1.1; }
+.meet-card .meet-py.sm { font-size: 24px; }
+.meet-card .meet-tr { font-size: 20px; margin-top: 10px; }
+.meet-card .meet-btns { justify-content: center; margin-top: 16px; }
+.meet-card .example { text-align: left; }
+.meet-card .list-hint { margin-top: 14px; }
+
+/* Lesson editor */
+.lw-row { gap: 8px; }
+.lw-row .li-title.py-face { font-size: 18px; }
+.lw-row .li-sub .hanzi { color: var(--text-2); }
+#l-name { font-weight: 700; font-size: 18px; margin-bottom: 12px; }
+#l-results { margin-top: 8px; }
+.own-input { font-size: 17px; text-align: left; }
+
+/* Sync */
+.sync-code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 21px; font-weight: 700; letter-spacing: 0.04em; user-select: all; -webkit-user-select: all; padding: 4px 0; word-break: break-all; }
+.sync-code-input { font-family: ui-monospace, "SF Mono", Menlo, monospace; text-transform: uppercase; }

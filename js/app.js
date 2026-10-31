@@ -71,15 +71,21 @@
     ja: { id: "ja", glyph: "あ", name: "日本語 · Japanese", title: "JLPT Trainer", tts: "ja-JP", script: "cjk", levels: [1, 2, 3, 4, 5], levelName: (l) => "N" + (6 - l), allLabel: "N5–N1", words: JA_WORDS, toneOptions: null, testPhrase: "こんにちは。日本語を勉強しています。", source: { text: "jamsinclair/open-anki-jlpt-decks", url: "https://github.com/jamsinclair/open-anki-jlpt-decks" } }
   };
   const CATS = window.HSK1_CATEGORIES;
+  CATS.custom = { en: "My words", de: "Eigene Wörter", icon: "✏️" };
   const BY_ID = Object.fromEntries(Object.values(COURSES).flatMap((c) => c.words).map((w) => [w.id, w]));
   const wid = (v) => (/^\d+$/.test(String(v)) ? +v : String(v)); // dataset ids back to their stored type
   let C = COURSES.zh;          // current course
-  let ALL_WORDS = C.words;     // all words of the current course
+  let ALL_WORDS = C.words;     // all words of the current course (built-in + own words)
   let WORDS = ALL_WORDS;       // words in the selected levels of the current course
   const curLevels = () => S.courses[C.id].levels;
+  // Own words (added in a lesson) live in S.custom as { course, hz, py, en, t }; they join level 1 of their course
+  const customWords = (course) => Object.entries(S.custom || {}).filter(([, x]) => !x.gone && x.course === course)
+    .map(([id, x]) => ({ id, hz: x.hz || x.py, py: x.py, en: x.en, cat: "custom", lvl: 1, ex: "", exPy: "", exEn: "", course }));
   function applyCourse() {
     C = COURSES[S.course] || COURSES.zh;
-    ALL_WORDS = C.words;
+    const own = customWords(C.id);
+    own.forEach((w) => (BY_ID[w.id] = w));
+    ALL_WORDS = C.words.concat(own);
     document.documentElement.classList.toggle("latin", C.script === "latin");
     applyLevels();
   }
@@ -122,10 +128,14 @@
     lang: (navigator.language || "en").toLowerCase().startsWith("de") ? "de" : "en",
     srs: {},
     favs: [],
-    stats: { answered: 0, correct: 0, days: {}, sessions: 0 },
-    settings: { rate: 0.85, autoSpeak: true, tilePinyin: true, quizSize: 10, dailyGoal: 20, theme: "auto" },
+    stats: { answered: 0, correct: 0, days: {}, sessions: 0, since: 0 },
+    settings: { rate: 0.85, autoSpeak: true, tilePinyin: true, quizSize: 10, dailyGoal: 20, theme: "auto", newPerDay: 5 },
     course: "zh",
-    courses: { zh: { levels: [1] }, vi: { levels: [1] }, ja: { levels: [1] } }
+    courses: { zh: { levels: [1] }, vi: { levels: [1] }, ja: { levels: [1] } },
+    lessons: {},  // id → { course, name, words: [ids], created, t }
+    custom: {},   // id → own word { course, hz, py, en, t }
+    peers: {},    // device id → stats of the other synced devices
+    mt: {}        // last-change times of the whole-value fields, for sync
   };
   let S = load();
   // Migration: level selection used to live in settings.levels (Chinese only)
@@ -145,7 +155,38 @@
       return { ...structuredClone(DEFAULT_STATE), ...parsed, settings: { ...DEFAULT_STATE.settings, ...(parsed.settings || {}) }, stats: { ...DEFAULT_STATE.stats, ...(parsed.stats || {}) } };
     } catch (e) { return structuredClone(DEFAULT_STATE); }
   }
-  function save() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(S)); } catch (e) { /* private mode */ } }
+  function save() {
+    if (stamp()) { DEV.dirty = true; saveDev(); scheduleSync(); }
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(S)); } catch (e) { /* private mode */ }
+  }
+
+  /* ---------------- Change stamps (for sync) ----------------
+   * save() compares the state with a snapshot of the last save and stamps what changed:
+   * entries of the keyed maps get their own time `t` (a removed entry becomes { gone: 1, t }),
+   * whole-value fields get a time in S.mt. Sync merges by these times, newest wins. */
+  const LWW_FIELDS = ["favs", "settings", "courses", "typer", "lang"]; // the current course stays per device
+  const MAP_FIELDS = ["srs", "lessons", "custom"];
+  const syncSettings = (s) => { const { voices, ...rest } = s; return rest; }; // voices differ per device
+  const lwwJson = (f) => JSON.stringify(f === "settings" ? syncSettings(S.settings) : S[f] ?? null);
+  const entryJson = (e) => { const { t, ...rest } = e || {}; return JSON.stringify(rest); };
+  let snap = null;
+  function takeSnap() {
+    snap = { lww: {}, maps: {}, stats: JSON.stringify(S.stats) };
+    LWW_FIELDS.forEach((f) => (snap.lww[f] = lwwJson(f)));
+    MAP_FIELDS.forEach((m) => { S[m] = S[m] || {}; snap.maps[m] = Object.fromEntries(Object.entries(S[m]).map(([id, e]) => [id, entryJson(e)])); });
+  }
+  function stamp() {
+    const now = Date.now(); let changed = false;
+    S.mt = S.mt || {};
+    const sj = JSON.stringify(S.stats); if (sj !== snap.stats) { snap.stats = sj; changed = true; } // device-own counts, merged per device
+    LWW_FIELDS.forEach((f) => { const j = lwwJson(f); if (j !== snap.lww[f]) { S.mt[f] = now; snap.lww[f] = j; changed = true; } });
+    MAP_FIELDS.forEach((m) => {
+      const cur = S[m], old = snap.maps[m];
+      Object.keys(cur).forEach((id) => { const j = entryJson(cur[id]); if (j !== old[id]) { cur[id].t = now; old[id] = j; changed = true; } });
+      Object.keys(old).forEach((id) => { if (!cur[id]) { cur[id] = { gone: 1, t: now }; old[id] = entryJson(cur[id]); changed = true; } });
+    });
+    return changed;
+  }
 
   /* ---------------- i18n ---------------- */
   const I18N = {
@@ -172,7 +213,7 @@
       direction: "Direction", dirHzTr: "Character → Meaning", dirTrHz: "Meaning → Character", dirHzPy: "Character → Pinyin", dirPyHz: "Pinyin → Character",
       tapToFlip: "Tap to reveal", rateAgain: "Again", rateHard: "Hard", rateGood: "Good", rateEasy: "Easy",
       correct: "Correct!", wrong: "Not quite.", answerWas: "Answer:", check: "Check", skip: "Skip", showAnswer: "Show answer",
-      typeHint: "Tones are optional (nǐ hǎo = nihao = ni3hao3).", typePlaceholder: "pinyin…",
+      typeHint: "Tones are optional, but typed tones must be right. Numbers become marks: ni3hao3 → nǐhǎo.", typePlaceholder: "pinyin…",
       resultTitle: "Session complete", resultScore: (c, t) => `${c} of ${t} correct`, reviewMistakes: "Words to review", perfect: "Perfect round!", timeTaken: "Time",
       playAgain: "Play again", backToTrain: "Back to training", listenPrompt: "Which word did you hear?", play: "Play", listenHint: "Tap ▶︎ to hear it again.",
       matchTitle: "Match the pairs", pairsLeft: (n) => `${n} pairs left`, mistakes: "mistakes",
@@ -206,7 +247,30 @@
       voice: "Voice", voiceAuto: "Automatic", refreshVoices: "Look for voices", langName: "Chinese",
       ttsHintAndroid: (lang) => `On Android the app uses the phone's text-to-speech engine. Install “Speech Services by Google” from the Play Store, then open Settings → General management (or System) → Language & input → Text-to-speech output, choose Google as the preferred engine, tap its settings → Install voice data → ${lang}. Reload this page afterwards. Chrome and Samsung Internet both work.`,
       ttsNoVoiceAndroid: (lang) => `No ${lang} voice was found on this device yet. After installing the voice data, tap “Look for voices” or reload the page.`,
-      course: "Course", switchCourse: "Switch language", courseHint: "Each language keeps its own words, levels and progress.", knownOf: (k, n) => `${k} of ${n} known`
+      course: "Course", switchCourse: "Switch language", courseHint: "Each language keeps its own words, levels and progress.", knownOf: (k, n) => `${k} of ${n} known`,
+      tabToday: "Today", sessionTitle: "Today's session", sessionDesc: (r, n) => `${r} to review · ${n} new`, sessionDone: "Done for today 🎉", sessionDoneSub: "Come back tomorrow for your reviews, or practise freely in Train.",
+      sessionEmpty: "Nothing due and no new words left. Add a lesson below, or learn more words.", moreNew: (n) => (n === 1 ? "Learn 1 more new word" : `Learn ${n} more new words`), fullStats: "All statistics", backToday: "Back to Today",
+      stepOf: (i, n) => `Step ${i} of ${n}`, stepCount: (n) => (n === 1 ? "1 word" : `${n} words`),
+      stepReview: "Review", stepReviewDesc: "Words due today. Say each one out loud before you flip the card.",
+      stepMeet: "New words", stepMeetDesc: "Listen, then say each word out loud three times. Copy the melody of the tones.",
+      stepListen: "Listen", stepListenDesc: "Hear a word and pick what you heard. Listen to the tones.",
+      stepWrite: "Write", stepWriteDesc: "Hear a word and type its pinyin with tones (ni3hao3 → nǐhǎo).",
+      sayAloud: "Say it out loud 3×, then go on.", slowly: "Slowly", sessionSummary: "Session complete", newLearned: (n) => (n === 1 ? "1 new word" : `${n} new words`),
+      lessons: "Lessons", lessonNew: "New lesson", lessonName: "Lesson name", lessonDefault: (n) => `Lesson ${n}`, lessonWords: (n) => (n === 1 ? "1 word" : `${n} words`),
+      lessonEmpty: "No lessons yet. Add the words from each class with your tutor, and Today will train exactly those.",
+      lessonNoWords: "No words in this lesson yet. Search the list below or add your own.",
+      lessonAddSearch: "Add words from the list", lessonSearch: "Search pinyin, meaning or characters…", lessonOwn: "Add your own word",
+      ownPy: "Pinyin (ni3hao3 → nǐhǎo)", ownHz: "Characters (needed for audio)", ownEn: "Meaning", ownWord: "Word", ownReading: "Reading (kana)", ownHint: "Not in the list? Ask your tutor for the characters: without them the voice can't read the word.",
+      add: "Add", remove: "Remove", added: "Added", deleteLesson: "Delete lesson", deleteLessonConfirm: "Delete this lesson? The words and your progress stay.",
+      practiceLesson: "Practise this lesson", lessonsPool: "My lessons", addToLesson: "Add to lesson",
+      pinyinFirst: "Pinyin first", pinyinFirstDesc: "Show pinyin big and practise pinyin and meaning instead of characters. Turn off when you start learning characters.",
+      sync: "Sync", syncDesc: "Keep Mac and iPhone in step", syncIntro: "Sync keeps your progress, lessons and settings the same on all your devices.",
+      syncOn: "Turn on sync", syncHave: "Already on another device? Enter its code:", syncConnect: "Connect",
+      syncCodeLbl: "Sync code", syncCodeHint: "Enter this code on your other device under More → Sync. On iPhone, enter it in the Home Screen app: it keeps its own storage, separate from Safari. Anyone with the code can see and change your progress, so keep it private.",
+      syncCopy: "Copy code", copied: "Copied", syncNow: "Sync now", syncLast: (s) => `Last synced ${s}`, syncNever: "Not synced yet", syncPending: "Changes waiting to sync",
+      syncDisconnect: "Turn off on this device", syncDisconnectConfirm: "Stop syncing this device? Its progress stays here, and the other devices keep theirs.",
+      syncNotSetup: "Sync isn't set up on the server yet.", syncFailed: "Sync failed. It will try again.", syncOffline: "Offline. Changes sync when you're back online.", syncBadCode: "That code doesn't look right.", syncDone: "Synced",
+      justNow: "just now", minAgo: (n) => `${n} min ago`, hAgo: (n) => `${n} h ago`
     },
     de: {
       brandSub: "Trainer", words: "Wörter", train: "Üben", progress: "Fortschritt", more: "Mehr",
@@ -231,7 +295,7 @@
       direction: "Richtung", dirHzTr: "Zeichen → Bedeutung", dirTrHz: "Bedeutung → Zeichen", dirHzPy: "Zeichen → Pinyin", dirPyHz: "Pinyin → Zeichen",
       tapToFlip: "Tippen zum Aufdecken", rateAgain: "Nochmal", rateHard: "Schwer", rateGood: "Gut", rateEasy: "Leicht",
       correct: "Richtig!", wrong: "Leider nein.", answerWas: "Lösung:", check: "Prüfen", skip: "Überspringen", showAnswer: "Lösung zeigen",
-      typeHint: "Töne sind optional (nǐ hǎo = nihao = ni3hao3).", typePlaceholder: "Pinyin…",
+      typeHint: "Töne sind optional, getippte Töne müssen aber stimmen. Zahlen werden zu Zeichen: ni3hao3 → nǐhǎo.", typePlaceholder: "Pinyin…",
       resultTitle: "Übung beendet", resultScore: (c, t) => `${c} von ${t} richtig`, reviewMistakes: "Wörter zum Wiederholen", perfect: "Fehlerfreie Runde!", timeTaken: "Zeit",
       playAgain: "Nochmal spielen", backToTrain: "Zurück zur Übersicht", listenPrompt: "Welches Wort hast du gehört?", play: "Abspielen", listenHint: "Tippe ▶︎, um es erneut zu hören.",
       matchTitle: "Paare zuordnen", pairsLeft: (n) => `${n} Paare übrig`, mistakes: "Fehler",
@@ -265,7 +329,45 @@
       voice: "Stimme", voiceAuto: "Automatisch", refreshVoices: "Stimmen suchen", langName: "Chinesisch",
       ttsHintAndroid: (lang) => `Unter Android nutzt die App die Sprachausgabe des Telefons. Installiere „Speech Services by Google“ aus dem Play Store, öffne dann Einstellungen → Allgemeine Verwaltung (oder System) → Sprache und Eingabe → Text-zu-Sprache-Ausgabe, wähle Google als bevorzugtes Modul, tippe auf dessen Einstellungen → Sprachdaten installieren → ${lang}. Danach diese Seite neu laden. Chrome und Samsung Internet funktionieren beide.`,
       ttsNoVoiceAndroid: (lang) => `Auf diesem Gerät wurde noch keine ${lang}-Stimme gefunden. Nach dem Installieren der Sprachdaten auf „Stimmen suchen“ tippen oder die Seite neu laden.`,
-      course: "Kurs", switchCourse: "Sprache wechseln", courseHint: "Jede Sprache hat eigene Wörter, Stufen und eigenen Fortschritt.", knownOf: (k, n) => `${k} von ${n} gelernt`
+      course: "Kurs", switchCourse: "Sprache wechseln", courseHint: "Jede Sprache hat eigene Wörter, Stufen und eigenen Fortschritt.", knownOf: (k, n) => `${k} von ${n} gelernt`,
+      tabToday: "Heute", sessionTitle: "Heutige Einheit", sessionDesc: (r, n) => `${r} wiederholen · ${n} neu`, sessionDone: "Für heute geschafft 🎉", sessionDoneSub: "Morgen warten neue Wiederholungen. Oder übe frei unter „Üben“.",
+      sessionEmpty: "Nichts fällig und keine neuen Wörter übrig. Leg unten eine Lektion an oder lerne weitere Wörter.", moreNew: (n) => (n === 1 ? "1 weiteres neues Wort lernen" : `${n} weitere neue Wörter lernen`), fullStats: "Alle Statistiken", backToday: "Zurück zu Heute",
+      stepOf: (i, n) => `Schritt ${i} von ${n}`, stepCount: (n) => (n === 1 ? "1 Wort" : `${n} Wörter`),
+      stepReview: "Wiederholen", stepReviewDesc: "Heute fällige Wörter. Sprich jedes Wort laut, bevor du die Karte umdrehst.",
+      stepMeet: "Neue Wörter", stepMeetDesc: "Hör zu und sprich jedes Wort dreimal laut nach. Ahme die Tonmelodie nach.",
+      stepListen: "Hören", stepListenDesc: "Hör ein Wort und wähle, was du gehört hast. Achte auf die Töne.",
+      stepWrite: "Schreiben", stepWriteDesc: "Hör ein Wort und tippe sein Pinyin mit Tönen (ni3hao3 → nǐhǎo).",
+      sayAloud: "Sprich es 3× laut, dann weiter.", slowly: "Langsam", sessionSummary: "Einheit geschafft", newLearned: (n) => (n === 1 ? "1 neues Wort" : `${n} neue Wörter`),
+      lessons: "Lektionen", lessonNew: "Neue Lektion", lessonName: "Name der Lektion", lessonDefault: (n) => `Lektion ${n}`, lessonWords: (n) => (n === 1 ? "1 Wort" : `${n} Wörter`),
+      lessonEmpty: "Noch keine Lektionen. Füge nach jeder Stunde die Wörter deiner Lehrerin oder deines Lehrers hinzu, dann übt „Heute“ genau diese.",
+      lessonNoWords: "Noch keine Wörter in dieser Lektion. Such unten in der Liste oder füge eigene hinzu.",
+      lessonAddSearch: "Wörter aus der Liste hinzufügen", lessonSearch: "Pinyin, Bedeutung oder Zeichen suchen…", lessonOwn: "Eigenes Wort hinzufügen",
+      ownPy: "Pinyin (ni3hao3 → nǐhǎo)", ownHz: "Schriftzeichen (für die Aussprache nötig)", ownEn: "Bedeutung", ownWord: "Wort", ownReading: "Lesung (Kana)", ownHint: "Nicht in der Liste? Frag nach den Schriftzeichen: ohne sie kann die Stimme das Wort nicht vorlesen.",
+      add: "Hinzufügen", remove: "Entfernen", added: "Hinzugefügt", deleteLesson: "Lektion löschen", deleteLessonConfirm: "Diese Lektion löschen? Die Wörter und dein Fortschritt bleiben erhalten.",
+      practiceLesson: "Diese Lektion üben", lessonsPool: "Meine Lektionen", addToLesson: "Zur Lektion hinzufügen",
+      pinyinFirst: "Pinyin zuerst", pinyinFirstDesc: "Pinyin groß anzeigen und Pinyin und Bedeutung statt Schriftzeichen üben. Ausschalten, sobald du Zeichen lernst.",
+      sync: "Synchronisieren", syncDesc: "Mac und iPhone abgleichen", syncIntro: "Die Synchronisierung hält Fortschritt, Lektionen und Einstellungen auf all deinen Geräten gleich.",
+      syncOn: "Synchronisierung einschalten", syncHave: "Schon auf einem anderen Gerät eingeschaltet? Gib dessen Code ein:", syncConnect: "Verbinden",
+      syncCodeLbl: "Sync-Code", syncCodeHint: "Gib diesen Code auf deinem anderen Gerät unter Mehr → Synchronisieren ein. Auf dem iPhone in der App vom Home-Bildschirm: sie hat einen eigenen Speicher, getrennt von Safari. Wer den Code kennt, kann deinen Fortschritt sehen und ändern – behalte ihn für dich.",
+      syncCopy: "Code kopieren", copied: "Kopiert", syncNow: "Jetzt synchronisieren", syncLast: (s) => `Zuletzt synchronisiert ${s}`, syncNever: "Noch nicht synchronisiert", syncPending: "Änderungen warten auf Synchronisierung",
+      syncDisconnect: "Auf diesem Gerät ausschalten", syncDisconnectConfirm: "Synchronisierung auf diesem Gerät beenden? Der Fortschritt bleibt hier erhalten, die anderen Geräte behalten ihren.",
+      syncNotSetup: "Die Synchronisierung ist auf dem Server noch nicht eingerichtet.", syncFailed: "Synchronisierung fehlgeschlagen. Neuer Versuch folgt.", syncOffline: "Offline. Änderungen werden synchronisiert, sobald du wieder online bist.", syncBadCode: "Dieser Code sieht nicht richtig aus.", syncDone: "Synchronisiert",
+      justNow: "gerade eben", minAgo: (n) => `vor ${n} Min.`, hAgo: (n) => `vor ${n} Std.`
+    }
+  };
+  // Pinyin-first wording (Chinese while characters are not studied yet)
+  const PF_I18N = {
+    en: {
+      search: "Search pinyin, meaning or characters…",
+      modeQuizDesc: "Pick the right meaning or pinyin.", modeTypeDesc: "Hear the word and see its meaning, type the pinyin.",
+      modeListenDesc: "Hear the word, choose the pinyin.", modeMatchDesc: "Match pinyin with meanings against the clock.",
+      dirHzTr: "Pinyin → Meaning", dirTrHz: "Meaning → Pinyin"
+    },
+    de: {
+      search: "Pinyin, Bedeutung oder Zeichen suchen…",
+      modeQuizDesc: "Wähle die richtige Bedeutung oder das Pinyin.", modeTypeDesc: "Wort hören, Bedeutung sehen, Pinyin eingeben.",
+      modeListenDesc: "Wort anhören, richtiges Pinyin wählen.", modeMatchDesc: "Pinyin und Bedeutungen auf Zeit zuordnen.",
+      dirHzTr: "Pinyin → Bedeutung", dirTrHz: "Bedeutung → Pinyin"
     }
   };
   // Course-specific wording (Vietnamese is written in Latin script: no hanzi, no pinyin)
@@ -375,9 +477,13 @@
   };
   const t = (key, ...args) => {
     const o = COURSE_I18N[C.id];
-    const v = (o && (o[S.lang]?.[key] ?? o.en?.[key])) ?? I18N[S.lang][key] ?? I18N.en[key] ?? key;
+    const v = (pyFirst() ? PF_I18N[S.lang][key] : undefined) ?? (o && (o[S.lang]?.[key] ?? o.en?.[key])) ?? I18N[S.lang][key] ?? I18N.en[key] ?? key;
     return typeof v === "function" ? v(...args) : v;
   };
+  // Pinyin first: Chinese learners who don't read characters yet see and practise pinyin instead (on unless turned off)
+  function pyFirst() { return C.id === "zh" && S.courses.zh.pinyinFirst !== false; }
+  // The written form of a word as the learner reads it
+  const face = (w) => (pyFirst() ? `<span class="py-face">${esc(w.py)}</span>` : `<span class="hanzi">${w.hz}</span>`);
   const tr = (w) => (S.lang === "de" && w.de ? w.de : w.en);
   const tr2 = (w) => (S.lang === "de" ? (w.de ? w.en : "") : (w.de || ""));
   const exTr = (w) => (S.lang === "de" && w.exDe ? w.exDe : w.exEn);
@@ -441,13 +547,18 @@
   }
 
   /* ---------------- Spaced repetition (SM-2 style) ---------------- */
-  function card(id) { return S.srs[id] || null; }
+  function card(id) { const c = S.srs[id]; return c && !c.gone ? c : null; }
   function status(id) { const c = card(id); if (!c) return "new"; return c.interval >= 21 ? "known" : "learning"; }
   function isDue(id) { const c = card(id); return !!c && c.due <= Date.now(); }
   function grade(id, q) { // q: 0 again, 1 hard, 2 good, 3 easy
     const now = Date.now();
     const c = card(id) || { ef: 2.5, interval: 0, reps: 0, due: 0, lapses: 0 };
+    c.first = c.first || todayKey();
+    // Only the first success of a day schedules the word (a guided session tests it several times);
+    // a miss clears that, so the next success reschedules it
+    if (q > 0 && c.ok === todayKey()) return;
     if (q === 0) {
+      delete c.ok;
       c.reps = 0; c.lapses = (c.lapses || 0) + 1; c.interval = 0; c.ef = Math.max(1.3, c.ef - 0.2); c.due = now + 10 * 60 * 1000;
     } else {
       if (c.reps === 0) c.interval = q === 1 ? 0.5 : q === 2 ? 1 : 3;
@@ -456,22 +567,27 @@
       c.ef = Math.max(1.3, Math.min(3.0, c.ef + (q === 3 ? 0.15 : q === 1 ? -0.15 : 0)));
       c.reps += 1;
       c.due = now + c.interval * DAY;
+      c.ok = todayKey();
     }
     S.srs[id] = c;
     save();
   }
   function markKnown(id) { S.srs[id] = { ef: 2.5, interval: 30, reps: 3, due: Date.now() + 30 * DAY, lapses: 0 }; save(); }
-  function markLearning(id) { S.srs[id] = { ef: 2.5, interval: 0, reps: 0, due: Date.now(), lapses: 0 }; save(); }
+  function markLearning(id) { S.srs[id] = { ef: 2.5, interval: 0, reps: 0, due: Date.now(), lapses: 0, first: todayKey() }; save(); }
   function resetWord(id) { delete S.srs[id]; save(); }
   function recordAnswer(correct) {
     S.stats.answered += 1; if (correct) S.stats.correct += 1;
     const k = todayKey(); S.stats.days[k] = (S.stats.days[k] || 0) + 1; save();
   }
+  // S.stats counts this device; S.peers holds the counts the other synced devices reported
+  const allStats = () => [S.stats].concat(Object.values(S.peers || {}));
+  const dayCount = (k) => allStats().reduce((a, s) => a + ((s.days && s.days[k]) || 0), 0);
+  const statSum = (f) => allStats().reduce((a, s) => a + (s[f] || 0), 0);
   function dueWords() { return WORDS.filter((w) => isDue(w.id)); }
   function streak() {
     let n = 0; const d = new Date();
-    if (!S.stats.days[todayKey(d)]) d.setDate(d.getDate() - 1);
-    while (S.stats.days[todayKey(d)]) { n++; d.setDate(d.getDate() - 1); }
+    if (!dayCount(todayKey(d))) d.setDate(d.getDate() - 1);
+    while (dayCount(todayKey(d))) { n++; d.setDate(d.getDate() - 1); }
     return n;
   }
 
@@ -497,19 +613,20 @@
 
   /* ---------------- Router ---------------- */
   const TABS = [
+    { id: "today", ico: "☀️", key: "tabToday" },
     { id: "words", ico: "🀄", key: "words" },
     { id: "train", ico: "🎯", key: "train" },
     { id: "sounds", ico: "🗣️", key: "sounds" },
-    { id: "progress", ico: "📈", key: "progress" },
     { id: "more", ico: "⋯", key: "more" }
   ];
   let route = [];
   let cleanup = null;
+  let flow = null; // guided session in progress (Today), see startFlow
 
   function navigate(path) { location.hash = "#/" + path; }
-  function parseRoute() { const h = location.hash.replace(/^#\/?/, ""); return h ? h.split("/") : ["words"]; }
+  function parseRoute() { const h = location.hash.replace(/^#\/?/, ""); return h ? h.split("/") : ["today"]; }
   function renderNav() {
-    const html = TABS.map((tab) => `<button class="tab ${route[0] === tab.id ? "active" : ""}" data-route="${tab.id}" type="button"><span class="tab-ico">${tab.id === "words" && C.script !== "cjk" ? "🔤" : tab.ico}</span><span>${t(tab.key)}</span></button>`).join("");
+    const html = TABS.map((tab) => `<button class="tab ${route[0] === tab.id || (tab.id === "today" && route[0] === "progress") ? "active" : ""}" data-route="${tab.id}" type="button"><span class="tab-ico">${tab.id === "words" && C.script !== "cjk" ? "🔤" : tab.ico}</span><span>${t(tab.key)}</span></button>`).join("");
     $("#nav-desktop").innerHTML = html; $("#nav-mobile").innerHTML = html;
     $$("[data-route]").forEach((b) => (b.onclick = () => navigate(b.dataset.route)));
     $$(".lang-toggle").forEach((b) => { b.textContent = S.lang === "de" ? "DE" : "EN"; b.onclick = toggleLang; });
@@ -540,7 +657,7 @@
     applyCourse(); pickVoice();
     wf.q = ""; wf.cat = "all"; wf.status = "all"; setupPrefs.cat = "all";
     closeSheet();
-    if (route[0] === "words") render(); else navigate("words");
+    if (route[0] === "words" || route[0] === "today") render(); else navigate("today");
   }
   function updateBrand() {
     $$(".course-glyph-brand").forEach((el) => { el.textContent = C.glyph; el.classList.toggle("latin", C.script === "latin"); });
@@ -557,6 +674,7 @@
   function render() {
     closeSheet();
     if (cleanup) { cleanup(); cleanup = null; }
+    flow = null;
     route = parseRoute();
     renderNav();
     const view = $("#view");
@@ -564,10 +682,11 @@
     view.className = "view fade-in";
     const main = route[0];
     if (main === "train") renderTrain(view);
+    else if (main === "words") renderWords(view);
     else if (main === "sounds") renderSounds(view);
     else if (main === "progress") renderProgress(view);
     else if (main === "more") renderMore(view);
-    else renderWords(view);
+    else renderToday(view);
   }
   window.addEventListener("hashchange", render);
 
@@ -634,8 +753,9 @@
       <button class="tile" data-id="${w.id}" type="button">
         <span class="tile-dot ${status(w.id)}"></span>
         ${S.favs.includes(w.id) ? `<span class="tile-fav">★</span>` : ""}
-        <span class="tile-hz ${isLong(w.hz) ? "long" : ""}">${w.hz}</span>
-        ${S.settings.tilePinyin ? `<span class="tile-py">${w.py}</span>` : ""}
+        ${pyFirst()
+          ? `<span class="tile-hz py ${w.py.length > 10 ? "long" : ""}">${esc(w.py)}</span><span class="tile-sub-hz">${w.hz}</span>`
+          : `<span class="tile-hz ${isLong(w.hz) ? "long" : ""}">${w.hz}</span>${S.settings.tilePinyin ? `<span class="tile-py">${w.py}</span>` : ""}`}
         <span class="tile-tr">${esc(tr(w))}</span>
         <span class="tile-num">${curLevels().length > 1 ? `<span class="lvl-badge l${w.lvl}">${C.levelName(w.lvl)}</span>` : (C.id === "zh" ? w.id : "")}</span>
       </button>`).join("") + (list.length > shown.length ? `<button class="btn block tiles-more" id="tiles-more" type="button">${t("showMore", Math.min(CHUNK, list.length - shown.length), list.length - shown.length)}</button>` : "");
@@ -646,23 +766,23 @@
     const w = BY_ID[id];
     const st = status(id); const fav = S.favs.includes(id);
     openSheet(`
-      <div class="detail-hz">${w.hz}</div>
-      <div class="detail-py">${w.py}</div>
+      ${pyFirst() ? `<div class="detail-py big">${esc(w.py)}</div><div class="detail-sub-hz">${w.hz}</div>` : `<div class="detail-hz">${w.hz}</div><div class="detail-py">${w.py}</div>`}
       <div class="detail-tr">${esc(tr(w))}</div>
       ${tr2(w) ? `<div class="detail-tr2">${esc(tr2(w))}</div>` : ""}
       <div class="detail-meta">
         <span class="pill ${st}">${t(st)}</span>
-        <span class="pill new">${CATS[w.cat].icon} ${catName(w.cat)}</span>
+        <span class="pill new">${CATS[w.cat] ? CATS[w.cat].icon : ""} ${catName(w.cat)}</span>
         <span class="pill new">${C.levelName(w.lvl)}${C.id === "zh" ? " · #" + w.id : ""}</span>
       </div>
       <div class="row" style="justify-content:center;margin-top:12px"><button class="speak-btn" id="d-speak" type="button" aria-label="${t("speak")}">🔊</button></div>
       ${w.ex ? `<div class="example">
-        <div class="row"><div class="grow"><div class="ex-hz">${w.ex}</div>${w.exPy ? `<div class="ex-py">${w.exPy}</div>` : ""}<div class="ex-tr">${esc(exTr(w))}</div></div><button class="speak-btn sm" id="d-speak-ex" type="button" aria-label="${t("speak")}">🔊</button></div>
+        <div class="row"><div class="grow">${pyFirst() && w.exPy ? `<div class="ex-py big">${w.exPy}</div><div class="ex-hz small">${w.ex}</div>` : `<div class="ex-hz">${w.ex}</div>${w.exPy ? `<div class="ex-py">${w.exPy}</div>` : ""}`}<div class="ex-tr">${esc(exTr(w))}</div></div><button class="speak-btn sm" id="d-speak-ex" type="button" aria-label="${t("speak")}">🔊</button></div>
       </div>` : ""}
       <div class="detail-actions">
         <button class="btn ${st === "known" ? "ghost" : "success"}" id="d-known" type="button">${st === "known" ? "↺ " + t("resetWord") : "✓ " + t("markKnown")}</button>
         <button class="btn ${fav ? "warn" : ""}" id="d-fav" type="button">${fav ? "★ " + t("unfav") : "☆ " + t("fav")}</button>
         ${st !== "learning" ? `<button class="btn block" id="d-learn" type="button">📝 ${t("markLearning")}</button>` : ""}
+        ${courseLessons().length ? `<div class="block"><div class="section-title">${t("addToLesson")}</div><div class="chips">${courseLessons().map((l) => `<button class="chip ${l.words.includes(id) ? "active" : ""}" data-lesson="${l.id}" type="button">${l.words.includes(id) ? "✓ " : "+ "}${esc(l.name)}</button>`).join("")}</div></div>` : ""}
         <button class="btn block ghost" id="d-close" type="button">${t("close")}</button>
       </div>`, () => { if (route[0] === "words" && $("#tiles")) drawTiles(); });
     $("#d-speak").onclick = () => speak(w.hz);
@@ -671,6 +791,7 @@
     $("#d-fav").onclick = () => { S.favs = fav ? S.favs.filter((x) => x !== id) : S.favs.concat(id); save(); openWord(id); };
     $("#d-known").onclick = () => { if (st === "known") resetWord(id); else markKnown(id); openWord(id); };
     const learnBtn = $("#d-learn"); if (learnBtn) learnBtn.onclick = () => { markLearning(id); openWord(id); };
+    $$("[data-lesson]").forEach((b) => (b.onclick = () => { toggleLessonWord(b.dataset.lesson, id); openWord(id); }));
   }
 
   /* ================= TRAIN ================= */
@@ -722,13 +843,17 @@
       const due = list.filter((w) => isDue(w.id)); const fresh = list.filter((w) => status(w.id) === "new");
       list = due.concat(shuffle(fresh));
       if (!list.length) list = cat === "all" ? WORDS : WORDS.filter((w) => w.cat === cat);
-    } else if (pool === "favs") list = list.filter((w) => S.favs.includes(w.id));
+    } else if (pool === "lessons") list = lessonWords().filter((w) => cat === "all" || w.cat === cat);
+    else if (pool === "favs") list = list.filter((w) => S.favs.includes(w.id));
     else if (pool === "learning") list = list.filter((w) => status(w.id) === "learning");
     return list;
   }
   function setupSession(view, mode, cfg) {
-    const pools = [["due", t("dueWords")], ["all", t("allWords")], ["learning", t("learningOnly")], ["favs", t("favsOnly")]];
-    const dirs = [["hzTr", t("dirHzTr")], ["trHz", t("dirTrHz")], ["hzPy", t("dirHzPy")], ["pyHz", t("dirPyHz")]];
+    const pools = [["due", t("dueWords")]].concat(lessonWords().length ? [["lessons", t("lessonsPool")]] : [], [["all", t("allWords")], ["learning", t("learningOnly")], ["favs", t("favsOnly")]]);
+    if (setupPrefs.pool === "lessons" && !lessonWords().length) setupPrefs.pool = "due";
+    // Pinyin first: the character directions make no sense yet
+    const dirs = [["hzTr", t("dirHzTr")], ["trHz", t("dirTrHz")]].concat(pyFirst() ? [] : [["hzPy", t("dirHzPy")], ["pyHz", t("dirPyHz")]]);
+    if (!dirs.some(([k]) => k === setupPrefs.direction)) setupPrefs.direction = "hzTr";
     view.innerHTML = `
       <div class="card stack">
         <h2>${t("setupTitle")}</h2>
@@ -764,6 +889,7 @@
     return `<div class="session-head"><div class="progress-bar"><span style="width:${Math.round((i / n) * 100)}%"></span></div><span class="count">${i}/${n}${extra ? " · " + extra : ""}</span></div>`;
   }
   function showResult(view, { correct, total, mistakes, mode, extra, onAgain }) {
+    if (flow) return flowStepDone(view, { correct, total, mistakes });
     S.stats.sessions += 1; save();
     const pct = total ? Math.round((correct / total) * 100) : 100;
     view.innerHTML = `
@@ -782,7 +908,7 @@
     checkGoal();
   }
   function checkGoal() {
-    const n = S.stats.days[todayKey()] || 0;
+    const n = dayCount(todayKey());
     if (n >= S.settings.dailyGoal && n - 1 < S.settings.dailyGoal) toast(t("goalReached"));
   }
   function bindKeys(handler) {
@@ -802,13 +928,12 @@
         ${sessionHead(i, queue.length)}
         <div class="flashcard" id="fc">
           ${flipped ? `
-            <div class="fc-hz ${isLong(w.hz) ? "long" : ""}">${w.hz}</div>
-            <div class="fc-py">${w.py}</div>
+            ${pyFirst() ? `<div class="fc-py big">${esc(w.py)}</div><div class="fc-sub-hz">${w.hz}</div>` : `<div class="fc-hz ${isLong(w.hz) ? "long" : ""}">${w.hz}</div><div class="fc-py">${w.py}</div>`}
             <div class="fc-tr">${esc(tr(w))}</div>
             ${tr2(w) ? `<div class="fc-tr2">${esc(tr2(w))}</div>` : ""}
-            ${w.ex ? `<div class="fc-ex"><span class="hanzi">${w.ex}</span>${w.exPy}<br>${esc(exTr(w))}</div>` : ""}
+            ${w.ex ? `<div class="fc-ex">${pyFirst() && w.exPy ? `${w.exPy}<br><span class="hanzi small">${w.ex}</span>` : `<span class="hanzi">${w.ex}</span>${w.exPy}`}<br>${esc(exTr(w))}</div>` : ""}
             <button class="speak-btn" id="fc-speak" type="button" style="margin-top:10px">🔊</button>`
-          : `<div class="fc-hz ${isLong(w.hz) ? "long" : ""}">${w.hz}</div><div class="fc-hint">${t("tapToFlip")}</div>`}
+          : `${pyFirst() ? `<div class="fc-py big">${esc(w.py)}</div>` : `<div class="fc-hz ${isLong(w.hz) ? "long" : ""}">${w.hz}</div>`}<div class="fc-hint">${t("tapToFlip")}</div>`}
         </div>
         ${flipped ? `
           <div class="rate-grid">
@@ -855,16 +980,23 @@
     let i = 0, correct = 0, answered = false; const mistakes = [];
     const optCount = 4;
     function optionsFor(w) {
-      const distractors = sample(WORDS.filter((x) => x.id !== w.id && (direction === "hzPy" || direction === "pyHz" || direction === "listen" ? true : tr(x) !== tr(w))), optCount - 1);
+      // Options must look different: no repeated meaning, and with pinyin shown no repeated pinyin (他/她 are both tā)
+      const shown = (x) => (direction === "hzPy" || pyFirst() && direction !== "hzTr" ? x.py : direction === "hzTr" ? tr(x) : x.hz);
+      const seen = new Set([shown(w)]); const distractors = [];
+      for (const x of shuffle(WORDS.length >= 8 ? WORDS : ALL_WORDS)) {
+        if (distractors.length === optCount - 1) break;
+        if (x.id === w.id || seen.has(shown(x)) || (direction !== "hzPy" && direction !== "pyHz" && direction !== "listen" && tr(x) === tr(w))) continue;
+        seen.add(shown(x)); distractors.push(x);
+      }
       return shuffle([w].concat(distractors));
     }
     function draw(autoPlay) {
       if (i >= list.length) { if (cleanup) { cleanup(); cleanup = null; } return showResult(view, { correct, total: list.length, mistakes, onAgain: () => navigate("train/" + (direction === "listen" ? "listen" : "quiz")) }); }
       const w = list[i]; const opts = optionsFor(w); answered = false;
       let prompt, optHtml;
-      const label = (x) => direction === "hzTr" ? esc(tr(x)) : direction === "hzPy" ? x.py : `<span class="hanzi">${x.hz}</span>`;
-      const optClass = direction === "trHz" || direction === "pyHz" || direction === "listen" ? "hanzi" : "";
-      if (direction === "hzTr" || direction === "hzPy") prompt = `<div class="q-hz ${isLong(w.hz) ? "long" : ""}">${w.hz}</div><button class="speak-btn sm" id="q-speak" type="button">🔊</button>`;
+      const label = (x) => direction === "hzTr" ? esc(tr(x)) : direction === "hzPy" ? x.py : face(x);
+      const optClass = !pyFirst() && (direction === "trHz" || direction === "pyHz" || direction === "listen") ? "hanzi" : "";
+      if (direction === "hzTr" || direction === "hzPy") prompt = `${pyFirst() ? `<div class="q-text py-face">${esc(w.py)}</div>` : `<div class="q-hz ${isLong(w.hz) ? "long" : ""}">${w.hz}</div>`}<button class="speak-btn sm" id="q-speak" type="button">🔊</button>`;
       else if (direction === "trHz") prompt = `<div class="q-text">${esc(tr(w))}</div>${tr2(w) ? `<div class="q-sub">${esc(tr2(w))}</div>` : ""}`;
       else if (direction === "pyHz") prompt = `<div class="q-text">${w.py}</div>`;
       else prompt = `<div class="q-sub">${t("listenPrompt")}</div><button class="btn primary" id="q-play" type="button" style="margin-top:8px">▶︎ ${t("play")}</button><div class="q-sub small">${t("listenHint")}</div>`;
@@ -900,7 +1032,9 @@
     function draw() {
       if (i >= list.length) { if (cleanup) { cleanup(); cleanup = null; } return showResult(view, { correct, total: list.length, mistakes, onAgain: () => navigate("train/type") }); }
       const w = list[i]; answered = false;
-      const promptHtml = C.id === "zh" || C.id === "ja"
+      const promptHtml = pyFirst()
+        ? `<div class="q-text">${esc(tr(w))}</div><button class="speak-btn sm" id="q-speak" type="button">🔊</button>`
+        : C.id === "zh" || C.id === "ja"
         ? `<div class="q-hz ${isLong(w.hz) ? "long" : ""}">${w.hz}</div><div class="q-sub">${esc(tr(w))}</div>`
         : `<div class="q-text">${esc(tr(w))}</div>${tr2(w) ? `<div class="q-sub">${esc(tr2(w))}</div>` : ""}`;
       view.innerHTML = `${sessionHead(i, list.length, `✓ ${correct}`)}
@@ -910,6 +1044,12 @@
         <div class="row" style="margin-top:8px"><button class="btn ghost grow" id="t-skip" type="button">${t("skip")}</button><button class="btn primary grow" id="t-check" type="button">${t("check")}</button></div>
         <div id="fb"></div>`;
       const input = $("#ti"); input.focus();
+      if ($("#q-speak")) { $("#q-speak").onclick = () => { speak(w.hz); input.focus(); }; speak(w.hz); }
+      if (C.id === "zh") input.addEventListener("input", (e) => { // tone numbers → tone marks while typing
+        if (e.isComposing || !/[1-5]/.test(input.value)) return;
+        const pos = input.selectionStart, before = numToMarks(input.value.slice(0, pos));
+        input.value = before + numToMarks(input.value.slice(pos)); input.setSelectionRange(before.length, before.length);
+      });
       $("#t-check").onclick = () => check(input.value);
       $("#t-skip").onclick = () => { if (!answered) reveal(false); else next(); };
       input.onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); if (!answered) check(input.value); else next(); } };
@@ -921,6 +1061,7 @@
         ok = stripTones(v) === stripTones(w.py);
         const digits = v.replace(/[^0-9]/g, "").replace(/[05]/g, "");
         if (ok && digits) ok = digits === toneSeq(w.py).join("");
+        else if (ok && toneSeq(v).length) ok = toneSeq(v).join("") === toneSeq(w.py).join(""); // tone marks typed: they must be right
       } else if (C.id === "ja") {
         const a = stripJa(v);
         ok = a === stripJa(w.kana) || a === stripJa(w.romaji) || a === stripJa(w.hz) || a === stripJa(w.romaji).replace(/'/g, "") || a === toRomaji(w.kana).replace(/ou/g, "oo") || a.replace(/ou/g, "oo") === stripJa(w.romaji).replace(/ou/g, "oo");
@@ -1091,7 +1232,7 @@
     view.innerHTML = `
       <div class="session-head"><div class="grow"><b>${t("matchTitle")}</b> <span class="muted small" id="m-left">${t("pairsLeft", 6)}</span></div><span class="count" id="m-time">0:00</span></div>
       <div class="match-grid">
-        <div class="match-col">${left.map((w) => `<button class="match-card hanzi" data-side="a" data-id="${w.id}" type="button">${w.hz}</button>`).join("")}</div>
+        <div class="match-col">${left.map((w) => `<button class="match-card ${pyFirst() ? "" : "hanzi"}" data-side="a" data-id="${w.id}" type="button">${pyFirst() ? esc(w.py) : w.hz}</button>`).join("")}</div>
         <div class="match-col">${right.map((w) => `<button class="match-card" data-side="b" data-id="${w.id}" type="button">${esc(tr(w))}</button>`).join("")}</div>
       </div>`;
     const timeStr = () => { const s = Math.round((Date.now() - start) / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
@@ -1429,19 +1570,259 @@
     draw(false);
   }
 
+  /* ================= TODAY ================= */
+  // Lessons of the current course, oldest first
+  function courseLessons() {
+    return Object.entries(S.lessons || {}).filter(([, l]) => !l.gone && l.course === C.id)
+      .map(([id, l]) => ({ id, ...l })).sort((a, b) => a.created - b.created);
+  }
+  // The words of all lessons, each once; newest lesson first when picking new words
+  function lessonWords(newestFirst) {
+    const seen = new Set(); const out = []; const ls = courseLessons();
+    (newestFirst ? ls.reverse() : ls).forEach((l) => l.words.forEach((id) => { if (!seen.has(id) && BY_ID[id]) { seen.add(id); out.push(BY_ID[id]); } }));
+    return out;
+  }
+  function toggleLessonWord(lid, id) {
+    const l = S.lessons[lid]; if (!l) return;
+    l.words = l.words.includes(id) ? l.words.filter((x) => x !== id) : l.words.concat(id);
+    save();
+  }
+  const newId = (p) => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+  // Today's plan: due reviews (most overdue first) plus a few new words, from the lessons when there are any
+  const REVIEW_CAP = 20;
+  let extraNew = 0; // "learn more" taps since the app was opened
+  const introducedToday = () => ALL_WORDS.filter((w) => { const c = card(w.id); return c && c.first === todayKey(); }).length;
+  function planToday() {
+    const due = ALL_WORDS.filter((w) => isDue(w.id)).sort((a, b) => card(a.id).due - card(b.id).due).slice(0, REVIEW_CAP);
+    const lw = lessonWords(true);
+    const unseen = (lw.length ? lw : WORDS).filter((w) => status(w.id) === "new");
+    const room = Math.max(0, S.settings.newPerDay + extraNew - introducedToday());
+    return { due, fresh: unseen.slice(0, room), unseen: unseen.length };
+  }
+
+  function renderToday(view) {
+    if (route[1] === "session") return startTodaySession(view);
+    if (route[1] === "lesson" && route[2]) return route[3] === "practice" ? startLessonSession(view, route[2]) : renderLesson(view, route[2]);
+    setTopbar(t("tabToday"), null);
+    const p = planToday(); const lessons = courseLessons();
+    const n = dayCount(todayKey()), goal = S.settings.dailyGoal;
+    const known = ALL_WORDS.filter((w) => status(w.id) === "known").length;
+    const hero = p.due.length || p.fresh.length
+      ? `<div class="due-banner today-hero">
+          <div class="grow"><div class="hero-title">${t("sessionTitle")}</div><div>${t("sessionDesc", p.due.length, p.fresh.length)}</div></div>
+          <button class="btn" id="go-session" type="button">▶︎ ${t("start")}</button>
+        </div>`
+      : `<div class="card today-done">
+          <div class="hero-title">${n || introducedToday() ? t("sessionDone") : t("sessionTitle")}</div>
+          <div class="muted">${n || introducedToday() ? t("sessionDoneSub") : t("sessionEmpty")}</div>
+          ${p.unseen ? `<button class="btn block" id="more-new" type="button" style="margin-top:12px">🌱 ${t("moreNew", Math.min(5, p.unseen))}</button>` : ""}
+        </div>`;
+    view.innerHTML = `
+      ${hero}
+      <div class="stats-grid three">
+        <div class="stat blue"><div class="stat-val">${streak()}</div><div class="stat-lbl">${t("statsStreak")}</div></div>
+        <div class="stat accent"><div class="stat-val">${n}<small>/${goal}</small></div><div class="stat-lbl">${t("statsToday")}</div><div class="progress-bar"><span class="${n >= goal ? "green" : ""}" style="width:${Math.min(100, (n / goal) * 100)}%"></span></div></div>
+        <div class="stat green"><div class="stat-val">${known}</div><div class="stat-lbl">${t("statsWords")}</div></div>
+      </div>
+      <div class="section-title row"><span class="grow">${t("lessons")}</span><button class="btn sm" id="new-lesson" type="button">＋ ${t("lessonNew")}</button></div>
+      ${lessons.length ? `<div class="list">${lessons.slice().reverse().map((l) => {
+        const ws = l.words.filter((id) => BY_ID[id]); const k = ws.filter((id) => status(id) === "known").length; const lr = ws.filter((id) => status(id) === "learning").length;
+        return `<button class="list-item" data-lesson="${l.id}" type="button"><span class="li-ico">📘</span><span class="grow"><div class="li-title">${esc(l.name)}</div><div class="li-sub">${t("lessonWords", ws.length)} · ${t("knownOf", k, ws.length)}</div><div class="progress-bar lesson-bar"><span class="green" style="width:${ws.length ? (k / ws.length) * 100 : 0}%"></span><span class="gold" style="width:${ws.length ? (lr / ws.length) * 100 : 0}%"></span></div></span><span class="li-chev">›</span></button>`;
+      }).join("")}</div>` : `<div class="card list-hint" style="margin:0">${t("lessonEmpty")}</div>`}
+      <div class="list" style="margin-top:16px"><button class="list-item" id="go-stats" type="button"><span class="li-ico">📈</span><span class="grow li-title">${t("fullStats")}</span><span class="li-chev">›</span></button></div>
+      ${DEV.code ? `<div class="list-hint center" id="sync-line">${syncStatusText()}</div>` : ""}`;
+    if ($("#go-session")) $("#go-session").onclick = () => navigate("today/session");
+    if ($("#more-new")) $("#more-new").onclick = () => { extraNew += 5; navigate("today/session"); };
+    $("#new-lesson").onclick = () => {
+      const id = newId("l");
+      S.lessons[id] = { course: C.id, name: t("lessonDefault", lessons.length + 1), words: [], created: Date.now() };
+      save(); navigate("today/lesson/" + id);
+    };
+    $$("[data-lesson]").forEach((b) => (b.onclick = () => navigate("today/lesson/" + b.dataset.lesson)));
+    $("#go-stats").onclick = () => navigate("progress");
+  }
+
+  /* --- Guided session: a chain of training steps; each step's showResult hands over to the next --- */
+  const STEP_ICO = { review: "🃏", meet: "🌱", listen: "👂", write: "⌨️" };
+  function startFlow(view, steps, back) {
+    flow = { steps: steps.filter((x) => x.list.length), i: 0, results: [], back };
+    if (!flow.steps.length) { flow = null; return navigate(back); }
+    flowIntro(view);
+  }
+  function flowIntro(view) {
+    const st = flow.steps[flow.i];
+    setTopbar(t("sessionTitle"), flow.back);
+    view.innerHTML = `
+      <div class="steps">${flow.steps.map((x, k) => `<span class="step-dot ${k < flow.i ? "done" : k === flow.i ? "cur" : ""}">${STEP_ICO[x.kind]}<small>${t(x.title)}</small></span>`).join("")}</div>
+      <div class="card step-card">
+        <div class="step-of">${t("stepOf", flow.i + 1, flow.steps.length)}</div>
+        <div class="step-ico">${STEP_ICO[st.kind]}</div>
+        <h2>${t(st.title)}</h2>
+        <p class="muted">${t(st.title + "Desc")}</p>
+        <div class="small muted">${t("stepCount", st.list.length)}</div>
+        <button class="btn primary block" id="step-go" type="button">${t("start")}</button>
+      </div>`;
+    const go = () => { if (cleanup) { cleanup(); cleanup = null; } st.run(view, st.list); };
+    $("#step-go").onclick = go;
+    bindKeys((e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
+  }
+  function flowStepDone(view, res) {
+    if (cleanup) { cleanup(); cleanup = null; }
+    flow.results.push({ ...res, step: flow.steps[flow.i] });
+    flow.i++;
+    if (flow.i < flow.steps.length) return flowIntro(view);
+    const f = flow; flow = null;
+    S.stats.sessions += 1; save();
+    const mistakes = [...new Map(f.results.flatMap((r) => r.mistakes).map((w) => [w.id, w])).values()];
+    view.innerHTML = `
+      <div class="card result-card">
+        <div class="big">🎉</div>
+        <div class="sub">${t("sessionSummary")}</div>
+        <div class="list summary-list">${f.results.map((r) => `<div class="list-item static"><span class="li-ico">${STEP_ICO[r.step.kind]}</span><span class="grow li-title">${t(r.step.title)}</span><span class="li-sub">${r.step.kind === "meet" ? t("newLearned", r.total) : t("resultScore", r.correct, r.total)}</span></div>`).join("")}</div>
+        ${mistakes.length ? `<div class="result-list"><div class="section-title">${t("reviewMistakes")}</div>${mistakes.map((w) => `<div class="result-item">${pyFirst() ? `<div class="grow"><div class="r-py big">${esc(w.py)}</div><div class="r-tr">${esc(tr(w))}</div></div>` : `<span class="hanzi">${w.hz}</span><div class="grow"><div class="r-py">${w.py}</div><div class="r-tr">${esc(tr(w))}</div></div>`}<button class="speak-btn sm" data-speak="${esc(w.hz)}" type="button">🔊</button></div>`).join("")}</div>` : ""}
+        <div class="stack" style="margin-top:20px"><button class="btn primary block" id="r-back" type="button">${t("backToday")}</button></div>
+      </div>`;
+    $("#r-back").onclick = () => navigate(f.back);
+    $$("[data-speak]").forEach((b) => (b.onclick = () => speak(b.dataset.speak)));
+    checkGoal();
+  }
+  function startTodaySession(view) {
+    const p = planToday();
+    // Listening and writing practise the new words plus some of the reviews
+    const practice = p.fresh.concat(shuffle(p.due).slice(0, Math.max(0, 12 - p.fresh.length)));
+    startFlow(view, [
+      { kind: "review", title: "stepReview", list: p.due, run: runFlash },
+      { kind: "meet", title: "stepMeet", list: p.fresh, run: runMeet },
+      { kind: "listen", title: "stepListen", list: shuffle(practice), run: (v, l) => runQuiz(v, l, "listen") },
+      { kind: "write", title: "stepWrite", list: shuffle(practice), run: runType }
+    ], "today");
+  }
+  function startLessonSession(view, lid) {
+    const l = S.lessons[lid];
+    if (!l || l.gone || l.course !== C.id) return navigate("today");
+    const ws = l.words.map((id) => BY_ID[id]).filter(Boolean);
+    const pick = shuffle(ws).slice(0, 15);
+    startFlow(view, [
+      { kind: "meet", title: "stepMeet", list: ws.filter((w) => status(w.id) === "new"), run: runMeet },
+      { kind: "listen", title: "stepListen", list: pick, run: (v, x) => runQuiz(v, x, "listen") },
+      { kind: "write", title: "stepWrite", list: shuffle(pick), run: runType }
+    ], "today/lesson/" + lid);
+  }
+
+  /* --- Meet: first contact with a new word, listen and repeat --- */
+  function runMeet(view, list) {
+    let i = 0;
+    function draw() {
+      if (i >= list.length) { if (cleanup) { cleanup(); cleanup = null; } return showResult(view, { correct: list.length, total: list.length, mistakes: [] }); }
+      const w = list[i];
+      view.innerHTML = `${sessionHead(i, list.length)}
+        <div class="card meet-card">
+          ${pyFirst() ? `<div class="meet-py">${esc(w.py)}</div><div class="meet-hz">${w.hz}</div>` : `<div class="meet-hz big">${w.hz}</div><div class="meet-py sm">${esc(w.py)}</div>`}
+          <div class="meet-tr">${esc(tr(w))}</div>
+          <div class="row meet-btns"><button class="btn" id="m-say" type="button">🔊 ${t("play")}</button><button class="btn ghost" id="m-slow" type="button">🐢 ${t("slowly")}</button></div>
+          ${w.ex ? `<div class="example"><div class="row"><div class="grow">${pyFirst() && w.exPy ? `<div class="ex-py big">${w.exPy}</div><div class="ex-hz small">${w.ex}</div>` : `<div class="ex-hz">${w.ex}</div>${w.exPy ? `<div class="ex-py">${w.exPy}</div>` : ""}`}<div class="ex-tr">${esc(exTr(w))}</div></div><button class="speak-btn sm" id="m-ex" type="button">🔊</button></div></div>` : ""}
+          <div class="list-hint center">🗣️ ${t("sayAloud")}</div>
+        </div>
+        <button class="btn primary block" id="m-next" type="button" style="margin-top:14px">${t("next")}</button>`;
+      $("#m-say").onclick = () => speak(w.hz);
+      $("#m-slow").onclick = () => speak(w.hz, { rate: 0.55 });
+      if ($("#m-ex")) $("#m-ex").onclick = () => speak(w.ex);
+      $("#m-next").onclick = next;
+      speak(w.hz);
+    }
+    function next() { const w = list[i]; if (!card(w.id)) markLearning(w.id); i++; draw(); }
+    bindKeys((e) => { if (e.key === "Enter") { e.preventDefault(); next(); } else if (e.key === " ") { e.preventDefault(); speak(list[i].hz); } });
+    draw();
+  }
+
+  /* --- Lesson editor --- */
+  function renderLesson(view, lid) {
+    const l = S.lessons[lid];
+    if (!l || l.gone || l.course !== C.id) return navigate("today");
+    setTopbar(l.name, "today");
+    const own = C.id === "zh" ? [["py", t("ownPy")], ["hz", t("ownHz")], ["en", t("ownEn")]]
+      : C.id === "ja" ? [["hz", t("ownWord")], ["py", t("ownReading")], ["en", t("ownEn")]] : [["hz", t("ownWord")], ["en", t("ownEn")]];
+    view.innerHTML = `
+      <input class="search" id="l-name" type="text" value="${esc(l.name)}" placeholder="${esc(t("lessonName"))}" aria-label="${esc(t("lessonName"))}">
+      <div class="list" id="l-words"></div>
+      <button class="btn primary block" id="l-practice" type="button" style="margin-top:12px">▶︎ ${t("practiceLesson")}</button>
+      <div class="section-title">${t("lessonAddSearch")}</div>
+      <input class="search" id="l-search" type="search" placeholder="${esc(t("lessonSearch"))}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+      <div class="list" id="l-results" hidden></div>
+      <div class="section-title">${t("lessonOwn")}</div>
+      <form class="card stack" id="l-own">
+        ${own.map(([k, label]) => `<input class="type-input own-input" name="${k}" type="text" placeholder="${esc(label)}" aria-label="${esc(label)}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" ${k === "en" ? "" : 'lang="' + C.tts + '"'}>`).join("")}
+        ${C.id === "zh" ? `<div class="list-hint" style="margin:0">${t("ownHint")}</div>` : ""}
+        <button class="btn block" type="submit">＋ ${t("add")}</button>
+      </form>
+      <button class="btn danger block" id="l-delete" type="button" style="margin-top:20px">${t("deleteLesson")}</button>`;
+    const row = (w, inLesson) => `
+      <div class="list-item static lw-row">
+        <span class="grow">${pyFirst() ? `<div class="li-title py-face">${esc(w.py)}</div><div class="li-sub"><span class="hanzi">${w.hz}</span> · ${esc(tr(w))}</div>` : `<div class="li-title"><span class="hanzi">${w.hz}</span> <span class="muted">${esc(w.py)}</span></div><div class="li-sub">${esc(tr(w))}</div>`}</span>
+        <button class="speak-btn sm" data-say="${w.id}" type="button" aria-label="${t("speak")}">🔊</button>
+        ${inLesson ? `<button class="btn ghost sm" data-del="${w.id}" type="button" aria-label="${t("remove")}">✕</button>` : `<button class="btn sm" data-add="${w.id}" type="button">＋</button>`}
+      </div>`;
+    const bindRows = (root) => {
+      $$("[data-say]", root).forEach((b) => (b.onclick = () => speak(BY_ID[wid(b.dataset.say)].hz)));
+      $$("[data-del]", root).forEach((b) => (b.onclick = () => { toggleLessonWord(lid, wid(b.dataset.del)); drawWords(); drawResults(); }));
+      $$("[data-add]", root).forEach((b) => (b.onclick = () => { toggleLessonWord(lid, wid(b.dataset.add)); drawWords(); b.closest(".lw-row").remove(); toast(t("added")); }));
+    };
+    function drawWords() {
+      const ws = l.words.map((id) => BY_ID[id]).filter(Boolean);
+      $("#l-words").innerHTML = ws.length ? ws.map((w) => row(w, true)).join("") : `<div class="list-hint" style="padding:14px;margin:0">${t("lessonNoWords")}</div>`;
+      $("#l-practice").hidden = !ws.length;
+      bindRows($("#l-words"));
+    }
+    function drawResults() {
+      const q = $("#l-search").value.trim().toLowerCase(), qs = norm(q), box = $("#l-results");
+      if (!q) { box.hidden = true; box.innerHTML = ""; return; }
+      const hits = ALL_WORDS.filter((w) => !l.words.includes(w.id) && (w.hz.toLowerCase().includes(q) || (qs && norm(w.py).includes(qs)) || (qs && norm(w.hz).includes(qs)) || w.py.toLowerCase().includes(q) || w.en.toLowerCase().includes(q) || (w.de || "").toLowerCase().includes(q)))
+        // exact pinyin matches first, then shorter words
+        .sort((a, b) => (norm(b.py) === qs) - (norm(a.py) === qs) || a.py.length - b.py.length).slice(0, 30);
+      box.hidden = false;
+      box.innerHTML = hits.length ? hits.map((w) => row(w, false)).join("") : `<div class="list-hint" style="padding:14px;margin:0">${t("noResults")}</div>`;
+      bindRows(box);
+    }
+    drawWords();
+    $("#l-name").onchange = () => { l.name = $("#l-name").value.trim() || l.name; save(); setTopbar(l.name, "today"); };
+    $("#l-search").oninput = drawResults;
+    $("#l-practice").onclick = () => navigate("today/lesson/" + lid + "/practice");
+    const form = $("#l-own");
+    if (C.id === "zh") form.py.addEventListener("input", (e) => { // tone numbers → marks, as in Typewriter
+      const input = form.py; if (e.isComposing || !/[1-5]/.test(input.value)) return;
+      const pos = input.selectionStart, before = numToMarks(input.value.slice(0, pos));
+      input.value = before + numToMarks(input.value.slice(pos)); input.setSelectionRange(before.length, before.length);
+    });
+    form.onsubmit = (e) => {
+      e.preventDefault();
+      const v = (k) => (form[k] ? form[k].value.trim() : "");
+      const hz = v("hz"), py = v("py") || hz, en = v("en");
+      const main = C.id === "zh" ? "py" : "hz";
+      if (!v(main) || !en) { form[v(main) ? "en" : main].focus(); return; }
+      const id = newId("u");
+      S.custom[id] = { course: C.id, hz: hz || py, py, en };
+      l.words = l.words.concat(id);
+      save(); applyCourse();
+      form.reset(); drawWords(); toast(t("added"));
+    };
+    $("#l-delete").onclick = () => { if (confirm(t("deleteLessonConfirm"))) { delete S.lessons[lid]; save(); navigate("today"); } };
+  }
+
   /* ================= PROGRESS ================= */
   function renderProgress(view) {
-    setTopbar(t("progress") + " · " + levelLabel(), null);
+    setTopbar(t("progress") + " · " + levelLabel(), "today");
     const counts = { new: 0, learning: 0, known: 0 };
     WORDS.forEach((w) => counts[status(w.id)]++);
     const due = dueWords().length; const st = streak();
-    const acc = S.stats.answered ? Math.round((S.stats.correct / S.stats.answered) * 100) : 0;
-    const today = S.stats.days[todayKey()] || 0;
+    const answered = statSum("answered");
+    const acc = answered ? Math.round((statSum("correct") / answered) * 100) : 0;
+    const today = dayCount(todayKey());
     const total = WORDS.length; const r = 50, circ = 2 * Math.PI * r;
     const knownLen = (counts.known / total) * circ, learnLen = (counts.learning / total) * circ;
     // Heatmap of last 56 days
     const days = []; const d = new Date(); d.setDate(d.getDate() - 55);
-    for (let k = 0; k < 56; k++) { const key = todayKey(d); const n = S.stats.days[key] || 0; days.push({ key, n }); d.setDate(d.getDate() + 1); }
+    for (let k = 0; k < 56; k++) { const key = todayKey(d); const n = dayCount(key); days.push({ key, n }); d.setDate(d.getDate() + 1); }
     const lvl = (n) => (n === 0 ? "" : n < 10 ? "l1" : n < 30 ? "l2" : "l3");
     const catRows = Object.keys(CATS).filter((c) => WORDS.some((w) => w.cat === c)).map((c) => {
       const ws = WORDS.filter((w) => w.cat === c); const k = ws.filter((w) => status(w.id) === "known").length; const l = ws.filter((w) => status(w.id) === "learning").length;
@@ -1472,7 +1853,7 @@
           <div><span class="dot" style="background:var(--green)"></span>${t("known")}: <b>${counts.known}</b></div>
           <div><span class="dot" style="background:var(--gold)"></span>${t("learning")}: <b>${counts.learning}</b></div>
           <div><span class="dot" style="background:var(--bg-sunken);border:1px solid var(--line)"></span>${t("new")}: <b>${counts.new}</b></div>
-          <div class="small muted" style="margin-top:6px">${t("statsAccuracy")}: <b>${acc}%</b> · ${t("statsAnswered")}: <b>${S.stats.answered}</b></div>
+          <div class="small muted" style="margin-top:6px">${t("statsAccuracy")}: <b>${acc}%</b> · ${t("statsAnswered")}: <b>${answered}</b></div>
         </div>
       </div>
       <div class="section-title">${t("dailyGoal")}</div>
@@ -1489,7 +1870,7 @@
       <div style="margin-top:20px"><button class="btn danger block" id="reset-all" type="button">${t("resetAll")}</button></div>`;
     $$("[data-goal]").forEach((b) => (b.onclick = () => { S.settings.dailyGoal = +b.dataset.goal; save(); render(); }));
     bindLevelChips("p-lvl-chips", render);
-    $("#reset-all").onclick = () => { if (confirm(t("resetConfirm"))) { ALL_WORDS.forEach((w) => delete S.srs[w.id]); S.favs = S.favs.filter((id) => BY_ID[id] && BY_ID[id].course !== C.id); S.stats = structuredClone(DEFAULT_STATE.stats); save(); toast(t("resetDone")); render(); } };
+    $("#reset-all").onclick = () => { if (confirm(t("resetConfirm"))) { ALL_WORDS.forEach((w) => delete S.srs[w.id]); S.favs = S.favs.filter((id) => BY_ID[id] && BY_ID[id].course !== C.id); S.stats = { ...structuredClone(DEFAULT_STATE.stats), since: Date.now() }; S.peers = {}; S.mt.statsReset = Date.now(); save(); toast(t("resetDone")); render(); } };
   }
 
   /* ================= MORE ================= */
@@ -1499,6 +1880,7 @@
     if (sub === "tones") return renderTones(view);
     if (sub === "pinyin") return renderPinyinTips(view);
     if (sub === "about") return renderAbout(view);
+    if (sub === "sync") return renderSync(view);
     setTopbar(t("more"), null);
     const voices = courseVoices();
     const chosen = !!(S.settings.voices && S.settings.voices[C.id]);
@@ -1507,6 +1889,7 @@
         ${C.toneOptions ? `<button class="list-item" data-go="more/tones" type="button"><span class="li-ico">🎵</span><span class="grow"><div class="li-title">${t("toneGuide")}</div><div class="li-sub">${t("toneGuideDesc")}</div></span><span class="li-chev">›</span></button>` : ""}
         <button class="list-item" data-go="train/numbers" type="button"><span class="li-ico">🔢</span><span class="grow"><div class="li-title">${t("numbers")}</div><div class="li-sub">${t("numbersDesc")}</div></span><span class="li-chev">›</span></button>
         <button class="list-item" data-go="more/pinyin" type="button"><span class="li-ico">🔤</span><span class="grow"><div class="li-title">${t("pinyinTips")}</div></span><span class="li-chev">›</span></button>
+        <button class="list-item" data-go="more/sync" type="button"><span class="li-ico">☁️</span><span class="grow"><div class="li-title">${t("sync")}</div><div class="li-sub">${DEV.code ? syncStatusText() : t("syncDesc")}</div></span><span class="li-chev">›</span></button>
         <button class="list-item" data-go="more/about" type="button"><span class="li-ico">📱</span><span class="grow"><div class="li-title">${t("about")}</div></span><span class="li-chev">›</span></button>
       </div>
       <div class="section-title">${t("settings")}</div>
@@ -1515,6 +1898,7 @@
         <div class="list-item static"><span class="li-ico">🎨</span><span class="grow li-title">${t("theme")}</span><div class="seg">${["auto", "light", "dark"].map((th) => `<button data-th="${th}" class="${S.settings.theme === th ? "active" : ""}" type="button">${t("theme" + th[0].toUpperCase() + th.slice(1))}</button>`).join("")}</div></div>
         <div class="list-item static"><span class="li-ico">🔊</span><span class="grow li-title">${t("autoSpeak")}</span><button class="switch ${S.settings.autoSpeak ? "on" : ""}" id="sw-speak" type="button" aria-label="${t("autoSpeak")}"></button></div>
         <div class="list-item static"><span class="li-ico">🐢</span><span class="grow li-title">${t("ttsRate")}<div class="li-sub" id="rate-val">${S.settings.rate.toFixed(2)}×</div></span><input type="range" id="rate" min="0.5" max="1.2" step="0.05" value="${S.settings.rate}"></div>
+        ${C.id === "zh" ? `<div class="list-item static"><span class="li-ico">🔤</span><span class="grow li-title">${t("pinyinFirst")}<div class="li-sub">${t("pinyinFirstDesc")}</div></span><button class="switch ${pyFirst() ? "on" : ""}" id="sw-pf" type="button" aria-label="${t("pinyinFirst")}"></button></div>` : ""}
         <div class="list-item static"><span class="li-ico">🀄</span><span class="grow li-title">${t("tilePinyin")}</span><button class="switch ${S.settings.tilePinyin ? "on" : ""}" id="sw-tile" type="button" aria-label="${t("tilePinyin")}"></button></div>
         <div class="list-item static"><span class="li-ico">🎙️</span><span class="grow li-title">${t("voice")}<div class="li-sub">${TTS.voice ? esc(TTS.voice.name) + " (" + esc(TTS.voice.lang) + ")" : (TTS.available ? t("noZhVoice") : t("noTts"))}</div></span>
           ${voices.length ? `<select id="voice-sel" class="voice-sel"><option value="">${t("voiceAuto")}</option>${voices.map((v) => `<option value="${esc(v.voiceURI)}" ${TTS.voice && v.voiceURI === TTS.voice.voiceURI && chosen ? "selected" : ""}>${esc(v.name)}</option>`).join("")}</select>` : `<button class="btn sm" id="voice-refresh" type="button">${t("refreshVoices")}</button>`}
@@ -1529,6 +1913,7 @@
     $$("[data-lang]").forEach((b) => (b.onclick = () => { S.lang = b.dataset.lang; save(); document.documentElement.lang = S.lang; render(); }));
     $$("button[data-th]").forEach((b) => (b.onclick = () => { S.settings.theme = b.dataset.th; save(); applyTheme(); render(); }));
     $("#sw-speak").onclick = () => { S.settings.autoSpeak = !S.settings.autoSpeak; save(); $("#sw-speak").classList.toggle("on", S.settings.autoSpeak); };
+    if ($("#sw-pf")) $("#sw-pf").onclick = () => { S.courses.zh.pinyinFirst = !pyFirst(); save(); render(); };
     $("#sw-tile").onclick = () => { S.settings.tilePinyin = !S.settings.tilePinyin; save(); $("#sw-tile").classList.toggle("on", S.settings.tilePinyin); };
     $("#rate").oninput = (e) => { S.settings.rate = +e.target.value; $("#rate-val").textContent = S.settings.rate.toFixed(2) + "×"; save(); };
     $("#tts-test").onclick = () => speak(C.testPhrase);
@@ -1562,6 +1947,135 @@
       <div class="card about"><ol>${t("installSteps").map((s) => `<li>${esc(s)}</li>`).join("")}</ol><p style="margin-top:10px">${esc(t("installMac"))}</p></div>`;
   }
 
+  /* ---------------- Sync ----------------
+   * The server (api/sync.mjs) keeps one JSON document per sync code. A device pulls it, merges it into
+   * its state (newest entry or field wins, see stamp), and pushes the result with the version it started
+   * from. The server refuses a stale version; the device then pulls and merges again. */
+  const DEV_KEY = "langtrainer.device"; // per device, never synced: id, sync code, server version, last sync
+  const DEV = (() => { try { return JSON.parse(localStorage.getItem(DEV_KEY)) || {}; } catch (e) { return {}; } })();
+  if (!DEV.id) DEV.id = newId("d");
+  function saveDev() { try { localStorage.setItem(DEV_KEY, JSON.stringify(DEV)); } catch (e) { /* private mode */ } }
+  const sync = { busy: null, again: false, timer: 0, state: "" }; // state: "" | ok | off (no server) | offline | error
+  function scheduleSync() { if (!DEV.code) return; clearTimeout(sync.timer); sync.timer = setTimeout(syncNow, 4000); }
+  const api = (method, body) => fetch("api/sync", { method, body, cache: "no-store", headers: { "x-sync-code": DEV.code, "content-type": "application/json" } });
+  function syncDoc() {
+    const doc = { mt: S.mt, settings: syncSettings(S.settings), stats: { ...S.peers, [DEV.id]: S.stats } };
+    LWW_FIELDS.filter((f) => f !== "settings").concat(MAP_FIELDS).forEach((f) => (doc[f] = S[f] ?? null));
+    return doc;
+  }
+  // Merge a pulled document into S. Returns true when this device has something the server lacks.
+  function mergeDoc(d) {
+    let ahead = false;
+    const rmt = d.mt || {}; S.mt = S.mt || {};
+    LWW_FIELDS.forEach((f) => {
+      if ((rmt[f] || 0) > (S.mt[f] || 0)) { S[f] = f === "settings" ? { ...DEFAULT_STATE.settings, ...d.settings, voices: S.settings.voices } : d[f]; S.mt[f] = rmt[f]; }
+      else if ((S.mt[f] || 0) > (rmt[f] || 0)) ahead = true;
+    });
+    MAP_FIELDS.forEach((m) => {
+      const mine = S[m], theirs = d[m] || {};
+      Object.keys(theirs).forEach((id) => {
+        if (mine[id] && (theirs[id].t || 0) <= (mine[id].t || 0)) return;
+        // update in place: open screens may hold a reference to the entry
+        if (mine[id]) { Object.keys(mine[id]).forEach((k) => delete mine[id][k]); Object.assign(mine[id], theirs[id]); } else mine[id] = theirs[id];
+      });
+      Object.keys(mine).forEach((id) => { if (!theirs[id] || (mine[id].t || 0) > (theirs[id].t || 0)) ahead = true; });
+    });
+    // Stats: each device reports its own counts; a reset anywhere drops the counts from before it
+    const reset = Math.max(S.mt.statsReset || 0, rmt.statsReset || 0);
+    if (reset > (rmt.statsReset || 0)) ahead = true;
+    S.mt.statsReset = reset || undefined;
+    if ((S.stats.since || 0) < reset) S.stats = { ...structuredClone(DEFAULT_STATE.stats), since: reset };
+    const theirStats = d.stats || {};
+    S.peers = Object.fromEntries(Object.entries(theirStats).filter(([dev, st]) => dev !== DEV.id && (st.since || 0) >= reset));
+    if (JSON.stringify(theirStats[DEV.id] || null) !== JSON.stringify(S.stats)) ahead = true;
+    return ahead;
+  }
+  function commitMerged() {
+    takeSnap(); // merged values keep their own times instead of being stamped as new changes
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(S)); } catch (e) { /* private mode */ }
+    applyCourse();
+    // Redraw overview screens only; a running exercise keeps going with the merged data
+    if (!flow && ((["today", "progress", "words"].includes(route[0]) && !route[1]) || (route[0] === "more" && route[1] === "sync"))) render();
+  }
+  function syncNow() {
+    if (!DEV.code) return Promise.resolve();
+    if (sync.busy) { sync.again = true; return sync.busy; }
+    sync.busy = (async () => {
+      try {
+        for (let attempt = 0; ; attempt++) {
+          const got = await api("GET");
+          if (got.status === 404 || got.status === 503) { sync.state = "off"; return; }
+          if (!got.ok) throw new Error("GET " + got.status);
+          const { v, data } = await got.json();
+          const ahead = data ? mergeDoc(data) : true;
+          if (data) commitMerged();
+          if (!ahead) { DEV.v = v; break; }
+          const put = await api("PUT", JSON.stringify({ base: v, data: syncDoc() }));
+          if (put.status === 409 && attempt < 3) continue; // another device was faster: merge its version first
+          if (!put.ok) throw new Error("PUT " + put.status);
+          DEV.v = (await put.json()).v; break;
+        }
+        DEV.dirty = false; DEV.last = Date.now(); sync.state = "ok";
+      } catch (e) {
+        sync.state = navigator.onLine === false ? "offline" : "error";
+      } finally {
+        saveDev(); sync.busy = null;
+        const el = $("#sync-line"); if (el) el.textContent = syncStatusText();
+        if (sync.again) { sync.again = false; scheduleSync(); }
+      }
+    })();
+    return sync.busy;
+  }
+  document.addEventListener("visibilitychange", () => { if (!document.hidden || DEV.dirty) syncNow(); });
+  window.addEventListener("online", () => syncNow());
+  function ago(ts) { const m = Math.round((Date.now() - ts) / 60000); return m < 1 ? t("justNow") : m < 60 ? t("minAgo", m) : t("hAgo", Math.round(m / 60)); }
+  function syncStatusText() {
+    const msg = sync.state === "off" ? t("syncNotSetup") : sync.state === "offline" ? t("syncOffline") : sync.state === "error" ? t("syncFailed")
+      : DEV.dirty && sync.state ? t("syncPending") : DEV.last ? t("syncLast", ago(DEV.last)) : t("syncNever");
+    return "☁️ " + msg;
+  }
+  // Codes: 4 groups of 5 from 32 unambiguous characters (100 bits), easy to read out and type
+  const CODE_ABC = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const makeCode = () => Array.from(crypto.getRandomValues(new Uint8Array(20)), (x) => CODE_ABC[x % 32]).join("").match(/.{5}/g).join("-");
+  function parseCode(s) {
+    const c = s.toUpperCase().replace(/[^A-Z0-9]/g, "");
+    return c.length === 20 && [...c].every((ch) => CODE_ABC.includes(ch)) ? c.match(/.{5}/g).join("-") : null;
+  }
+  function renderSync(view) {
+    setTopbar(t("sync"), "more");
+    const connect = (code) => { DEV.code = code; DEV.v = 0; DEV.last = 0; saveDev(); syncNow().then(render); };
+    if (!DEV.code) {
+      view.innerHTML = `
+        <div class="card stack">
+          <p>${t("syncIntro")}</p>
+          <button class="btn primary block" id="s-on" type="button">☁️ ${t("syncOn")}</button>
+        </div>
+        <div class="section-title">${t("syncHave")}</div>
+        <form class="card stack" id="s-join">
+          <input class="type-input sync-code-input" name="code" type="text" placeholder="XXXXX-XXXXX-XXXXX-XXXXX" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" aria-label="${esc(t("syncCodeLbl"))}">
+          <button class="btn block" type="submit">${t("syncConnect")}</button>
+        </form>`;
+      $("#s-on").onclick = () => connect(makeCode());
+      $("#s-join").onsubmit = (e) => { e.preventDefault(); const code = parseCode(e.target.code.value); if (code) connect(code); else toast(t("syncBadCode")); };
+      return;
+    }
+    view.innerHTML = `
+      <div class="card stack center">
+        <div class="section-title" style="margin:0">${t("syncCodeLbl")}</div>
+        <div class="sync-code" id="s-code">${esc(DEV.code)}</div>
+        <button class="btn block" id="s-copy" type="button">📋 ${t("syncCopy")}</button>
+        <p class="list-hint" style="margin:0;text-align:left">${t("syncCodeHint")}</p>
+      </div>
+      <div class="list-hint center" id="sync-line">${syncStatusText()}</div>
+      <div class="stack" style="margin-top:12px">
+        <button class="btn primary block" id="s-now" type="button">🔄 ${t("syncNow")}</button>
+        <button class="btn ghost block" id="s-off" type="button">${t("syncDisconnect")}</button>
+      </div>`;
+    $("#s-copy").onclick = () => { navigator.clipboard.writeText(DEV.code).then(() => toast(t("copied")), () => {}); };
+    $("#s-now").onclick = () => syncNow().then(() => { if (sync.state === "ok") toast(t("syncDone")); });
+    $("#s-off").onclick = () => { if (confirm(t("syncDisconnectConfirm"))) { delete DEV.code; delete DEV.v; delete DEV.last; DEV.dirty = false; saveDev(); sync.state = ""; render(); } };
+  }
+
   /* ---------------- Theme ---------------- */
   function applyTheme() {
     const th = S.settings.theme;
@@ -1569,9 +2083,11 @@
   }
 
   /* ---------------- Init ---------------- */
+  takeSnap();
   applyTheme();
   document.documentElement.lang = S.lang;
   render();
+  syncNow();
   if ("serviceWorker" in navigator && location.protocol !== "file:") {
     window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
   }

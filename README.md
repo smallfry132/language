@@ -6,6 +6,10 @@ No build step, no dependencies, no backend: plain HTML, CSS and JavaScript. Prog
 
 ## Features
 
+- **Today** (start screen) – one guided session per day: review the due words, meet a few new words (listen and repeat out loud), then hear-and-pick and hear-and-write them. Streak, daily goal and words known at a glance.
+- **Lessons** – one lesson per class with your tutor: add words from the lists or your own words (pinyin, characters, meaning). New words for Today come from the newest lesson first; each lesson can also be practised on its own.
+- **Pinyin first** (Chinese, on by default) – for learners who don't read characters yet: pinyin is shown big everywhere, and quizzes, listening and matching use pinyin and meaning instead of characters. Turn it off under More → Settings when you start learning characters.
+- **Sync** – keeps progress, lessons and settings the same on Mac and iPhone through a sync code (More → Sync). Needs the server setup below.
 - **Word tiles (Kachel-Übersicht)** – all words of the selected HSK levels as tiles with hanzi, pinyin (Latin pronunciation) and translation. Search by hanzi, pinyin (with or without tones) or meaning; filter by category or learning status; tap a tile for details, example sentence and audio.
 - **Course switcher** (top-left) – Chinese, Japanese or Vietnamese. The whole app follows: word set, levels, speech voice, tone system, number trainer and pronunciation tips.
 - **Level selector** – study HSK 1, 2 and 3 (or A1 to C2) individually or combined. The selection applies to tiles, training and progress.
@@ -36,6 +40,16 @@ python3 -m http.server 8000
 
 Or publish the repository with GitHub Pages (Settings → Pages → deploy from the `main` branch, root folder) and open the resulting URL on your iPhone or Mac.
 
+## Sync setup (Vercel)
+
+Sync runs as a Vercel function (`api/sync.mjs`) that stores one JSON document per sync code in Upstash Redis.
+
+1. In the Vercel dashboard open the project → **Storage** → **Create Database** → **Upstash for Redis** (free plan) and connect it to the project for all environments. This adds `KV_REST_API_URL` and `KV_REST_API_TOKEN`.
+2. Redeploy.
+3. In the app: More → Sync → **Turn on sync**, then enter the code on the other device. On iPhone, enter it in the Home Screen app: it has its own storage, separate from Safari.
+
+The code is the only credential: whoever has it can read and change the progress. The server keeps only a SHA-256 hash of it as the key. Without the database the app works as before and More → Sync says that sync isn't set up.
+
 ## Install on iPhone
 
 1. Open the page in Safari.
@@ -64,7 +78,8 @@ js/data-vi.js         Vietnamese A1–A2 words (word, pronunciation guide, Engli
 js/data-vi-2.js       Vietnamese B1–C2 words
 js/data-ja.js         JLPT N5–N1 words as compact rows [level, kanji, kana, meaning]
 js/sounds-data.js     Sound charts and listening drills per language
-js/app.js             Application logic (views, training modes, spaced repetition, speech, storage)
+js/app.js             Application logic (views, training modes, spaced repetition, speech, storage, sync)
+api/sync.mjs          Vercel function: sync store (Upstash Redis)
 manifest.webmanifest  PWA manifest
 sw.js                 Service worker (offline cache)
 icons/                App icons (SVG + PNG for iOS home screen)

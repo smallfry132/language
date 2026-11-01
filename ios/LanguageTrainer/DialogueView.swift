@@ -270,7 +270,8 @@ struct DialogueTurn: View {
     }
 
     func submitTyped() {
-        let v = typed.trimmingCharacters(in: .whitespaces)
+        // Tone numbers typed just before Return may not have turned into marks yet
+        let raw = typed.trimmingCharacters(in: .whitespaces), v = store.course.id == "zh" ? Lingo.numToMarks(raw) : raw
         guard !v.isEmpty else { return }
         let l = d.lines[i], r = Check.typedLine(v, hz: l.hz, py: l.py, course: store.course.id)
         let note = r.ok ? (r.tonesMissing ? store.t("tonesMissing") : "✓ " + store.t("correct")) : r.tonesWrong ? store.t("tonesWrong") : "✗ " + store.t("wrong")

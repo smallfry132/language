@@ -96,7 +96,7 @@ struct TyperRun: View {
     }
 
     func submit() {
-        let it = items[i], y = Self.norm(typed).trimmingCharacters(in: .whitespaces)
+        let it = items[i], y = Self.norm(store.course.id == "zh" ? Lingo.numToMarks(typed) : typed).trimmingCharacters(in: .whitespaces)
         guard !y.isEmpty else { focused = true; return }
         let acc = Self.score(it.text, y), w = startedAt.map { Self.wpm(it.text, y, Date().timeIntervalSince($0)) } ?? 0
         store.speaker.say(it.say)

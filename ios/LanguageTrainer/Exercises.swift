@@ -272,7 +272,11 @@ struct TypeWord: View {
         }
         .onAppear { if store.pyFirst { store.speaker.say(list[i].hz) } }
     }
-    func check() { if !input.trimmingCharacters(in: .whitespaces).isEmpty { reveal(Check.typedWord(input, list[i])) } }
+    func check() {
+        // Tone numbers typed just before Return may not have turned into marks yet
+        let v = store.course.id == "zh" ? Lingo.numToMarks(input) : input
+        if !v.trimmingCharacters(in: .whitespaces).isEmpty { reveal(Check.typedWord(v, list[i])) }
+    }
     func reveal(_ ok: Bool) {
         let w = list[i]
         result = ok

@@ -220,8 +220,18 @@ final class ThemeTests: XCTestCase {
         XCTAssertEqual(w.picture("63"), "🐈")
         XCTAssertEqual(w.theme(of: "63")?.id, "nature")
     }
-    func testOtherCoursesKeepTheirOrder() {
-        var s = AppState(); s.course = "vi"
-        XCTAssertEqual(CourseWords(state: s).selected.prefix(3).map(\.id), ["v1", "v2", "v3"])
+    func testVietnameseAndJapaneseHaveTopics() {
+        for (c, n) in [("vi", 950), ("ja", 8034)] {
+            let ids = Library.shared.themes[c]!.flatMap { $0.groups.flatMap(\.ids) }
+            XCTAssertEqual(ids.count, n, c); XCTAssertEqual(Set(ids).count, n, c)
+        }
+        var s = AppState(); s.course = "ja"
+        let ja = CourseWords(state: s)
+        XCTAssertEqual(ja.topicId(of: ja.selected[0].id), "hello")
+        let jaNumbers = ja.groups(of: ja.themes.first { $0.id == "numbers" }!)[0].words.map(\.hz)
+        XCTAssertEqual(Array(jaNumbers.filter { $0.count == 1 }.prefix(10)), ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九"])
+        s.course = "vi"
+        let vi = CourseWords(state: s)
+        XCTAssertEqual(vi.groups(of: vi.themes.first { $0.id == "numbers" }!)[0].words.prefix(3).map(\.hz), ["một", "hai", "ba"])
     }
 }

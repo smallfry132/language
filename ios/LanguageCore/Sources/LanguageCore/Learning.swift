@@ -110,15 +110,16 @@ public struct CourseWords {
     public let themes: [Theme]      // topics of the course (empty when it has none)
     private let index: [String: Word]
     private let order: [String: Int] // position in the topics' learning order
+    private let topicOf: [String: String]
 
     public init(state: AppState) {
         course = Course.byId(state.course)
         all = (Library.shared.words[course.id] ?? []) + state.customWords(course: course.id)
         let lv = state.courses[course.id]?.levels ?? [1]
         themes = Library.shared.themes[course.id] ?? []
-        var order: [String: Int] = [:]
-        for t in themes { for g in t.groups { for id in g.ids where order[id] == nil { order[id] = order.count } } }
-        self.order = order
+        var order: [String: Int] = [:], topicOf: [String: String] = [:]
+        for t in themes { for g in t.groups { for id in g.ids where order[id] == nil { order[id] = order.count; topicOf[id] = t.id } } }
+        self.order = order; self.topicOf = topicOf
         // Words in learning order: by topic when the course has topics, own words after
         selected = all.filter { lv.contains($0.lvl) }.enumerated()
             .sorted { (order[$0.element.id] ?? Int.max - 100_000 + $0.offset) < (order[$1.element.id] ?? Int.max - 100_000 + $1.offset) }
@@ -128,7 +129,8 @@ public struct CourseWords {
     public func word(_ id: String) -> Word? { index[id] ?? Library.shared.word(id) }
     public func picture(_ id: String) -> String? { Library.shared.pictures[id] }
     /// The topic a word belongs to
-    public func theme(of id: String) -> Theme? { themes.first { $0.groups.contains { $0.ids.contains(id) } } }
+    public func theme(of id: String) -> Theme? { topicOf[id].flatMap { t in themes.first { $0.id == t } } }
+    public func topicId(of id: String) -> String? { topicOf[id] }
     /// The words of a topic in its order, grouped, from the selected levels
     public func groups(of t: Theme) -> [(name: LocalText, words: [Word])] {
         let sel = Set(selected.map(\.id))

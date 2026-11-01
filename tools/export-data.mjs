@@ -12,7 +12,7 @@ fs.mkdirSync(OUT, { recursive: true });
 
 const ctx = { window: {} };
 vm.createContext(ctx);
-for (const f of ["data.js", "data-hsk2.js", "data-hsk3.js", "data-vi.js", "data-vi-2.js", "data-ja.js", "sounds-data.js", "dialogues.js", "themes.js"]) {
+for (const f of ["data.js", "data-hsk2.js", "data-hsk3.js", "data-vi.js", "data-vi-2.js", "data-ja.js", "sounds-data.js", "dialogues.js", "themes.js", "themes-auto.js"]) {
   vm.runInContext(fs.readFileSync(path.join(JS, f), "utf8"), ctx, { filename: f });
 }
 const W = ctx.window;

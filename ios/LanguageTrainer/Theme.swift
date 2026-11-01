@@ -117,7 +117,11 @@ struct WordFace: View {
     var size: CGFloat = 40
     var body: some View {
         if store.pyFirst { PinyinText(py: word.py, size: size * 0.8, weight: .semibold) }
-        else { SwiftUI.Text(word.hz).hanziFont(word.hz.count >= 4 ? size * 0.7 : size) }
+        else {
+            // Long words a little smaller: 4+ characters, or 12+ letters in Latin script (Vietnamese)
+            let long = store.course.script == .cjk ? word.hz.count >= 4 : word.hz.count >= 12
+            SwiftUI.Text(word.hz).hanziFont(long ? size * 0.7 : size)
+        }
     }
 }
 

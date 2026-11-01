@@ -100,17 +100,17 @@
   let themeOrderCache = null;
   function themeOrder() {
     if (themeOrderCache && themeOrderCache.course === C.id) return themeOrderCache.order;
-    const order = {}; let n = 0;
-    themes().forEach((t) => t.groups.forEach((g) => g.ids.forEach((id) => { if (order[id] === undefined) order[id] = n++; })));
-    themeOrderCache = { course: C.id, order };
+    const order = {}, topic = {}; let n = 0;
+    themes().forEach((t) => t.groups.forEach((g) => g.ids.forEach((id) => { if (order[id] === undefined) { order[id] = n++; topic[id] = t.id; } })));
+    themeOrderCache = { course: C.id, order, topic };
     return order;
   }
   const pic = (w) => (window.PICTURES && window.PICTURES[C.id] && window.PICTURES[C.id][w.id]) || "";
   const picHtml = (w, cls) => (pic(w) ? `<div class="pic ${cls || ""}" aria-hidden="true">${pic(w)}</div>` : "");
-  const themeOf = (id) => themes().find((t) => t.groups.some((g) => g.ids.includes(id)));
-  // A word passes the topic (or, without topics, category) filter
+  const topicOf = (id) => { themeOrder(); return themeOrderCache.topic[id]; }; // a lookup table: Japanese has 8,000 words
   const hasPics = () => WORDS.some((w) => pic(w));
-  const inCat = (w, cat) => cat === "all" || (themes().length ? (themeOf(w.id) || {}).id === cat : w.cat === cat);
+  // A word passes the topic (or, without topics, category) filter
+  const inCat = (w, cat) => cat === "all" || (themes().length ? topicOf(w.id) === cat : w.cat === cat);
   function topicChips(id, active) {
     const opts = themes().length ? themes().map((t) => [t.id, `${t.icon} ${esc(L(t.name))}`])
       : Object.keys(CATS).filter((c) => WORDS.some((w) => w.cat === c)).map((c) => [c, `${CATS[c].icon} ${catName(c)}`]);

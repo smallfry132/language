@@ -182,9 +182,8 @@ final class SetupPrefs {
     }
     /// The words of the chosen topic (or category, for courses without topics)
     func inTopic(_ l: [Word], _ store: Store) -> [Word] {
-        guard let t = store.words.themes.first(where: { $0.id == cat }) else { return l.filter { $0.cat == cat } }
-        let ids = Set(t.groups.flatMap(\.ids))
-        return l.filter { ids.contains($0.id) }
+        guard store.words.themes.contains(where: { $0.id == cat }) else { return l.filter { $0.cat == cat } }
+        return l.filter { store.words.topicId(of: $0.id) == cat }
     }
 }
 

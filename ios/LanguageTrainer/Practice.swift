@@ -42,10 +42,10 @@ struct PracticeHome: View {
     var body: some View {
         Page {
             let due = store.words.selected.filter { store.state.isDue($0.id) }.count
-            if due > 0 { Text(store.t("dueInToday", due)).font(.subheadline).foregroundStyle(Color.accentRed) }
+            if due > 0 { Text(store.t("dueInToday", due)).font(.subheadline).foregroundStyle(Color.accent) }
             ForEach(skills, id: \.id) { sk in
                 HStack(alignment: .top, spacing: 12) {
-                    Image(systemName: sk.icon).font(.title3).foregroundStyle(Color.accentRed).frame(width: 28)
+                    Image(systemName: sk.icon).font(.title3).foregroundStyle(Color.accent).frame(width: 28)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(store.t("skill_" + sk.id)).font(.title3.weight(.semibold))
                         Text(store.t("skill_" + sk.id + "Desc")).font(.footnote).foregroundStyle(Color.ink2)
@@ -318,7 +318,7 @@ struct ToneIcon: View {
         let vi: [Int: [CGPoint]] = [1: [.init(x: 4, y: 14), .init(x: 44, y: 14)], 2: [.init(x: 4, y: 18), .init(x: 24, y: 23), .init(x: 44, y: 30)], 3: [.init(x: 4, y: 28), .init(x: 44, y: 8)], 4: [.init(x: 4, y: 12), .init(x: 16, y: 26), .init(x: 26, y: 24), .init(x: 44, y: 10)], 5: [.init(x: 4, y: 24), .init(x: 20, y: 14), .init(x: 24, y: 22), .init(x: 44, y: 6)], 6: [.init(x: 8, y: 16), .init(x: 22, y: 30)]]
         let pts = (course == "zh" ? zh : vi)[n] ?? []
         Path { p in p.addLines(pts) }
-            .stroke(course == "zh" ? Color.tone(n) : Color.ink, style: StrokeStyle(lineWidth: 3.5, lineCap: .round, lineJoin: .round))
+            .stroke(course == "zh" ? Color.tone(n) : Color.viTone(n), style: StrokeStyle(lineWidth: 3.5, lineCap: .round, lineJoin: .round))
             .frame(width: 48, height: 36)
     }
 }
@@ -342,7 +342,7 @@ struct ToneDrill: View {
                     Text(w.hz).hanziFont(52)
                     Text(store.tr(w)).foregroundStyle(Color.ink2)
                     Text(store.t("toneQ")).foregroundStyle(Color.ink2)
-                    Button { store.speaker.say(w.hz, rate: 0.7) } label: { Label(store.t("play"), systemImage: "play.fill") }.buttonStyle(.borderedProminent).tint(.accentRed)
+                    Button { store.speaker.say(w.hz, rate: 0.7) } label: { Label(store.t("play"), systemImage: "play.fill") }.buttonStyle(.borderedProminent).tint(.accent)
                 }),
                 options: tones.map { n in AnyView(HStack { ToneIcon(n: n, course: c.id); Text(toneName(store, n)) }) },
                 answer: tones.firstIndex(of: real) ?? 0,
@@ -408,7 +408,7 @@ struct SoundDrillScreen: View {
                                 Text(q.name).foregroundStyle(Color.ink2)
                                 Text(store.t("drillPrompt")).foregroundStyle(Color.ink2)
                                 HStack {
-                                    Button { play() } label: { Label(store.t("play"), systemImage: "play.fill") }.buttonStyle(.borderedProminent).tint(.accentRed)
+                                    Button { play() } label: { Label(store.t("play"), systemImage: "play.fill") }.buttonStyle(.borderedProminent).tint(.accent)
                                     Button { speakSound(store, target.say, slow: slow, twice: true) } label: { Text("×2") }.buttonStyle(.bordered).tint(.ink)
                                 }
                             }),
@@ -421,7 +421,7 @@ struct SoundDrillScreen: View {
                             ChipButton(label: store.t("allDrills"), active: cat == "all") { cat = "all"; regen() }
                             ForEach(data.drills) { d in ChipButton(label: d.name.get(store.state.lang), active: cat == d.id) { cat = d.id; regen() } }
                         }
-                        Toggle(isOn: $slow) { Label(store.t("slow"), systemImage: "tortoise") }.font(.subheadline).tint(.accentRed)
+                        Toggle(isOn: $slow) { Label(store.t("slow"), systemImage: "tortoise") }.font(.subheadline).tint(.accent)
                     }), done: { result = $0 }).id(runID)
                 }
             }

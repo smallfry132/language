@@ -79,7 +79,10 @@ public struct Texts: Sendable {
             "voiceGood": "✓ A natural voice is installed.",
             "voiceNone": "No voice for this language yet.",
             "voiceShowMe": "Show me how",
-            "notNow": "Not now"
+            "notNow": "Not now",
+            "readingLayer": "Reading help",
+            "readingLayerDesc": "Pinyin, romanization or kana with each word.",
+            "readingAlways": "Always", "readingNew": "New words", "readingOff": "Off"
         ],
         "de": [
             "micPermission": "Erlaube Mikrofon und Spracherkennung in den Einstellungen, um das Sprechen zu üben.",
@@ -101,7 +104,10 @@ public struct Texts: Sendable {
             "voiceGood": "✓ Eine natürliche Stimme ist installiert.",
             "voiceNone": "Noch keine Stimme für diese Sprache.",
             "voiceShowMe": "Zeig mir wie",
-            "notNow": "Später"
+            "notNow": "Später",
+            "readingLayer": "Lesehilfe",
+            "readingLayerDesc": "Pinyin, Umschrift oder Kana zu jedem Wort.",
+            "readingAlways": "Immer", "readingNew": "Neue Wörter", "readingOff": "Aus"
         ]
     ]
 }

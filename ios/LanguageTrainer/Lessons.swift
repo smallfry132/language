@@ -136,7 +136,7 @@ struct LessonEditor: View {
                     VStack(spacing: 0) {
                         if hits.isEmpty { Text(store.t("noResults")).foregroundStyle(Color.ink2).padding(14) }
                         ForEach(hits) { w in
-                            row(w) { Button { store.update { $0.toggleLessonWord(lid, w.id) }; store.toast(store.t("added")) } label: { Image(systemName: "plus.circle.fill").font(.title3).foregroundStyle(Color.accentRed) } }
+                            row(w) { Button { store.update { $0.toggleLessonWord(lid, w.id) }; store.toast(store.t("added")) } label: { Image(systemName: "plus.circle.fill").font(.title3).foregroundStyle(Color.accent) } }
                             Divider().padding(.leading, 16)
                         }
                     }.background(Color.elevated, in: RoundedRectangle(cornerRadius: 16))

@@ -39,8 +39,7 @@ struct Flashcards: View {
                     .opacity(flipped ? 0 : 1)
                     VStack(spacing: 10) {
                         WordPicture(word: w, size: 64)
-                        WordFace(word: w, size: 56)
-                        if store.pyFirst { Text(w.hz).hanziFont(22).foregroundStyle(Color.ink2) } else { Pron(py: w.py, size: 20); PronHint(word: w) }
+                        WordHero(word: w, size: 56)
                         Text(store.tr(w)).font(.title3).multilineTextAlignment(.center)
                         if let t2 = store.tr2(w) { Text(t2).font(.subheadline).foregroundStyle(Color.ink3) }
                         if let ex = w.ex {
@@ -349,8 +348,7 @@ struct Meet: View {
             CardBox(padding: 24) {
                 VStack(spacing: 10) {
                     WordPicture(word: w, size: 72)
-                    WordFace(word: w, size: 60)
-                    if store.pyFirst { Text(w.hz).hanziFont(24).foregroundStyle(Color.ink2) } else { Pron(py: w.py, size: 22); PronHint(word: w) }
+                    WordHero(word: w, size: 60)
                     Text(store.tr(w)).font(.title3).multilineTextAlignment(.center)
                     HStack {
                         Button { store.speaker.say(w.hz) } label: { Label(store.t("play"), systemImage: "speaker.wave.2.fill") }.buttonStyle(.secondary)
@@ -405,8 +403,7 @@ struct SayWord: View {
             CardBox(padding: 22) {
                 VStack(spacing: 10) {
                     WordPicture(word: w, size: 72)
-                    WordFace(word: w, size: 60)
-                    if store.pyFirst { Text(w.hz).hanziFont(24).foregroundStyle(Color.ink2) } else { Pron(py: w.py, size: 22); PronHint(word: w) }
+                    WordHero(word: w, size: 60)
                     Text(store.tr(w)).font(.title3).multilineTextAlignment(.center)
                     HStack(spacing: 12) {
                         Button { store.speaker.say(w.hz) } label: { Label(store.t("playModel"), systemImage: "speaker.wave.2.fill") }.buttonStyle(.bordered).tint(.ink)
@@ -477,8 +474,8 @@ struct MatchGame: View {
         let isSel = selected?.side == side && selected?.id == w.id, isDone = matched.contains(w.id)
         return Button { pick(w, side) } label: {
             content().frame(maxWidth: .infinity, minHeight: 64).padding(8)
-                .background(isDone ? Color.good.opacity(0.15) : shake.contains("\(side)\(w.id)") ? Color.bad.opacity(0.15) : isSel ? Color.accentRed.opacity(0.14) : Color.elevated, in: RoundedRectangle(cornerRadius: 14))
-                .overlay(RoundedRectangle(cornerRadius: 14).stroke(isSel ? Color.accentRed : Color.ink.opacity(0.08), lineWidth: 1.5))
+                .background(isDone ? Color.good.opacity(0.15) : shake.contains("\(side)\(w.id)") ? Color.bad.opacity(0.15) : isSel ? Color.accent.opacity(0.14) : Color.elevated, in: RoundedRectangle(cornerRadius: 14))
+                .overlay(RoundedRectangle(cornerRadius: 14).stroke(isSel ? Color.accent : Color.ink.opacity(0.08), lineWidth: 1.5))
                 .foregroundStyle(Color.ink).opacity(isDone ? 0.45 : 1)
                 .offset(x: shake.contains("\(side)\(w.id)") && !reduceMotion ? 6 : 0)
         }

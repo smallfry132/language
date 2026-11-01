@@ -139,7 +139,7 @@ struct FlowScreen: View {
                 ForEach(Array(steps.enumerated()), id: \.offset) { k, x in
                     VStack(spacing: 4) {
                         Image(systemName: k < i ? "checkmark.circle.fill" : x.icon).font(.title3)
-                            .foregroundStyle(k < i ? Color.good : k == i ? Color.accentRed : Color.ink3)
+                            .foregroundStyle(k < i ? Color.good : k == i ? Color.accent : Color.ink3)
                         Text(store.t(x.title)).font(.caption2).foregroundStyle(k == i ? Color.ink : Color.ink3)
                     }.frame(maxWidth: .infinity)
                 }
@@ -147,7 +147,7 @@ struct FlowScreen: View {
             CardBox(padding: 24) {
                 VStack(spacing: 10) {
                     Text(store.t("stepOf", i + 1, steps.count)).font(.footnote).foregroundStyle(Color.ink3)
-                    Image(systemName: s.icon).scaledFont(40).foregroundStyle(Color.accentRed).padding(6)
+                    Image(systemName: s.icon).scaledFont(40).foregroundStyle(Color.accent).padding(6)
                     Text(store.t(s.title)).font(.title.weight(.bold))
                     Text(store.t(s.title + "Desc")).multilineTextAlignment(.center).foregroundStyle(Color.ink2)
                     Text(store.t("stepCount", s.list.count)).font(.footnote).foregroundStyle(Color.ink3)

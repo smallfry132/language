@@ -56,6 +56,7 @@ final class Store {
         if ProcessInfo.processInfo.arguments.contains("-mute") { speaker.muted = true }
         if let code = Launch.value("-syncCode"), code != device.code { device.code = code; device.v = 0; device.last = 0 }
         else if Launch.has("-demo") && Launch.value("-syncCode") == nil { device.code = nil } // the demo learner never syncs
+        Look.current = Look.of(s.course)
         refreshWords()
         saveDevice()
         speaker.course = course
@@ -99,6 +100,7 @@ final class Store {
     private func refreshWords() {
         let key = "\(state.course)|\(levels)|\(state.custom.count)|\(state.custom.values.map { $0.t ?? 0 }.max() ?? 0)"
         if key != wordsKey { wordsKey = key; words = CourseWords(state: state) }
+        Look.current = Look.of(state.course)
     }
     private func saveDevice() { if let d = try? JSONEncoder().encode(device) { UserDefaults.standard.set(d, forKey: Self.deviceKey) } }
 

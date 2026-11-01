@@ -64,14 +64,15 @@ struct Bubble<Extra: View>: View {
             if right { Spacer(minLength: 40) }
             VStack(alignment: .leading, spacing: 5) {
                 Text(pf ? d.people[line.who].py : d.people[line.who].hz).font(.caption.weight(.semibold)).foregroundStyle(Color.ink3)
-                if zh && pf { TapWords(py: line.py, size: 20) } else if zh { Text(line.hz).hanziFont(22) } else { Text(line.hz).font(.title3) }
-                if zh { if pf { if s.dlgHz == true { Text(line.hz).hanziFont(16).foregroundStyle(Color.ink2) } } else { TapWords(py: line.py, size: 15) } }
-                if store.course.id == "ko" { Text(line.py).font(.subheadline).foregroundStyle(Color.ink2) } // romanization under the Hangul
+                if zh && pf { TapWords(py: line.py, size: 20) } else if zh || store.course.id == "ko" { Text(line.hz).hanziFont(22) } else if store.course.id == "vi" { VietText(text: line.hz, size: 20) } else { Text(line.hz).hanziFont(20) }
+                let reading = store.readingLayer != "off"
+                if zh { if pf { if s.dlgHz == true { Text(line.hz).hanziFont(16).foregroundStyle(Color.ink2) } } else if reading { TapWords(py: line.py, size: 15) } }
+                if store.course.id == "ko" && reading { Text(line.py).font(.subheadline).foregroundStyle(Color.ink2) } // romanization under the Hangul
                 if s.dlgTr != false { Text(line.tr(store.state.lang)).font(.footnote).foregroundStyle(Color.ink2) }
                 extra
             }
             .padding(12)
-            .background(right ? Color.accentRed.opacity(0.08) : Color.elevated, in: RoundedRectangle(cornerRadius: 18))
+            .background(right ? Color.accent.opacity(0.08) : Color.elevated, in: RoundedRectangle(cornerRadius: 18))
             .overlay(RoundedRectangle(cornerRadius: 18).stroke(highlight ?? Color.ink.opacity(0.06), lineWidth: highlight == nil ? 1 : 2))
             .contentShape(Rectangle())
             .onTapGesture { store.sayLine(line.hz) }
@@ -145,7 +146,7 @@ struct DialogueListen: View {
                 Text(store.t("dlg_listenHint")).font(.footnote).foregroundStyle(Color.ink2)
                 DialogueOptions()
                 ForEach(Array(d.lines.enumerated()), id: \.offset) { k, l in
-                    Bubble(d: d, line: l, highlight: k == playing ? .accentRed : nil) { EmptyView() }.id(k)
+                    Bubble(d: d, line: l, highlight: k == playing ? .accent : nil) { EmptyView() }.id(k)
                 }
                 if playing < 0 {
                     Button { token += 1; step(0, token, proxy) } label: { Label(store.t("playAll"), systemImage: "play.fill") }.buttonStyle(.primary)

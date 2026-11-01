@@ -31,8 +31,8 @@ struct MicButton: View {
                 }
                 .font(.headline)
                 .padding(.horizontal, 18).padding(.vertical, 12)
-                .background(live ? Color.accentRed : Color.accentRed.opacity(0.12), in: Capsule())
-                .foregroundStyle(live ? Color.white : Color.accentRed)
+                .background(live ? Color.action : Color.accent.opacity(0.12), in: Capsule())
+                .foregroundStyle(live ? Color.onAction : Color.accent)
             }
             .buttonStyle(.plain)
             .accessibilityLabel(store.t("speakBtn"))

@@ -16,7 +16,7 @@ struct SoundChart: View {
             Page {
                 if let intro = data.intro { Text(intro.get(store.state.lang)).font(.footnote).foregroundStyle(Color.ink2) }
                 ChipRow { ForEach(Array(data.groups.enumerated()), id: \.offset) { k, x in ChipButton(label: x.name.get(store.state.lang), active: k == group) { group = k; picked = nil } } }
-                Toggle(isOn: $slow) { Label(store.t("slow"), systemImage: "tortoise") }.font(.subheadline).tint(.accentRed)
+                Toggle(isOn: $slow) { Label(store.t("slow"), systemImage: "tortoise") }.font(.subheadline).tint(.accent)
                 if let head = g.head, !head.isEmpty {
                     HStack(spacing: 6) {
                         Color.clear.frame(width: 50, height: 1)
@@ -40,7 +40,7 @@ struct SoundChart: View {
                                             if let sub = c.sub { Text(sub).font(.caption2).foregroundStyle(Color.ink3) }
                                         }
                                         .frame(maxWidth: .infinity, minHeight: 52)
-                                        .background(picked?.row == ri && picked?.cell == ci ? Color.accentRed.opacity(0.14) : Color.elevated, in: RoundedRectangle(cornerRadius: 10))
+                                        .background(picked?.row == ri && picked?.cell == ci ? Color.accent.opacity(0.14) : Color.elevated, in: RoundedRectangle(cornerRadius: 10))
                                         .foregroundStyle(Color.ink)
                                     }.buttonStyle(.plain)
                                 } else { Color.clear.frame(maxWidth: .infinity, minHeight: 52) }

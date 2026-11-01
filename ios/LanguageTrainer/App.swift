@@ -3,14 +3,15 @@ import LanguageCore
 
 @main
 struct LanguageTrainerApp: App {
-    @State private var store = Store()
+    @State private var store: Store
+    init() { Fonts.register(); _store = State(initialValue: Store()) }
     @Environment(\.scenePhase) private var phase
 
     var body: some Scene {
         WindowGroup {
             RootView()
                 .environment(store)
-                .tint(.accentRed)
+                .tint(.accent)
         }
         .onChange(of: phase) { _, p in
             if p == .active { store.voiceCheck += 1 }
@@ -30,11 +31,13 @@ struct RootView: View {
 
     var body: some View {
         TabView(selection: $tab) {
-            stack(.today, title: store.t("tabToday"), icon: "sun.max.fill") { TodayView(path: path(.today)) }
-            stack(.lessons, title: store.t("lessons"), icon: "book.closed.fill") { LessonsView(path: path(.lessons)) }
-            stack(.practice, title: store.t("train"), icon: "dumbbell.fill") { PracticeHome() }
-            stack(.words, title: store.t("words"), icon: "square.grid.2x2.fill") { WordsView() }
+            let g = Look.current.tabs // tab labels written in the language itself
+            stack(.today, title: store.t("tabToday"), glyph: g[0]) { TodayView(path: path(.today)) }
+            stack(.lessons, title: store.t("lessons"), glyph: g[1]) { LessonsView(path: path(.lessons)) }
+            stack(.practice, title: store.t("train"), glyph: g[2]) { PracticeHome() }
+            stack(.words, title: store.t("words"), glyph: g[3]) { WordsView() }
         }
+        .id(store.course.id) // a new look: everything is drawn afresh
         .overlay(alignment: .bottom) {
             if let msg = store.toastText {
                 Text(msg).font(.subheadline.weight(.medium)).padding(.horizontal, 16).padding(.vertical, 10)
@@ -52,13 +55,13 @@ struct RootView: View {
         Binding(get: { paths[t] ?? NavigationPath() }, set: { paths[t] = $0 })
     }
 
-    func stack<V: View>(_ t: Tab, title: String, icon: String, @ViewBuilder root: () -> V) -> some View {
+    func stack<V: View>(_ t: Tab, title: String, glyph: String, @ViewBuilder root: () -> V) -> some View {
         NavigationStack(path: path(t)) {
             root()
                 .navigationTitle(t == .words ? title + " · " + store.levelLabel : title)
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
-                        Button { showCourses = true } label: { Text(store.course.glyph).font(.headline).foregroundStyle(Color.accentRed) }
+                        Button { showCourses = true } label: { Text(store.course.glyph).font(.headline).foregroundStyle(Color.accent) }
                             .accessibilityLabel(store.t("switchCourse"))
                     }
                     ToolbarItem(placement: .topBarTrailing) {
@@ -68,7 +71,7 @@ struct RootView: View {
                 .navigationDestination(for: Route.self) { r in destination(r) }
                 .background(Color.paper)
         }
-        .tabItem { Label(title, systemImage: icon) }
+        .tabItem { Label { Text(title) } icon: { tabGlyph(glyph) } }
         .tag(t)
     }
 

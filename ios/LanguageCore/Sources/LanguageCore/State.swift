@@ -149,9 +149,11 @@ public struct Settings: Codable, Equatable {
     public var rate = 0.85, autoSpeak = true, tilePinyin = true, quizSize = 10, dailyGoal = 20, theme = "auto", newPerDay = 5
     public var f0base: Double?
     public var dlgHz: Bool?, dlgTr: Bool?, dlgSlow: Bool?
+    /// Pinyin, romanization or kana shown with words: "always", "new" (words not yet known) or "off"
+    public var readingLayer: String?
     /// Chosen voice per course. Voices differ per device, so this is never synced.
     public var voices: [String: String]?
-    enum K: String, CodingKey { case rate, autoSpeak, tilePinyin, quizSize, dailyGoal, theme, newPerDay, f0base, dlgHz, dlgTr, dlgSlow, voices }
+    enum K: String, CodingKey { case rate, autoSpeak, tilePinyin, quizSize, dailyGoal, theme, newPerDay, f0base, dlgHz, dlgTr, dlgSlow, voices, readingLayer }
     public init() {}
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: K.self)
@@ -159,6 +161,7 @@ public struct Settings: Codable, Equatable {
         dailyGoal = c.get(.dailyGoal, 20); theme = c.get(.theme, "auto"); newPerDay = c.get(.newPerDay, 5)
         f0base = c.get(.f0base, nil as Double?); dlgHz = c.get(.dlgHz, nil as Bool?); dlgTr = c.get(.dlgTr, nil as Bool?); dlgSlow = c.get(.dlgSlow, nil as Bool?)
         voices = c.get(.voices, nil as [String: String]?)
+        readingLayer = c.get(.readingLayer, nil as String?)
     }
     /// The settings that sync (without the device's voices)
     public var synced: Settings { var s = self; s.voices = nil; return s }

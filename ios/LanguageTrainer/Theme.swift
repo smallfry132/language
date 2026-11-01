@@ -1,12 +1,64 @@
 import SwiftUI
 import LanguageCore
 
-/* Colours and small building blocks shared by all screens. The palette matches the web app:
- * warm paper background, red accent for actions, one colour per tone in the content.
- * Text colours meet 4.5:1 on the backgrounds; with Increase Contrast they move further toward black or white. */
+/* Colours and small building blocks shared by all screens.
+ * One look per language, from the style canvas: Ink Grid (Chinese), Quiet Ruby (Japanese), Block Builder (Korean),
+ * Tone Color (Vietnamese). Each sets the palette, the corners, the font for words and the tab labels; the screens
+ * only use the named colours below. Every text colour meets 4.5:1 in light and dark; with Increase Contrast they
+ * move further toward black or white. */
+
+struct Look {
+    typealias Pair = (light: UInt32, dark: UInt32)
+    let id: String
+    let paper: Pair, elevated: Pair, sunken: Pair, line: Pair
+    let ink: Pair, ink2: Pair, ink3: Pair
+    let action: Pair, onAction: Pair   // main buttons
+    let accent: Pair                   // progress, selection, the live microphone
+    let radius: CGFloat
+    let wordFont: (CGFloat, Font.Weight) -> String? // PostScript name of the font for words in the target script; nil = system
+    let tabs: [String]                 // Today, Lessons, Practice, Words in the language's own script
+
+    static let inkGrid = Look(id: "zh",
+        paper: (0xFAF8F3, 0x161514), elevated: (0xFFFFFF, 0x211F1D), sunken: (0xEFEBE2, 0x0F0E0D), line: (0xDDD5C6, 0x3A3632),
+        ink: (0x1C1C1C, 0xF2EEE6), ink2: (0x5F5A55, 0xB9B2A8), ink3: (0x6B655F, 0x9A938A),
+        action: (0x1C1C1C, 0xF2EEE6), onAction: (0xFAF8F3, 0x161514), accent: (0xB8322A, 0xE2766B), radius: 2,
+        wordFont: { _, w in w.isBold ? "STSongti-SC-Bold" : "STSongti-SC-Regular" }, tabs: ["今", "课", "练", "字"])
+    static let quietRuby = Look(id: "ja",
+        paper: (0xF7F7F4, 0x171716), elevated: (0xFFFFFF, 0x222220), sunken: (0xECECE7, 0x101010), line: (0xE2E2DC, 0x3A3A36),
+        ink: (0x1E1E1E, 0xEEEEEA), ink2: (0x4E4E4A, 0xB5B5AE), ink3: (0x66665F, 0x97978F),
+        action: (0x24365C, 0xA9BBE0), onAction: (0xFFFFFF, 0x171716), accent: (0x24365C, 0xA9BBE0), radius: 8,
+        wordFont: { _, w in w.isBold ? "HiraMinProN-W6" : "HiraMinProN-W3" }, tabs: ["今", "課", "練", "あ"])
+    static let blockBuilder = Look(id: "ko",
+        paper: (0xF6F8FD, 0x10141F), elevated: (0xFFFFFF, 0x1A2030), sunken: (0xE3E8F4, 0x0B0E16), line: (0xD7DDEC, 0x2E3750),
+        ink: (0x16213E, 0xEDF1FA), ink2: (0x4A5578, 0xAEB8D3), ink3: (0x5A6488, 0x8F9AB8),
+        action: (0x1D4E9E, 0x8DB0F0), onAction: (0xFFFFFF, 0x10141F), accent: (0x1D4E9E, 0x8DB0F0), radius: 16,
+        wordFont: { _, _ in nil }, tabs: ["오", "학", "연", "한"])
+    static let toneColor = Look(id: "vi",
+        paper: (0xFAFAF7, 0x0F1A17), elevated: (0xFFFFFF, 0x172420), sunken: (0xDDE6E1, 0x0A1210), line: (0xDDE6E1, 0x2A3B36),
+        ink: (0x0F2A24, 0xE6F0EC), ink2: (0x3F5A53, 0xA9C2BA), ink3: (0x4F6B63, 0x87A39A),
+        action: (0x0F2A24, 0xC5F27A), onAction: (0xC5F27A, 0x0F2A24), accent: (0x0F2A24, 0xC5F27A), radius: 14,
+        wordFont: { _, w in w == .heavy || w == .black ? "BeVietnamPro-ExtraBold" : w.isBold ? "BeVietnamPro-SemiBold" : "BeVietnamPro-Regular" },
+        tabs: ["Nay", "Học", "Tập", "Từ"])
+    static func of(_ course: String) -> Look { ["zh": inkGrid, "ja": quietRuby, "ko": blockBuilder, "vi": toneColor][course] ?? inkGrid }
+    /// The look of the course on screen. Set by the Store when the course changes; read when colours are drawn.
+    static var current = inkGrid
+}
+
+extension Font.Weight {
+    var isBold: Bool { self == .semibold || self == .bold || self == .heavy || self == .black }
+}
 
 extension Color {
-    /// Light and dark variants; text colours get a stronger variant when Increase Contrast is on
+    /// A colour of the current look, light or dark; text colours get stronger with Increase Contrast
+    static func look(_ pick: @escaping (Look) -> Look.Pair, text: Bool = true) -> Color {
+        Color(UIColor { t in
+            let dark = t.userInterfaceStyle == .dark, pair = pick(Look.current)
+            let c = UIColor(hex: dark ? pair.dark : pair.light)
+            guard text, t.accessibilityContrast == .high else { return c }
+            return c.mixed(with: dark ? .white : .black, amount: 0.3)
+        })
+    }
+    /// Light and dark variants of a fixed colour (the same in every look)
     static func dynamic(_ light: UInt32, _ dark: UInt32, text: Bool = true) -> Color {
         Color(UIColor { t in
             let dark_ = t.userInterfaceStyle == .dark
@@ -15,27 +67,37 @@ extension Color {
             return c.mixed(with: dark_ ? .white : .black, amount: 0.3)
         })
     }
-    static let paper = dynamic(0xF6F3EE, 0x151417, text: false)
-    static let elevated = dynamic(0xFFFFFF, 0x212024, text: false)
-    static let sunken = dynamic(0xECE8E1, 0x0F0E11, text: false)
-    static let ink = dynamic(0x1C1B1F, 0xF3F1EE)
-    static let ink2 = dynamic(0x5F5B66, 0xB3AFB8)
-    static let ink3 = dynamic(0x6B6772, 0x9A96A1)
-    static let accentRed = dynamic(0xC8372D, 0xEF6A5E)
+    static let paper = look({ $0.paper }, text: false)
+    static let elevated = look({ $0.elevated }, text: false)
+    static let sunken = look({ $0.sunken }, text: false)
+    static let line = look({ $0.line }, text: false)
+    static let ink = look { $0.ink }
+    static let ink2 = look { $0.ink2 }
+    static let ink3 = look { $0.ink3 }
+    static let action = look { $0.action }
+    static let onAction = look { $0.onAction }
+    static let accent = look { $0.accent }
     static let good = dynamic(0x216F45, 0x4FC27F)
     static let gold = dynamic(0x856310, 0xE2B455)
     static let bad = dynamic(0xC0302F, 0xF26B6B)
     static let info = dynamic(0x2A62C4, 0x6F9CF0)
-    /// Tone 1 is raspberry, not the red of the buttons: one colour means one thing
-    static func tone(_ n: Int) -> Color {
-        switch n {
-        case 1: return dynamic(0xB3245E, 0xF2729F)
-        case 2: return dynamic(0x985A07, 0xE3A447)
-        case 3: return dynamic(0x237548, 0x5FCA8A)
-        case 4: return dynamic(0x2A62C4, 0x7EA7F2)
-        default: return dynamic(0x6B6772, 0x9A96A1)
+    /// Tone colours shared by Mandarin and Vietnamese: the same contour has the same colour.
+    /// level red · rising amber · dipping green · falling blue · light/heavy slate · broken (ngã) violet
+    enum Contour { case level, rising, dipping, falling, light, broken }
+    static func contour(_ c: Contour) -> Color {
+        switch c {
+        case .level: return dynamic(0xC62828, 0xF28B82)
+        case .rising: return dynamic(0xB45309, 0xF6B35A)
+        case .dipping: return dynamic(0x15803D, 0x6FCF97)
+        case .falling: return dynamic(0x1D4ED8, 0x8AB4F8)
+        case .light: return dynamic(0x475569, 0xA3AEBF)
+        case .broken: return dynamic(0x7C3AED, 0xC4A7FF)
         }
     }
+    /// Mandarin tones 1–4 and neutral (5)
+    static func tone(_ n: Int) -> Color { contour([1: .level, 2: .rising, 3: .dipping, 4: .falling][n] ?? .light) }
+    /// Vietnamese tones: ngang, huyền, sắc, hỏi, ngã, nặng (1–6)
+    static func viTone(_ n: Int) -> Color { contour([1: .level, 2: .falling, 3: .rising, 4: .dipping, 5: .broken][n] ?? .light) }
 }
 
 extension UIColor {
@@ -54,18 +116,27 @@ struct ScaledFont: ViewModifier {
     @ScaledMetric var size: CGFloat
     var weight: Font.Weight
     var design: Font.Design
-    init(_ size: CGFloat, _ weight: Font.Weight, _ design: Font.Design, relativeTo style: Font.TextStyle) {
+    var word = false
+    init(_ size: CGFloat, _ weight: Font.Weight, _ design: Font.Design, relativeTo style: Font.TextStyle, word: Bool = false) {
         _size = ScaledMetric(wrappedValue: size, relativeTo: style)
-        self.weight = weight; self.design = design
+        self.weight = weight; self.design = design; self.word = word
     }
-    func body(content: Content) -> some View { content.font(.system(size: size, weight: weight, design: design)) }
+    func body(content: Content) -> some View {
+        if word, let name = Look.current.wordFont(size, weight), UIFont(name: name, size: size) != nil {
+            content.font(.custom(name, fixedSize: size))
+        } else {
+            content.font(.system(size: size, weight: weight, design: design))
+        }
+    }
 }
 extension View {
     func scaledFont(_ size: CGFloat, _ weight: Font.Weight = .regular, design: Font.Design = .default) -> some View {
         modifier(ScaledFont(size, weight, design, relativeTo: size >= 28 ? .largeTitle : size >= 20 ? .title3 : .body))
     }
-    /// Characters: medium weight reads best for hanzi and kana
-    func hanziFont(_ size: CGFloat) -> some View { scaledFont(size, .medium) }
+    /// Words in the target script, in the look's font (serif characters, Be Vietnam Pro…)
+    func hanziFont(_ size: CGFloat, _ weight: Font.Weight = .medium) -> some View {
+        modifier(ScaledFont(size, weight, .default, relativeTo: size >= 28 ? .largeTitle : size >= 20 ? .title3 : .body, word: true))
+    }
 }
 
 /// Short vibrations for right and wrong answers (the system's Haptics setting turns them off)
@@ -100,6 +171,24 @@ struct PinyinText: View {
     }
 }
 
+/// Vietnamese: each syllable in its tone's colour; the marks stay, so colour is never the only cue
+struct VietText: View {
+    let text: String
+    var size: CGFloat = 17
+    var weight: Font.Weight = .semibold
+    var body: some View { Text(Self.attributed(text)).hanziFont(size, weight) }
+    static func attributed(_ s: String) -> AttributedString {
+        var out = AttributedString(), word = ""
+        func flush() {
+            guard !word.isEmpty else { return }
+            var a = AttributedString(word); a.foregroundColor = Color.viTone(Lingo.firstTone(word, course: "vi")); out += a; word = ""
+        }
+        for c in s { if c.isLetter { word.append(c) } else { flush(); out += AttributedString(String(c)) } }
+        flush()
+        return out
+    }
+}
+
 /// The pronunciation of a word as the course shows it: coloured pinyin for Chinese, plain text otherwise
 struct Pron: View {
     @Environment(Store.self) var store
@@ -116,12 +205,11 @@ struct WordFace: View {
     let word: Word
     var size: CGFloat = 40
     var body: some View {
+        // Long words a little smaller: 4+ characters, or 12+ letters in Latin script (Vietnamese)
+        let long = store.course.script == .cjk ? word.hz.count >= 4 : word.hz.count >= 12
         if store.pyFirst { PinyinText(py: word.py, size: size * 0.8, weight: .semibold) }
-        else {
-            // Long words a little smaller: 4+ characters, or 12+ letters in Latin script (Vietnamese)
-            let long = store.course.script == .cjk ? word.hz.count >= 4 : word.hz.count >= 12
-            SwiftUI.Text(word.hz).hanziFont(long ? size * 0.7 : size)
-        }
+        else if store.course.id == "vi" { VietText(text: word.hz, size: long ? size * 0.7 : size * 0.85, weight: .heavy) }
+        else { SwiftUI.Text(word.hz).hanziFont(long ? size * 0.7 : size) }
     }
 }
 
@@ -132,8 +220,8 @@ struct CardBox<Content: View>: View {
         VStack(alignment: .leading, spacing: 10) { content }
             .padding(padding)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.elevated, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(Color.ink.opacity(0.06)))
+            .background(Color.elevated, in: RoundedRectangle(cornerRadius: Look.current.radius + 2, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: Look.current.radius + 2, style: .continuous).stroke(Color.line))
     }
 }
 
@@ -145,9 +233,9 @@ struct ChipButton: View {
         Button(action: action) {
             SwiftUI.Text(label).font(.subheadline.weight(.medium)).lineLimit(1)
                 .padding(.horizontal, 12).padding(.vertical, 8)
-                .background(active ? Color.ink : Color.elevated, in: Capsule())
+                .background(active ? Color.ink : Color.elevated, in: RoundedRectangle(cornerRadius: min(Look.current.radius, 18), style: .continuous))
                 .foregroundStyle(active ? Color.paper : Color.ink)
-                .overlay(Capsule().stroke(Color.ink.opacity(active ? 0 : 0.12)))
+                .overlay(RoundedRectangle(cornerRadius: min(Look.current.radius, 18), style: .continuous).stroke(active ? Color.clear : Color.line))
                 .padding(.vertical, 5).contentShape(Rectangle()) // a 44 pt tall target around the smaller chip
         }
         .buttonStyle(.plain)
@@ -164,19 +252,20 @@ struct ChipRow<Content: View>: View {
 }
 
 struct PrimaryButtonStyle: ButtonStyle {
-    var tint: Color = .accentRed
+    var tint: Color = .action
+    var text: Color = .onAction
     func makeBody(configuration: Configuration) -> some View {
         configuration.label.font(.headline).frame(maxWidth: .infinity).padding(.vertical, 14)
-            .background(tint.opacity(configuration.isPressed ? 0.8 : 1), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-            .foregroundStyle(.white)
+            .background(tint.opacity(configuration.isPressed ? 0.8 : 1), in: RoundedRectangle(cornerRadius: max(Look.current.radius, 2) + 2, style: .continuous))
+            .foregroundStyle(text)
     }
 }
 struct SecondaryButtonStyle: ButtonStyle {
     var tint: Color = .ink
     func makeBody(configuration: Configuration) -> some View {
         configuration.label.font(.headline.weight(.medium)).frame(maxWidth: .infinity).padding(.vertical, 13)
-            .background(Color.elevated.opacity(configuration.isPressed ? 0.6 : 1), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(Color.ink.opacity(0.12)))
+            .background(Color.elevated.opacity(configuration.isPressed ? 0.6 : 1), in: RoundedRectangle(cornerRadius: max(Look.current.radius, 2) + 2, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: max(Look.current.radius, 2) + 2, style: .continuous).stroke(Color.line))
             .foregroundStyle(tint)
     }
 }
@@ -212,7 +301,7 @@ struct ProgressHeader: View {
     var extra: String?
     var body: some View {
         HStack(spacing: 12) {
-            ProgressView(value: Double(i), total: Double(max(n, 1))).tint(.accentRed)
+            ProgressView(value: Double(i), total: Double(max(n, 1))).tint(.accent)
             SwiftUI.Text("\(i)/\(n)" + (extra.map { " · " + $0 } ?? "")).font(.footnote.monospacedDigit()).foregroundStyle(Color.ink2)
         }
     }

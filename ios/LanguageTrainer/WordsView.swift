@@ -117,8 +117,13 @@ struct Tile: View {
                 PinyinText(py: w.py, size: w.py.count > 10 ? 15 : 19, weight: .semibold).lineLimit(1).minimumScaleFactor(0.6)
                 Text(w.hz).font(.caption).foregroundStyle(Color.ink3)
             } else {
-                Text(w.hz).hanziFont(w.hz.count >= 3 ? 20 : 28).lineLimit(1).minimumScaleFactor(0.5)
-                if store.state.settings.tilePinyin { Pron(py: w.py, size: 12).lineLimit(1) }
+                if store.course.id == "vi" { VietText(text: w.hz, size: w.hz.count >= 9 ? 16 : 20).lineLimit(1).minimumScaleFactor(0.5) }
+                else { Text(w.hz).hanziFont(w.hz.count >= 3 ? 20 : 28).lineLimit(1).minimumScaleFactor(0.5) }
+                if store.showsReading(w) {
+                    // Japanese: the kana reading, or the rōmaji when the word is written in kana already
+                    let ja = store.course.id == "ja"
+                    Pron(py: ja ? (w.kana != nil && w.kana != w.hz ? w.kana! : (w.romaji ?? w.py)) : w.py, size: 12).lineLimit(1)
+                }
             }
             Text(store.tr(w)).font(.caption2).foregroundStyle(Color.ink2).lineLimit(dynamicType.isAccessibilitySize ? 5 : 2).multilineTextAlignment(.center)
             Spacer(minLength: 0)
@@ -142,8 +147,7 @@ struct WordDetail: View {
         ScrollView {
             VStack(spacing: 12) {
                 if let p = store.words.picture(w.id) { Text(p).scaledFont(72).accessibilityHidden(true) }
-                if store.pyFirst { PinyinText(py: w.py, size: 44, weight: .semibold); Text(w.hz).hanziFont(26).foregroundStyle(Color.ink2) }
-                else { Text(w.hz).hanziFont(64); Pron(py: w.py, size: 22); PronHint(word: w) }
+                WordHero(word: w, size: 64)
                 Text(store.tr(w)).font(.title3).multilineTextAlignment(.center)
                 if let t2 = store.tr2(w) { Text(t2).foregroundStyle(Color.ink3) }
                 HStack(spacing: 6) {

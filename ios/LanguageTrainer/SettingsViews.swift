@@ -19,7 +19,7 @@ struct StatsView: View {
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
                 tile("\(known)", store.t("statsWords") + " / \(ws.count)", .good)
                 tile("\(learning)", store.t("statsLearning"), .gold)
-                tile("\(due)", store.t("statsDue"), .accentRed)
+                tile("\(due)", store.t("statsDue"), .accent)
                 tile("\(store.state.streak())", store.t("statsStreak"), .info)
             }
             SectionTitle(text: store.t("overview"))
@@ -48,7 +48,7 @@ struct StatsView: View {
                         ForEach([10, 20, 50], id: \.self) { Text("\($0)").tag($0) }
                     }.pickerStyle(.segmented).frame(width: 150)
                 }
-                ProgressView(value: Double(min(today, goal)), total: Double(goal)).tint(today >= goal ? .good : .accentRed)
+                ProgressView(value: Double(min(today, goal)), total: Double(goal)).tint(today >= goal ? .good : .accent)
             }
             SectionTitle(text: store.t("activity"))
             CardBox { Heatmap() }
@@ -141,7 +141,13 @@ struct SettingsView: View {
                         VStack(alignment: .leading) { Text(store.t("pinyinFirst")); Text(store.t("pinyinFirstDesc")).font(.footnote).foregroundStyle(Color.ink2) }
                     }
                 }
-                Toggle(store.t("tilePinyin"), isOn: Binding(get: { s.tilePinyin }, set: { v in store.update { $0.settings.tilePinyin = v } }))
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(store.t("readingLayer"))
+                    Picker(store.t("readingLayer"), selection: Binding(get: { store.readingLayer }, set: { v in store.update { $0.settings.readingLayer = v; $0.settings.tilePinyin = v != "off" } })) {
+                        Text(store.t("readingAlways")).tag("always"); Text(store.t("readingNew")).tag("new"); Text(store.t("readingOff")).tag("off")
+                    }.pickerStyle(.segmented)
+                    Text(store.t("readingLayerDesc")).font(.footnote).foregroundStyle(Color.ink2)
+                }
                 Stepper(value: Binding(get: { s.newPerDay }, set: { v in store.update { $0.settings.newPerDay = v } }), in: 1...20) {
                     HStack { Text(store.t("newPerDay")); Spacer(); Text("\(s.newPerDay)").monospacedDigit().foregroundStyle(Color.ink2) }
                 }
@@ -149,7 +155,7 @@ struct SettingsView: View {
             Section(store.t("voice")) {
                 VStack(alignment: .leading) {
                     HStack { Text(store.t("ttsRate")); Spacer(); Text(String(format: "%.2f×", s.rate)).monospacedDigit().foregroundStyle(Color.ink2) }
-                    Slider(value: Binding(get: { s.rate }, set: { v in store.update { $0.settings.rate = (v * 20).rounded() / 20 } }), in: 0.5...1.2).tint(.accentRed)
+                    Slider(value: Binding(get: { s.rate }, set: { v in store.update { $0.settings.rate = (v * 20).rounded() / 20 } }), in: 0.5...1.2).tint(.accent)
                 }
                 Picker(store.t("voice"), selection: Binding(get: { s.voices?[store.course.id] ?? "" }, set: { v in
                     store.update { var m = $0.settings.voices ?? [:]; m[$0.course] = v.isEmpty ? nil : v; $0.settings.voices = m }
@@ -161,7 +167,7 @@ struct SettingsView: View {
                         Text(v.name + (v.quality == .premium ? " (Premium)" : v.quality == .enhanced ? " (Enhanced)" : robotic ? " (robotic)" : "")).tag(v.identifier)
                     }
                 }
-                Button { store.speaker.say(store.course.testPhrase) } label: { Label(store.t("ttsTest"), systemImage: "speaker.wave.2") }.tint(.accentRed)
+                Button { store.speaker.say(store.course.testPhrase) } label: { Label(store.t("ttsTest"), systemImage: "speaker.wave.2") }.tint(.accent)
                 NavigationLink { VoiceGuide() } label: {
                     HStack {
                         Text(store.t("voiceGuideTitle"))
@@ -190,16 +196,16 @@ struct CoursePicker: View {
                 let ws = Library.shared.words[c.id] ?? [], known = ws.filter { store.status($0.id) == .known }.count
                 Button { store.switchCourse(c.id); dismiss() } label: {
                     HStack(spacing: 14) {
-                        Text(c.glyph).font(.title2.weight(.bold)).frame(width: 46, height: 46).background(Color.accentRed.opacity(0.12), in: RoundedRectangle(cornerRadius: 12)).foregroundStyle(Color.accentRed)
+                        Text(c.glyph).font(.title2.weight(.bold)).frame(width: 46, height: 46).background(Color.accent.opacity(0.12), in: RoundedRectangle(cornerRadius: 12)).foregroundStyle(Color.accent)
                         VStack(alignment: .leading, spacing: 2) {
                             Text(c.name).font(.headline)
                             Text("\(ws.count) \(store.t("words").lowercased()) · \(c.allLabel) · \(store.t("knownOf", known, ws.count))").font(.caption).foregroundStyle(Color.ink2)
                         }
                         Spacer()
-                        if c.id == store.course.id { Image(systemName: "checkmark").foregroundStyle(Color.accentRed) }
+                        if c.id == store.course.id { Image(systemName: "checkmark").foregroundStyle(Color.accent) }
                     }
                     .padding(12).background(Color.elevated, in: RoundedRectangle(cornerRadius: 14))
-                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(c.id == store.course.id ? Color.accentRed : Color.clear, lineWidth: 1.5))
+                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(c.id == store.course.id ? Color.accent : Color.clear, lineWidth: 1.5))
                     .foregroundStyle(Color.ink)
                 }.buttonStyle(.plain)
             }
@@ -335,7 +341,7 @@ struct VoiceGuide: View {
             ].enumerated()), id: \.offset) { k, step in
                 HStack(alignment: .top, spacing: 12) {
                     Text("\(k + 1)").font(.subheadline.weight(.bold)).frame(width: 28, height: 28)
-                        .background(Color.accentRed.opacity(0.12), in: Circle()).foregroundStyle(Color.accentRed)
+                        .background(Color.accent.opacity(0.12), in: Circle()).foregroundStyle(Color.accent)
                     Text(step).frame(maxWidth: .infinity, alignment: .leading)
                 }
             }

@@ -32,13 +32,14 @@ struct RootView: View {
     @State private var keyboard = false
 
     var body: some View {
-        ZStack {
-            // All four stay alive, so each keeps its place when you switch
-            ForEach(Tab.allCases, id: \.self) { t in
-                stack(t).opacity(tab == t ? 1 : 0).allowsHitTesting(tab == t).accessibilityHidden(tab != t)
+        // The dock sits below the content (not over it), so every screen scrolls all the way to its end
+        VStack(spacing: 0) {
+            ZStack {
+                // All four stay alive, so each keeps its place when you switch
+                ForEach(Tab.allCases, id: \.self) { t in
+                    stack(t).opacity(tab == t ? 1 : 0).allowsHitTesting(tab == t).accessibilityHidden(tab != t)
+                }
             }
-        }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
             if (paths[tab] ?? NavigationPath()).isEmpty && !keyboard { Dock(tab: $tab, paths: $paths) }
         }
         .id(store.course.id) // a new look: everything is drawn afresh

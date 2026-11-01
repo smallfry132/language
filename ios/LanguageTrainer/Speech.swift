@@ -118,18 +118,27 @@ final class Microphone {
     var phase: Phase = .idle
     private(set) var recognitionOK = true
     private(set) var permitted: Bool?
-
     private let engine = AVAudioEngine()
-    private var request: SFSpeechAudioBufferRecognitionRequest?
-    private var task: SFSpeechRecognitionTask?
-    private var buffer = SampleBuffer()
-    private var started = Date()
-    private var finish: ((Spoken?) -> Void)?
-    private var target = ""
-    private var py = ""
-    private var course = "zh"
-    private var alts: [String] = []
-    private var final = false
+
+    /// One recording. Each has its own recogniser task and results, so a recording that is still finishing
+    /// (waiting for the recogniser's last word) can never cancel or read the next one.
+    @MainActor final class Session {
+        let target: String, py: String, course: String, pitch: Bool, f0base: Double?
+        let buffer: SampleBuffer
+        var request: SFSpeechAudioBufferRecognitionRequest?
+        var task: SFSpeechRecognitionTask?
+        var alts: [String] = []
+        var final = false
+        var lastText = Date()
+        let started = Date()
+        var done: ((Spoken?) -> Void)?
+        var watchdog: Task<Void, Never>?
+        init(target: String, py: String, course: String, pitch: Bool, f0base: Double?, done: @escaping (Spoken?) -> Void) {
+            self.target = target; self.py = py; self.course = course; self.pitch = pitch; self.f0base = f0base; self.done = done
+            buffer = SampleBuffer(maxSeconds: pitch ? 6 : 15, quiet: pitch ? 0.8 : 1.2)
+        }
+    }
+    private var session: Session?
 
     var isListening: Bool { phase != .idle }
     func isListening(_ key: String) -> Bool { phase == .listening(key) }
@@ -149,87 +158,81 @@ final class Microphone {
         if isListening { stop(); return }
         Task {
             guard await authorize() else { done(nil); return }
-            start(key: key, target: target, py: py, course: course, pitch: pitch, f0base: f0base, done: done)
+            start(key: key, session: Session(target: target, py: py, course: course.id, pitch: pitch, f0base: f0base, done: done), tts: course.tts)
         }
     }
 
-    private var pitchMode = false
-    private var f0base: Double?
-
-    private func start(key: String, target: String, py: String, course: Course, pitch: Bool, f0base: Double?, done: @escaping (Spoken?) -> Void) {
-        self.target = target; self.py = py; self.course = course.id; self.pitchMode = pitch; self.f0base = f0base
-        finish = done; alts = []; final = false; lastText = Date()
-        buffer = SampleBuffer(maxSeconds: pitch ? 6 : 15, quiet: pitch ? 0.8 : 1.2)
-        do { try AudioSession.record() } catch { done(nil); return }
+    private func start(key: String, session s: Session, tts: String) {
+        do { try AudioSession.record() } catch { s.done?(nil); return }
         let input = engine.inputNode
         let format = input.outputFormat(forBus: 0)
-        guard format.sampleRate > 0 else { done(nil); return }
-        buffer.rate = format.sampleRate
+        guard format.sampleRate > 0 else { s.done?(nil); return }
+        s.buffer.rate = format.sampleRate
 
-        if recognitionOK, let rec = SFSpeechRecognizer(locale: Locale(identifier: course.tts)), rec.isAvailable {
+        if recognitionOK, let rec = SFSpeechRecognizer(locale: Locale(identifier: tts)), rec.isAvailable {
             let req = SFSpeechAudioBufferRecognitionRequest()
             req.shouldReportPartialResults = true // partial results show when the words stop coming
             if rec.supportsOnDeviceRecognition { req.requiresOnDeviceRecognition = true }
-            request = req
-            task = rec.recognitionTask(with: req) { [weak self] result, error in
+            s.request = req
+            s.task = rec.recognitionTask(with: req) { [weak s] result, error in
                 let texts = result.map { r in r.transcriptions.map(\.formattedString) } ?? []
                 let isFinal = result?.isFinal ?? (error != nil)
                 Task { @MainActor in
-                    guard let self else { return }
-                    if !texts.isEmpty && texts != self.alts { self.alts = texts; self.lastText = Date() }
-                    if isFinal { self.final = true }
+                    guard let s else { return }
+                    if !texts.isEmpty && texts != s.alts { s.alts = texts; s.lastText = Date() }
+                    if isFinal { s.final = true }
                 }
             }
         }
-        let buf = buffer
-        let req = request
-        input.installTap(onBus: 0, bufferSize: 2048, format: format) { [weak self] pcm, _ in
+        let buf = s.buffer, req = s.request
+        input.removeTap(onBus: 0)
+        input.installTap(onBus: 0, bufferSize: 2048, format: format) { [weak self, weak s] pcm, _ in
             req?.append(pcm)
-            if buf.add(pcm) { Task { @MainActor in self?.stop() } }
+            if buf.add(pcm) { Task { @MainActor in if let s, self?.session === s { self?.stop() } } }
         }
         engine.prepare()
-        do { try engine.start() } catch { input.removeTap(onBus: 0); done(nil); return }
-        started = Date()
+        do { try engine.start() } catch { input.removeTap(onBus: 0); s.done?(nil); return }
+        session = s
         phase = .listening(key)
         // Second way to notice the end: the recogniser has heard words and no new ones came for a while
         // (in a noisy room the level may never drop low enough for the pause detection)
-        watchdog?.cancel()
-        let quietAfterWords = pitch ? 1.0 : 1.4
-        watchdog = Task { [weak self] in
-            while let self, self.isListening, !Task.isCancelled {
+        let quietAfterWords = s.pitch ? 1.0 : 1.4
+        s.watchdog = Task { [weak self, weak s] in
+            while !Task.isCancelled {
                 try? await Task.sleep(for: .milliseconds(200))
-                if self.isListening, !self.alts.isEmpty, Date().timeIntervalSince(self.lastText) > quietAfterWords { self.stop() }
+                guard let self, let s, self.session === s else { return }
+                if !s.alts.isEmpty, Date().timeIntervalSince(s.lastText) > quietAfterWords { self.stop() }
             }
         }
     }
-    private var lastText = Date()
-    private var watchdog: Task<Void, Never>?
 
     /// Stops listening (the second tap, or by itself after a pause)
     func stop() {
-        guard isListening else { return }
+        guard isListening, let s = session else { return }
+        session = nil
         phase = .idle
-        watchdog?.cancel(); watchdog = nil
+        s.watchdog?.cancel()
         engine.inputNode.removeTap(onBus: 0)
         engine.stop()
-        request?.endAudio()
-        let ms = Date().timeIntervalSince(started) * 1000
-        let samples = Pitch.resample(buffer.samples(), from: buffer.rate)
+        s.request?.endAudio()
+        let ms = Date().timeIntervalSince(s.started) * 1000
+        let samples = Pitch.resample(s.buffer.samples(), from: s.buffer.rate)
         let wav = Pitch.wav(samples)
-        let callback = finish
-        finish = nil
+        let callback = s.done
+        s.done = nil
+        let recognising = recognitionOK
         Task {
-            // Give the recogniser a moment for its final result
-            if self.request != nil { for _ in 0..<30 where !self.final { try? await Task.sleep(for: .milliseconds(100)) } }
-            self.task?.cancel(); self.task = nil; self.request = nil
-            AudioSession.playback() // releases the mic: speech plays at full volume again
+            // Give the recogniser a moment for its final result (this recording's only)
+            if s.request != nil { for _ in 0..<30 where !s.final { try? await Task.sleep(for: .milliseconds(100)) } }
+            s.task?.cancel()
+            if self.session == nil { AudioSession.playback() } // releases the mic, unless a new recording has started
             var spoken = Spoken(heard: nil, tones: nil, wav: wav, ms: ms)
-            if !self.alts.isEmpty || !self.pitchMode && self.recognitionOK {
-                spoken.heard = Check.matchHeard(self.target, self.alts, course: self.course)
+            if !s.alts.isEmpty || !s.pitch && recognising && s.request != nil {
+                spoken.heard = Check.matchHeard(s.target, s.alts, course: s.course)
             }
-            if self.pitchMode {
+            if s.pitch {
                 let frames = await Task.detached { Pitch.track(samples) }.value
-                spoken.tones = Pitch.check(py: self.py, frames: frames, f0base: self.f0base)
+                spoken.tones = Pitch.check(py: s.py, frames: frames, f0base: s.f0base)
             }
             callback?(spoken)
         }
@@ -237,7 +240,7 @@ final class Microphone {
 
     /// Ends a capture without a result (leaving the screen)
     func cancel() {
-        finish = nil
+        session?.done = nil
         stop()
     }
 }

@@ -178,6 +178,7 @@ struct WordDetail: View {
                 }
             }.padding(20)
         }
+        .scrollIndicators(.hidden)
         .background(Color.paper)
         .onAppear { if store.state.settings.autoSpeak { store.speaker.say(w.hz) } }
     }

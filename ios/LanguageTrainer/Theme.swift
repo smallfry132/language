@@ -248,7 +248,7 @@ struct ChipButton: View {
 struct ChipRow<Content: View>: View {
     @ViewBuilder var content: Content
     var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) { HStack(spacing: 8) { content }.padding(.horizontal, 16) }
+        ScrollView(.horizontal) { HStack(spacing: 8) { content }.padding(.horizontal, 16) }.scrollIndicators(.hidden)
             .padding(.horizontal, -16)
     }
 }
@@ -332,8 +332,9 @@ struct Page<Content: View>: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) { content }
-                .padding(16).frame(maxWidth: 640).frame(maxWidth: .infinity)
+                .padding(16).padding(.bottom, 24).frame(maxWidth: 640).frame(maxWidth: .infinity)
         }
+        .scrollIndicators(.hidden)
         .scrollDismissesKeyboard(.interactively)
         .background(Color.paper)
     }

@@ -137,7 +137,7 @@ struct CoursePicker: View {
                     .foregroundStyle(Color.ink)
                 }.buttonStyle(.plain)
             }
-        }.padding(20) }.background(Color.paper)
+        }.padding(20) }.scrollIndicators(.hidden).background(Color.paper)
     }
 }
 

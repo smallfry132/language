@@ -879,6 +879,7 @@
     const view = $("#view");
     view.scrollTop = 0; window.scrollTo(0, 0);
     view.className = "view fade-in";
+    document.body.classList.remove("home");
     const main = route[0];
     if (main === "train") renderTrain(view);
     else if (main === "words") renderWords(view);
@@ -1919,43 +1920,64 @@
   function renderToday(view) {
     if (route[1] === "session") return startTodaySession(view);
     setTopbar(t("learn"), null);
+    document.body.classList.add("home"); // the greeting is the title (mobile)
     const p = planToday();
     const n = dayCount(todayKey()), goal = S.settings.dailyGoal, st = streak();
     const work = p.due.length || p.fresh.length;
     const g = greeting(), pf = pyFirst();
     const topic = p.fresh[0] && themes().find((x) => x.id === topicOf(p.fresh[0].id));
     const wd = wordOfDay();
-    const tiles = ({ zh: ["复习", "听", "说"], ja: ["復習", "聞く", "話す"], ko: ["복습", "듣기", "말하기"], vi: ["Ôn", "Nghe", "Nói"] })[C.id];
+    const tiles = ({ zh: ["复习", "听", "说"], ja: ["復習", "聞く", "話す"], ko: ["복습", "듣기", "말하기"] })[C.id];
+    const native = ({ zh: ["继续", "今天的课"], ja: ["続ける", "今日のレッスン"], ko: ["계속", "오늘의 공부"], vi: ["Tiếp tục", "Bài hôm nay"] })[C.id] || ["", ""];
+    const days = S.lang === "de" ? (st === 1 ? "Tag" : "Tage") : (st === 1 ? "day" : "days");
+    const streakHtml = C.id === "ja" ? `<div class="streak-ja"><b class="hanzi">${st}日</b><span>${t("statsStreak")}</span></div>`
+      : C.id === "ko" ? `<div class="streak-pill"><i></i>${st} ${days}</div>`
+      : C.id === "vi" ? `<div class="streak-pill dark">${st} ${days}</div>`
+      : `<div class="streak-box"><b>${st}</b><span>${days}</span></div>`;
+    const f = Math.min(1, n / Math.max(goal, 1));
+    const goalBar = C.id === "ko" ? `<div class="goal-blocks">${Array.from({ length: 10 }, (_, k) => `<i class="${k < f * 10 ? "on" : ""}"></i>`).join("")}</div>`
+      : `<div class="progress-bar goal-bar"><span style="width:${f * 100}%"></span></div>`;
+    const cont = t("continue") + (native[0] ? " · " + native[0] : "");
+    const lessonCard = `<div class="lesson-card">
+        ${topic ? `<div class="cc-topic">${topic.icon} ${esc(L(topic.name))}</div>` : ""}
+        ${work ? `<div class="cc-title"><span class="hanzi">${native[1]}</span><small>${t("sessionTitle")}</small></div><div class="cc-sub">${t("sessionDesc", p.due.length, p.fresh.length)}</div>
+          <button class="btn block cc-btn" id="go-session" type="button">${esc(cont)}</button>`
+        : `<div class="cc-title">${n || introducedToday() ? t("sessionDone") : t("sessionTitle")}</div><div class="cc-sub">${n || introducedToday() ? t("sessionDoneSub") : t("sessionEmpty")}</div>
+          ${p.unseen ? `<button class="btn block cc-btn" id="more-new" type="button">${t("moreNew", Math.min(5, p.unseen))}</button>` : ""}`}
+      </div>`;
+    const label = `<span class="wod-label">${t("wordOfDay")}</span>`;
+    const say = wd ? `<span class="speak-btn sm" data-speak="${esc(wd.hz)}" aria-label="${t("speak")}">🔊</span>` : "";
+    let wod = "";
+    if (wd && C.id === "zh") wod = `<button class="card wod" id="wod" type="button">${gridHtml(wd.hz, Array.from(wd.hz).length > 1 ? "sm" : "lg")}
+        <span class="grow wod-text">${label}<span class="wod-word">${pyHtml(wd.py)}</span><span class="wod-tr">${esc(tr(wd))}</span><span class="wod-emoji" aria-hidden="true">${pic(wd) || ""}</span></span>${say}</button>`;
+    else if (wd && C.id === "ja") wod = `<button class="wod wod-ja" id="wod" type="button"><span class="vword hanzi">${esc(Array.from(wd.hz).slice(0, 4).join(""))}</span>
+        <span class="grow wod-text">${label}${wd.kana && wd.kana !== wd.hz ? `<span class="furigana">${esc(wd.kana)}</span>` : ""}<span class="wod-word">${esc(wd.romaji || wd.py)}</span><span class="wod-tr">${esc(tr(wd))}</span><span class="speak-ring" data-speak="${esc(wd.hz)}" aria-label="${t("speak")}">▶</span></span></button>`;
+    else if (wd && C.id === "ko") wod = `<button class="card wod-ko" id="wod" type="button"><span class="row"><span class="grow wod-text">${label}<span><span class="hanzi wod-word">${esc(wd.hz)}</span> <span class="wod-tr">${esc(tr(wd))}</span></span></span>${say}</span>
+        ${Array.from(wd.hz).filter((c) => koJamo(c)).slice(0, 3).map((c) => { const j = koJamo(c); return `<span class="build"><i class="kb-i">${j.i}</i><i class="kb-v">${j.v}</i>${j.f ? `<i class="kb-f">${j.f}</i>` : ""}<span class="arrow">→</span><b class="hanzi">${c}</b><span class="rom">${esc(window.KO ? KO.romanize(c) : "")}</span></span>`; }).join("")}</button>`;
+    else if (wd && C.id === "vi") { const tn = firstToneVi(wd.hz.split(/\s+/)[0]);
+      wod = `<button class="card wod wod-vi" id="wod" type="button"><span class="tone-tile tc-${VI_TONE_CLASS[tn]}">${toneSvg(tn)}<b>${VI_TONE_NAMES[tn - 1]}</b></span>
+        <span class="grow wod-text">${label}<span class="wod-word hanzi">${viHtml(wd.hz)}</span><span class="wod-tr">${esc(tr(wd))}</span></span><span class="speak-sq" data-speak="${esc(wd.hz)}" aria-label="${t("speak")}">🔊</span></button>`; }
+    const quick = C.id === "vi" ? `<div class="card tone-drill" id="tone-drill"><div class="row"><b class="grow">${t("toneQ")}</b><button class="link-btn" id="td-play" type="button">▶ ${t("play")}</button></div>
+        <div class="td-grid">${["ma", "mà", "má", "mả", "mã", "mạ"].map((s, k) => `<button class="td tc-${VI_TONE_CLASS[k + 1]}" data-td="${k + 1}" type="button">${s}</button>`).join("")}</div></div>`
+      : `<div class="quick-tiles">${[["train/flash", tiles[0], t("stepReview") + (p.due.length ? " · " + p.due.length : ""), p.due.length], ["train/listen", tiles[1], t("stepListen") + " · " + t("minutes", 5)], ["train/say", tiles[2], t("stepSpeak") + " · " + t("words3", 5)]]
+          .map(([r, big, small, hot]) => `<button class="qt ${hot ? "hot" : ""}" data-go="${r}" type="button"><span class="qt-big hanzi">${big}</span><span class="qt-small">${small}</span></button>`).join("")}</div>`;
     const next = courseDialogues().find((d) => !dlgDone(d.id)) || null;
     const lessons = courseLessons();
     view.innerHTML = `
+      <div class="learn">
       <div class="learn-head">
         <div class="grow">
           <button class="course-switch" id="course-switch" type="button">${esc(t("langName"))} · ${esc(levelLabel())} ▾</button>
           ${C.id === "zh" ? (pf ? `<div class="greet py-big">${pyHtml(g.reading)}</div><div class="greet-sub">${g.text} · ${esc(g.tr)}</div>` : `<div class="greet-ruby">${pyHtml(g.reading)}</div><div class="greet hanzi">${g.text}</div><div class="greet-sub">${esc(g.tr)}</div>`)
             : `<div class="greet hanzi">${C.id === "vi" ? viHtml(g.text) : esc(g.text)}</div><div class="greet-sub">${g.reading ? esc(g.reading) + " · " : ""}${esc(g.tr)}</div>`}
         </div>
-        <div class="streak-box"><b>${st}</b><span>${t("statsStreak")}</span></div>
+        ${streakHtml}
       </div>
       <div class="goal-row"><span>${t("goalToday")}</span><b>${n} / ${goal}</b></div>
-      <div class="progress-bar"><span style="width:${Math.min(100, (n / goal) * 100)}%"></span></div>
-      <div class="continue-card">
-        ${work ? `${topic ? `<div class="cc-topic">${topic.icon} ${esc(L(topic.name))}</div>` : ""}
-          <div class="cc-title">${t("sessionTitle")}</div><div class="cc-sub">${t("sessionDesc", p.due.length, p.fresh.length)}</div>
-          <button class="btn block cc-btn" id="go-session" type="button">${t("continue")}</button>`
-        : `<div class="cc-title">${n || introducedToday() ? t("sessionDone") : t("sessionTitle")}</div><div class="cc-sub">${n || introducedToday() ? t("sessionDoneSub") : t("sessionEmpty")}</div>
-          ${p.unseen ? `<button class="btn block cc-btn" id="more-new" type="button">${t("moreNew", Math.min(5, p.unseen))}</button>` : ""}`}
-      </div>
-      ${wd ? `<button class="card wod" id="wod" type="button">
-        ${C.id === "zh" ? gridHtml(wd.hz, Array.from(wd.hz).length > 1 ? "sm" : "md") : `<span class="wod-pic" aria-hidden="true">${pic(wd)}</span>`}
-        <span class="grow wod-text"><span class="wod-label">${t("wordOfDay")}</span>
-          ${C.id === "zh" ? `<span class="wod-word">${pyHtml(wd.py)}</span>` : C.id === "vi" ? `<span class="wod-word hanzi">${viHtml(wd.hz)}</span>` : `${C.id === "ja" && wd.kana && wd.kana !== wd.hz ? `<span class="furigana">${esc(wd.kana)}</span>` : ""}<span class="wod-word hanzi">${esc(wd.hz)}</span>`}
-          <span class="wod-tr">${esc(tr(wd))}</span></span>
-        <span class="speak-btn sm" data-speak="${esc(wd.hz)}" aria-label="${t("speak")}">🔊</span>
-      </button>` : ""}
-      <div class="quick-tiles">
-        ${[["train/flash", tiles[0], t("stepReview") + (p.due.length ? " · " + p.due.length : ""), p.due.length], ["train/listen", tiles[1], t("stepListen") + " · " + t("minutes", 5)], ["train/say", tiles[2], t("stepSpeak") + " · " + t("words3", 5)]]
-          .map(([r, big, small, hot]) => `<button class="qt ${hot ? "hot" : ""}" data-go="${r}" type="button"><span class="qt-big hanzi">${big}</span><span class="qt-small">${small}</span></button>`).join("")}
+      ${goalBar}
+      ${lessonCard}
+      ${wod}
+      ${quick}
       </div>
       ${next ? `<div class="section-title">${t("dialogues")}</div><div class="list">${dialogueRow(next)}<button class="list-item" data-go="lessons" type="button"><span class="li-ico">${icon("chat")}</span><span class="grow li-title">${t("allDialogues")}</span><span class="li-chev">›</span></button></div>` : ""}
       <div class="section-title row"><span class="grow">${t("myLessons")}</span><button class="btn sm" id="new-lesson" type="button">＋ ${t("lessonNew")}</button></div>
@@ -1968,6 +1990,17 @@
     $$("[data-go]").forEach((b) => (b.onclick = () => navigate(b.dataset.go)));
     $$("[data-dlg]").forEach((b) => (b.onclick = () => navigate("lessons/d/" + b.dataset.dlg)));
     bindLessonList(lessons);
+    if ($("#tone-drill")) { // Vietnamese: which tone did you hear?
+      const syl = ["ma", "mà", "má", "mả", "mã", "mạ"];
+      let target = 1 + Math.floor(Math.random() * 6), picked = 0;
+      const play = () => speak(syl[target - 1] + ".", { rate: 0.7 });
+      $("#td-play").onclick = play;
+      $$("[data-td]").forEach((b) => (b.onclick = () => {
+        if (picked) { picked = 0; target = 1 + Math.floor(Math.random() * 6); $$("[data-td]").forEach((x) => x.classList.remove("right", "wrong")); play(); return; }
+        picked = +b.dataset.td; recordAnswer(picked === target);
+        $(`[data-td="${target}"]`).classList.add("right"); if (picked !== target) b.classList.add("wrong");
+      }));
+    }
   }
   // Your lessons as a list with progress (Learn and the dialogues page)
   function lessonListHtml(lessons) {

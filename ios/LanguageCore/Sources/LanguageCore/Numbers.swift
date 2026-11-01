@@ -22,7 +22,21 @@ public enum Numbers {
         return (tens > 1 ? h[tens] + sep : "") + h[10] + (ones > 0 ? sep + h[ones] : "")
     }
     /// The number as written in the course (characters, or Vietnamese words)
+    static let ko = ["영", "일", "이", "삼", "사", "오", "육", "칠", "팔", "구", "십"]
+    static let koRo = ["yeong", "il", "i", "sam", "sa", "o", "yuk", "chil", "pal", "gu", "sip"]
+    /// Korean: Sino-Korean numbers (money, dates, minutes); the romanization joins syllables as they are said (십일 sibil)
+    static func toKo(_ n: Int, roman: Bool) -> String {
+        let t = roman ? koRo : ko
+        let parts = n <= 10 ? [t[n]] : (n / 10 > 1 ? [t[n / 10]] : []) + [t[10]] + (n % 10 > 0 ? [t[n % 10]] : [])
+        guard roman else { return parts.joined() }
+        return parts.dropFirst().reduce(parts[0]) { a, b in
+            guard let first = b.first, "aeiouy".contains(first), let last = a.last, !"aeiouy".contains(last) else { return a + b }
+            let carry = ["p": "b", "k": "g", "l": "r", "t": "d"][String(last)] ?? String(last)
+            return String(a.dropLast()) + carry + b
+        }
+    }
     public static func written(_ n: Int, course: String) -> String {
+        if course == "ko" { return toKo(n, roman: false) }
         if course == "vi" { return toVi(n) }
         if course == "ja" { return toJa(n, pron: false) }
         if n <= 10 { return hz[n] }
@@ -31,6 +45,7 @@ public enum Numbers {
     }
     /// Pinyin or romaji ("" for Vietnamese, which is already written in Latin letters)
     public static func spoken(_ n: Int, course: String) -> String {
+        if course == "ko" { return toKo(n, roman: true) }
         if course == "vi" { return "" }
         if course == "ja" { return toJa(n, pron: true) }
         if n <= 10 { return py[n] }

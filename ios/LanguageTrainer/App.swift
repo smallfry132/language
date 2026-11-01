@@ -43,7 +43,7 @@ struct RootView: View {
         }
         .animation(.easeInOut(duration: 0.2), value: store.toastText)
         .sheet(isPresented: $showSettings) { NavigationStack { SettingsView() }.environment(store) }
-        .sheet(isPresented: $showCourses) { CoursePicker().presentationDetents([.medium]) }
+        .sheet(isPresented: $showCourses) { CoursePicker().presentationDetents([.medium, .large]) }
         .onAppear { openLaunchRoute() }
     }
 

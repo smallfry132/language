@@ -40,7 +40,7 @@ struct Flashcards: View {
                     VStack(spacing: 10) {
                         WordPicture(word: w, size: 64)
                         WordFace(word: w, size: 56)
-                        if store.pyFirst { Text(w.hz).hanziFont(22).foregroundStyle(Color.ink2) } else { Pron(py: w.py, size: 20) }
+                        if store.pyFirst { Text(w.hz).hanziFont(22).foregroundStyle(Color.ink2) } else { Pron(py: w.py, size: 20); PronHint(word: w) }
                         Text(store.tr(w)).font(.title3).multilineTextAlignment(.center)
                         if let t2 = store.tr2(w) { Text(t2).font(.subheadline).foregroundStyle(Color.ink3) }
                         if let ex = w.ex {
@@ -350,7 +350,7 @@ struct Meet: View {
                 VStack(spacing: 10) {
                     WordPicture(word: w, size: 72)
                     WordFace(word: w, size: 60)
-                    if store.pyFirst { Text(w.hz).hanziFont(24).foregroundStyle(Color.ink2) } else { Pron(py: w.py, size: 22) }
+                    if store.pyFirst { Text(w.hz).hanziFont(24).foregroundStyle(Color.ink2) } else { Pron(py: w.py, size: 22); PronHint(word: w) }
                     Text(store.tr(w)).font(.title3).multilineTextAlignment(.center)
                     HStack {
                         Button { store.speaker.say(w.hz) } label: { Label(store.t("play"), systemImage: "speaker.wave.2.fill") }.buttonStyle(.secondary)
@@ -406,7 +406,7 @@ struct SayWord: View {
                 VStack(spacing: 10) {
                     WordPicture(word: w, size: 72)
                     WordFace(word: w, size: 60)
-                    if store.pyFirst { Text(w.hz).hanziFont(24).foregroundStyle(Color.ink2) } else { Pron(py: w.py, size: 22) }
+                    if store.pyFirst { Text(w.hz).hanziFont(24).foregroundStyle(Color.ink2) } else { Pron(py: w.py, size: 22); PronHint(word: w) }
                     Text(store.tr(w)).font(.title3).multilineTextAlignment(.center)
                     HStack(spacing: 12) {
                         Button { store.speaker.say(w.hz) } label: { Label(store.t("playModel"), systemImage: "speaker.wave.2.fill") }.buttonStyle(.bordered).tint(.ink)

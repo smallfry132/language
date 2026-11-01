@@ -66,6 +66,7 @@ struct Bubble<Extra: View>: View {
                 Text(pf ? d.people[line.who].py : d.people[line.who].hz).font(.caption.weight(.semibold)).foregroundStyle(Color.ink3)
                 if zh && pf { TapWords(py: line.py, size: 20) } else if zh { Text(line.hz).hanziFont(22) } else { Text(line.hz).font(.title3) }
                 if zh { if pf { if s.dlgHz == true { Text(line.hz).hanziFont(16).foregroundStyle(Color.ink2) } } else { TapWords(py: line.py, size: 15) } }
+                if store.course.id == "ko" { Text(line.py).font(.subheadline).foregroundStyle(Color.ink2) } // romanization under the Hangul
                 if s.dlgTr != false { Text(line.tr(store.state.lang)).font(.footnote).foregroundStyle(Color.ink2) }
                 extra
             }

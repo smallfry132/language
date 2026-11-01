@@ -18,13 +18,15 @@ public struct Word: Codable, Hashable, Identifiable, Sendable {
     public let exDe: String?
     public let kana: String?
     public let romaji: String?
+    /// Korean: how the word is said when sound changes alter the spelling (독일 → 도길)
+    public let pron: String?
     public var course: String = ""
 
-    enum CodingKeys: String, CodingKey { case id, hz, py, en, de, cat, lvl, ex, exPy, exEn, exDe, kana, romaji }
+    enum CodingKeys: String, CodingKey { case id, hz, py, en, de, cat, lvl, ex, exPy, exEn, exDe, kana, romaji, pron }
 
-    public init(id: String, hz: String, py: String, en: String, de: String? = nil, cat: String, lvl: Int, ex: String? = nil, exPy: String? = nil, exEn: String? = nil, exDe: String? = nil, kana: String? = nil, romaji: String? = nil, course: String) {
+    public init(id: String, hz: String, py: String, en: String, de: String? = nil, cat: String, lvl: Int, ex: String? = nil, exPy: String? = nil, exEn: String? = nil, exDe: String? = nil, kana: String? = nil, romaji: String? = nil, pron: String? = nil, course: String) {
         self.id = id; self.hz = hz; self.py = py; self.en = en; self.de = de; self.cat = cat; self.lvl = lvl
-        self.ex = ex; self.exPy = exPy; self.exEn = exEn; self.exDe = exDe; self.kana = kana; self.romaji = romaji; self.course = course
+        self.ex = ex; self.exPy = exPy; self.exEn = exEn; self.exDe = exDe; self.kana = kana; self.romaji = romaji; self.pron = pron; self.course = course
     }
 }
 
@@ -48,6 +50,7 @@ public struct Course: Identifiable, Sendable {
         switch id {
         case "vi": return ["A1", "A2", "B1", "B2", "C1", "C2"][max(0, min(5, l - 1))]
         case "ja": return "N\(6 - l)"
+        case "ko": return ["A1", "A2"][max(0, min(1, l - 1))]
         default: return "HSK \(l)"
         }
     }
@@ -55,7 +58,8 @@ public struct Course: Identifiable, Sendable {
     public static let all: [Course] = [
         Course(id: "zh", glyph: "中", name: "中文 · Chinese", title: "HSK Trainer", tts: "zh-CN", script: .cjk, levels: [1, 2, 3], allLabel: "HSK 1–3", toneOptions: [1, 2, 3, 4], testPhrase: "你好，我学习汉语。", sourceText: "glxxyz/hskhsk.com", sourceURL: "https://github.com/glxxyz/hskhsk.com"),
         Course(id: "vi", glyph: "Vi", name: "Tiếng Việt · Vietnamese", title: "Tiếng Việt Trainer", tts: "vi-VN", script: .latin, levels: [1, 2, 3, 4, 5, 6], allLabel: "A1–C2", toneOptions: [1, 2, 3, 4, 5, 6], testPhrase: "Xin chào, tôi học tiếng Việt.", sourceText: nil, sourceURL: nil),
-        Course(id: "ja", glyph: "あ", name: "日本語 · Japanese", title: "JLPT Trainer", tts: "ja-JP", script: .cjk, levels: [1, 2, 3, 4, 5], allLabel: "N5–N1", toneOptions: nil, testPhrase: "こんにちは。日本語を勉強しています。", sourceText: "jamsinclair/open-anki-jlpt-decks", sourceURL: "https://github.com/jamsinclair/open-anki-jlpt-decks")
+        Course(id: "ja", glyph: "あ", name: "日本語 · Japanese", title: "JLPT Trainer", tts: "ja-JP", script: .cjk, levels: [1, 2, 3, 4, 5], allLabel: "N5–N1", toneOptions: nil, testPhrase: "こんにちは。日本語を勉強しています。", sourceText: "jamsinclair/open-anki-jlpt-decks", sourceURL: "https://github.com/jamsinclair/open-anki-jlpt-decks"),
+        Course(id: "ko", glyph: "한", name: "한국어 · Korean", title: "Korean Trainer", tts: "ko-KR", script: .cjk, levels: [1, 2], allLabel: "A1–A2", toneOptions: nil, testPhrase: "안녕하세요. 저는 한국어를 공부해요.", sourceText: nil, sourceURL: nil)
     ]
     public static func byId(_ id: String) -> Course { all.first { $0.id == id } ?? all[0] }
 }

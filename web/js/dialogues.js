@@ -1,7 +1,106 @@
 /* Beginner dialogues for the Chinese course (HSK 1 vocabulary, a few common extras).
  * Written for this app. Pinyin follows the spoken tone changes of 不 and 一 (bú shì, yì bēi), like the word lists.
- * Fields: id, topic { en, de }, people [names as { hz, py }], lines [{ who: index into people, hz, py, en, de }] */
+ * Fields: id, topic { en, de }, people [names as { hz, py }], lines [{ who: index into people, hz, py, en, de }]
+ * Korean lines have no py: the romanization is generated from the Hangul (js/korean.js). */
 window.DIALOGUES = {
+  ko: [
+    {
+      id: "ko-greet", icon: "👋", topic: { en: "Greetings", de: "Begrüßung" },
+      people: [{ hz: "민수", py: "Minsu" }, { hz: "안나", py: "Anna" }],
+      lines: [
+        { who: 0, hz: "안녕하세요!", en: "Hello!", de: "Hallo!" },
+        { who: 1, hz: "안녕하세요!", en: "Hello!", de: "Hallo!" },
+        { who: 0, hz: "잘 지내요?", en: "How are you?", de: "Wie geht es dir?" },
+        { who: 1, hz: "네, 잘 지내요. 민수 씨는요?", en: "I'm fine. And you, Minsu?", de: "Gut. Und dir, Minsu?" },
+        { who: 0, hz: "저도 잘 지내요.", en: "I'm fine too.", de: "Mir geht es auch gut." },
+        { who: 1, hz: "안녕히 가세요!", en: "Goodbye!", de: "Auf Wiedersehen!" },
+        { who: 0, hz: "내일 봐요!", en: "See you tomorrow!", de: "Bis morgen!" }
+      ]
+    },
+    {
+      id: "ko-name", icon: "🙂", topic: { en: "What's your name?", de: "Wie heißt du?" },
+      people: [{ hz: "민수", py: "Minsu" }, { hz: "안나", py: "Anna" }],
+      lines: [
+        { who: 0, hz: "이름이 뭐예요?", en: "What's your name?", de: "Wie heißt du?" },
+        { who: 1, hz: "저는 안나예요. 이름이 뭐예요?", en: "I'm Anna. What's your name?", de: "Ich bin Anna. Wie heißt du?" },
+        { who: 0, hz: "저는 김민수예요.", en: "I'm Kim Minsu.", de: "Ich bin Kim Minsu." },
+        { who: 1, hz: "만나서 반갑습니다.", en: "Nice to meet you.", de: "Freut mich." },
+        { who: 0, hz: "저도 만나서 반가워요.", en: "Nice to meet you too.", de: "Freut mich auch." }
+      ]
+    },
+    {
+      id: "ko-country", icon: "🌍", topic: { en: "Which country are you from?", de: "Aus welchem Land kommst du?" },
+      people: [{ hz: "민수", py: "Minsu" }, { hz: "안나", py: "Anna" }],
+      lines: [
+        { who: 0, hz: "어느 나라 사람이에요?", en: "Which country are you from?", de: "Aus welchem Land kommst du?" },
+        { who: 1, hz: "저는 독일 사람이에요. 민수 씨는 한국 사람이에요?", en: "I'm German. Are you Korean, Minsu?", de: "Ich bin Deutsche. Bist du Koreaner, Minsu?" },
+        { who: 0, hz: "네, 저는 한국 사람이에요.", en: "Yes, I'm Korean.", de: "Ja, ich bin Koreaner." },
+        { who: 1, hz: "선생님도 한국 사람이에요?", en: "Is the teacher Korean too?", de: "Ist der Lehrer auch Koreaner?" },
+        { who: 0, hz: "아니요, 선생님은 미국 사람이에요.", en: "No, the teacher is American.", de: "Nein, der Lehrer ist Amerikaner." }
+      ]
+    },
+    {
+      id: "ko-from", icon: "📍", topic: { en: "Where are you from?", de: "Woher kommst du?" },
+      people: [{ hz: "민수", py: "Minsu" }, { hz: "안나", py: "Anna" }],
+      lines: [
+        { who: 0, hz: "고향이 어디예요?", en: "Where is your hometown?", de: "Woher kommst du?" },
+        { who: 1, hz: "제 고향은 베를린이에요.", en: "My hometown is Berlin.", de: "Ich komme aus Berlin." },
+        { who: 0, hz: "지금 어디에 살아요?", en: "Where do you live now?", de: "Wo wohnst du jetzt?" },
+        { who: 1, hz: "지금은 서울에 살아요.", en: "I live in Seoul now.", de: "Jetzt wohne ich in Seoul." },
+        { who: 0, hz: "서울을 좋아해요?", en: "Do you like Seoul?", de: "Gefällt dir Seoul?" },
+        { who: 1, hz: "네, 정말 좋아해요! 서울은 아주 커요.", en: "Yes, I really like it! Seoul is very big.", de: "Ja, sehr! Seoul ist sehr groß." }
+      ]
+    },
+    {
+      id: "ko-family", icon: "👨‍👩‍👧", topic: { en: "Family", de: "Familie" },
+      people: [{ hz: "민수", py: "Minsu" }, { hz: "안나", py: "Anna" }],
+      lines: [
+        { who: 0, hz: "가족이 몇 명이에요?", en: "How many people are in your family?", de: "Wie viele seid ihr in deiner Familie?" },
+        { who: 1, hz: "네 명이에요. 아버지, 어머니, 오빠, 그리고 저예요.", en: "Four: my father, mother, older brother and me.", de: "Vier: Vater, Mutter, mein älterer Bruder und ich." },
+        { who: 0, hz: "오빠는 몇 살이에요?", en: "How old is your older brother?", de: "Wie alt ist dein älterer Bruder?" },
+        { who: 1, hz: "스물다섯 살이에요.", en: "He's twenty-five.", de: "Er ist fünfundzwanzig." },
+        { who: 0, hz: "오빠는 무슨 일을 해요?", en: "What does he do?", de: "Was arbeitet er?" },
+        { who: 1, hz: "의사예요.", en: "He's a doctor.", de: "Er ist Arzt." }
+      ]
+    },
+    {
+      id: "ko-food", icon: "🍜", topic: { en: "Ordering food", de: "Essen bestellen" },
+      people: [{ hz: "직원", py: "jigwon" }, { hz: "안나", py: "Anna" }],
+      lines: [
+        { who: 0, hz: "어서 오세요! 주문하시겠어요?", en: "Welcome! Would you like to order?", de: "Willkommen! Möchten Sie bestellen?" },
+        { who: 1, hz: "비빔밥 하나하고 김치찌개 하나 주세요.", en: "One bibimbap and one kimchi stew, please.", de: "Einmal Bibimbap und einmal Kimchi-Eintopf, bitte." },
+        { who: 0, hz: "음료수는 뭐로 하시겠어요?", en: "What would you like to drink?", de: "Was möchten Sie trinken?" },
+        { who: 1, hz: "물 주세요. 감사합니다.", en: "Water, please. Thank you.", de: "Wasser, bitte. Danke." },
+        { who: 0, hz: "네. 더 필요한 거 있으세요?", en: "Okay. Anything else?", de: "Gut. Brauchen Sie noch etwas?" },
+        { who: 1, hz: "아니요, 괜찮아요. 얼마예요?", en: "No, that's all. How much is it?", de: "Nein, danke. Was kostet das?" },
+        { who: 0, hz: "모두 만 오천 원이에요.", en: "Fifteen thousand won altogether.", de: "Zusammen fünfzehntausend Won." }
+      ]
+    },
+    {
+      id: "ko-time", icon: "🕒", topic: { en: "Telling the time", de: "Uhrzeit" },
+      people: [{ hz: "민수", py: "Minsu" }, { hz: "안나", py: "Anna" }],
+      lines: [
+        { who: 0, hz: "지금 몇 시예요?", en: "What time is it now?", de: "Wie spät ist es jetzt?" },
+        { who: 1, hz: "세 시 십 분이에요.", en: "It's ten past three.", de: "Es ist zehn nach drei." },
+        { who: 0, hz: "몇 시에 학교에 가요?", en: "What time are you going to school?", de: "Um wie viel Uhr gehst du zur Schule?" },
+        { who: 1, hz: "네 시 반에 가요.", en: "I'm going at half past four.", de: "Um halb fünf." },
+        { who: 0, hz: "그러면 같이 가요!", en: "Then let's go together!", de: "Dann lass uns zusammen gehen!" },
+        { who: 1, hz: "좋아요!", en: "Great!", de: "Gern!" }
+      ]
+    },
+    {
+      id: "ko-day", icon: "☀️", topic: { en: "What are you doing today?", de: "Was machst du heute?" },
+      people: [{ hz: "민수", py: "Minsu" }, { hz: "안나", py: "Anna" }],
+      lines: [
+        { who: 0, hz: "오늘 뭐 해요?", en: "What are you doing today?", de: "Was machst du heute?" },
+        { who: 1, hz: "오전에 한국어를 공부해요. 오후에는 시장에 가요.", en: "In the morning I study Korean. In the afternoon I go to the market.", de: "Vormittags lerne ich Koreanisch. Nachmittags gehe ich auf den Markt." },
+        { who: 0, hz: "저녁에는요?", en: "And in the evening?", de: "Und abends?" },
+        { who: 1, hz: "저녁에는 집에서 드라마를 봐요. 민수 씨는요?", en: "In the evening I watch dramas at home. And you, Minsu?", de: "Abends schaue ich zu Hause Serien. Und du, Minsu?" },
+        { who: 0, hz: "저는 영화를 보러 가고 싶어요.", en: "I'd like to go and see a film.", de: "Ich möchte ins Kino gehen." },
+        { who: 1, hz: "저도 영화를 좋아해요!", en: "I like films too!", de: "Ich mag Filme auch!" }
+      ]
+    }
+  ],
   zh: [
     {
       id: "zh-greet", icon: "👋", topic: { en: "Greetings", de: "Begrüßung" },

@@ -177,7 +177,7 @@ public struct AppState: Codable, Equatable {
     public var stats = Stats()
     public var settings = Settings()
     public var course = "zh"
-    public var courses: [String: CourseState] = ["zh": CourseState(), "vi": CourseState(), "ja": CourseState()]
+    public var courses: [String: CourseState] = ["zh": CourseState(), "vi": CourseState(), "ja": CourseState(), "ko": CourseState()]
     public var lessons: [String: Lesson] = [:]
     public var custom: [String: CustomWord] = [:]
     public var dlg: [String: DialogueProgress] = [:]
@@ -194,7 +194,7 @@ public struct AppState: Codable, Equatable {
         settings = c.get(.settings, d.settings); course = c.get(.course, d.course); courses = c.get(.courses, d.courses)
         lessons = c.get(.lessons, d.lessons); custom = c.get(.custom, d.custom); dlg = c.get(.dlg, d.dlg)
         peers = c.get(.peers, d.peers); mt = c.get(.mt, d.mt); typer = c.get(.typer, nil as [String: Int]?)
-        for k in ["zh", "vi", "ja"] where (courses[k]?.levels ?? []).isEmpty { courses[k] = CourseState() }
+        for c in Course.all where (courses[c.id]?.levels ?? []).isEmpty { courses[c.id] = CourseState() }
         if Course.all.allSatisfy({ $0.id != course }) { course = "zh" }
     }
 }

@@ -65,10 +65,22 @@
     const romaji = toRomaji(reading);
     return { id: "j" + (i + 1), hz: expr, py: reading === expr ? romaji : `${reading} · ${romaji}`, kana: reading, romaji, en: meaning, cat: jaCategory(expr, meaning), lvl, ex: "", exPy: "", exEn: "", course: "ja" };
   });
+  // Korean: Hangul with generated romanization (korean.js); pron = how it is said when sound changes alter the spelling
+  const KO_WORDS = (window.KO_WORDS || []).map((w) => {
+    const pron = window.KO.pronounce(w.w);
+    return { id: w.id, hz: w.w, py: window.KO.romanize(w.w), en: w.en, de: w.de, cat: "misc", lvl: w.lvl, ex: w.ex, exPy: window.KO.romanize(w.ex), exEn: w.exEn, pron: pron !== w.w ? pron : "", course: "ko" };
+  });
+  ((window.DIALOGUES && window.DIALOGUES.ko) || []).forEach((d) => d.lines.forEach((l) => { l.py = l.py || window.KO.romanize(l.hz); }));
+  // A typed Korean answer: Hangul, or romanization as pronounced or letter by letter (spaces don't matter)
+  const koTyped = (v, hz) => { const a = v.normalize("NFC").toLowerCase().replace(/[^\p{L}]/gu, ""), plain = (s) => s.toLowerCase().replace(/[^\p{L}]/gu, ""); return a === plain(hz) || a === plain(window.KO.romanize(hz)) || a === plain(window.KO.romanize(hz, { spelled: true })); };
+  // Hangul syllable → its letters (initial, vowel, final) as Unicode compatibility jamo
+  const KO_I = "ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ", KO_V = "ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ", KO_F = ["", "ㄱ", "ㄲ", "ㄳ", "ㄴ", "ㄵ", "ㄶ", "ㄷ", "ㄹ", "ㄺ", "ㄻ", "ㄼ", "ㄽ", "ㄾ", "ㄿ", "ㅀ", "ㅁ", "ㅂ", "ㅄ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"];
+  const koJamo = (ch) => { const n = ch.codePointAt(0) - 0xac00; return n >= 0 && n < 11172 ? { i: KO_I[Math.floor(n / 588)], v: KO_V[Math.floor((n % 588) / 28)], f: KO_F[n % 28] } : null; };
   const COURSES = {
     zh: { id: "zh", glyph: "中", name: "中文 · Chinese", title: "HSK Trainer", tts: "zh-CN", script: "cjk", levels: [1, 2, 3], levelName: (l) => "HSK " + l, allLabel: "HSK 1–3", words: ZH_WORDS, toneOptions: [1, 2, 3, 4], testPhrase: "你好，我学习汉语。", source: { text: "glxxyz/hskhsk.com", url: "https://github.com/glxxyz/hskhsk.com" } },
     vi: { id: "vi", glyph: "Vi", name: "Tiếng Việt · Vietnamese", title: "Tiếng Việt Trainer", tts: "vi-VN", script: "latin", levels: [1, 2, 3, 4, 5, 6], levelName: (l) => ["A1", "A2", "B1", "B2", "C1", "C2"][l - 1], allLabel: "A1–C2", words: VI_WORDS, toneOptions: [1, 2, 3, 4, 5, 6], testPhrase: "Xin chào, tôi học tiếng Việt.", source: null },
-    ja: { id: "ja", glyph: "あ", name: "日本語 · Japanese", title: "JLPT Trainer", tts: "ja-JP", script: "cjk", levels: [1, 2, 3, 4, 5], levelName: (l) => "N" + (6 - l), allLabel: "N5–N1", words: JA_WORDS, toneOptions: null, testPhrase: "こんにちは。日本語を勉強しています。", source: { text: "jamsinclair/open-anki-jlpt-decks", url: "https://github.com/jamsinclair/open-anki-jlpt-decks" } }
+    ja: { id: "ja", glyph: "あ", name: "日本語 · Japanese", title: "JLPT Trainer", tts: "ja-JP", script: "cjk", levels: [1, 2, 3, 4, 5], levelName: (l) => "N" + (6 - l), allLabel: "N5–N1", words: JA_WORDS, toneOptions: null, testPhrase: "こんにちは。日本語を勉強しています。", source: { text: "jamsinclair/open-anki-jlpt-decks", url: "https://github.com/jamsinclair/open-anki-jlpt-decks" } },
+    ko: { id: "ko", glyph: "한", name: "한국어 · Korean", title: "Korean Trainer", tts: "ko-KR", script: "cjk", levels: [1, 2], levelName: (l) => ["A1", "A2"][l - 1], allLabel: "A1–A2", words: KO_WORDS, toneOptions: null, testPhrase: "안녕하세요. 저는 한국어를 공부해요.", source: null }
   };
   const CATS = window.HSK1_CATEGORIES;
   CATS.custom = { en: "My words", de: "Eigene Wörter", icon: "✏️" };
@@ -133,7 +145,9 @@
   // Vietnamese: drop diacritics (đ → d), collapse spaces
   const stripVi = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").toLowerCase().replace(/[.,!?'’]/g, "").replace(/\s+/g, " ").trim();
   const stripJa = (s) => s.normalize("NFC").toLowerCase().replace(/[\s'’\-.,!?・]/g, "");
-  const norm = (s) => (C.id === "zh" ? stripTones(s) : C.id === "ja" ? stripJa(s) : stripVi(s));
+  // Korean: Hangul or romanization, without spaces, hyphens and punctuation
+  const stripKo = (s) => s.normalize("NFC").toLowerCase().replace(/[\s'’\-.,!?]/g, "");
+  const norm = (s) => (C.id === "zh" ? stripTones(s) : C.id === "ja" ? stripJa(s) : C.id === "ko" ? stripKo(s) : stripVi(s));
   const hasDiacritics = (s) => /[̀-ͯ]/.test(s.normalize("NFD")) || /đ/i.test(s);
   const TONE_MARKS = { "̄": 1, "́": 2, "̌": 3, "̀": 4 };           // Mandarin: 1–4, none = neutral (5)
   const VI_TONE_MARKS = { "̀": 2, "́": 3, "̉": 4, "̃": 5, "̣": 6 }; // Vietnamese: ngang(1) huyền sắc hỏi ngã nặng
@@ -154,7 +168,7 @@
     stats: { answered: 0, correct: 0, days: {}, sessions: 0, since: 0 },
     settings: { rate: 0.85, autoSpeak: true, tilePinyin: true, quizSize: 10, dailyGoal: 20, theme: "auto", newPerDay: 5 },
     course: "zh",
-    courses: { zh: { levels: [1] }, vi: { levels: [1] }, ja: { levels: [1] } },
+    courses: { zh: { levels: [1] }, vi: { levels: [1] }, ja: { levels: [1] }, ko: { levels: [1] } },
     lessons: {},  // id → { course, name, words: [ids], created, t }
     custom: {},   // id → own word { course, hz, py, en, t }
     dlg: {},      // dialogue id → { listen: day, read: { best, last, acc }, turn: { best, last } }
@@ -327,7 +341,7 @@
       topics: "Topics", allTopics: "All topics", byTopic: "By topic",
       modePicture: "Picture to word", modePictureDesc: "See a picture and pick the word, without a translation in between.",
       modeListenPic: "Hear and pick the picture", modeListenPicDesc: "Hear a word and pick its picture.",
-      pictureQ: "What is this?", hearPicQ: "Which picture did you hear?"
+      pictureQ: "What is this?", hearPicQ: "Which picture did you hear?", pronHint: "How it is said"
     },
     de: {
       brandSub: "Trainer", words: "Wörter", train: "Üben", progress: "Fortschritt", more: "Mehr",
@@ -442,7 +456,7 @@
       topics: "Themen", allTopics: "Alle Themen", byTopic: "Nach Thema",
       modePicture: "Bild zum Wort", modePictureDesc: "Bild sehen und das Wort wählen, ohne Übersetzung dazwischen.",
       modeListenPic: "Hören und Bild wählen", modeListenPicDesc: "Wort hören und das passende Bild wählen.",
-      pictureQ: "Was ist das?", hearPicQ: "Welches Bild hast du gehört?"
+      pictureQ: "Was ist das?", hearPicQ: "Welches Bild hast du gehört?", pronHint: "So wird es gesprochen"
     }
   };
   // Pinyin-first wording (Chinese while characters are not studied yet)
@@ -503,6 +517,60 @@
           "r ist ein leichter Zungenschlag zwischen r und l. f (ふ) wird sanft zwischen den Lippen geblasen. ん vor b, p, m klingt wie m.",
           "Nicht Betonung, sondern Tonhöhe unterscheidet manche Wörter (はし Brücke vs. はし Essstäbchen). Höre das Audio und imitiere die Melodie.",
           "Bedeutungen listen mehrere Lesarten durch Kommas getrennt. Im Multiple Choice zählt jede davon als Bedeutung des Wortes."
+        ]
+      }
+    },
+    ko: {
+      en: {
+        modeSayDesc: "See a word and say it. The microphone checks it, or you record and compare.", stepSpeakDesc: "Say each word out loud. The microphone checks it, or you record yourself and compare.",
+        brandSub: "Korean", search: "Search Hangul, romanization or meaning…", tilePinyin: "Romanization on tiles", langName: "Korean", typeOr: "…or type it",
+        modeType: "Type the word", modeTypeDesc: "See the meaning, type the Korean word in Hangul or romanization.",
+        typeHint: "Hangul or romanization (감사합니다 = gamsahamnida). Spaces don't matter.", typePlaceholder: "Korean…",
+        modeTyperDesc: "Copy-type Korean in Hangul as fast as you can. Enter reads it aloud.",
+        typerIntro: "Type the line exactly as shown, in Hangul. Press Enter when you are done: the app reads it aloud and moves on.",
+        typerHint: "Use the Korean keyboard (두벌식). Enter = done + speak.",
+        modeNumbers: "Numbers", modeNumbersDesc: "Read and write Sino-Korean numbers 1–99 (일, 이, 삼…).",
+        dirHzTr: "Word → Meaning", dirTrHz: "Meaning → Word", dirHzPy: "Word → Romanization", dirPyHz: "Romanization → Word",
+        pinyinTips: "Hangul tips", numbers: "Number trainer", numbersDesc: "Practice 1–99",
+        noZhVoice: "No Korean voice found yet",
+        ttsHint: "No sound on iPhone? Flip the ring/silent switch to ring and turn the volume up: speech follows the silent switch. If no Korean voice is listed, add one under Settings → Accessibility → Spoken Content → Voices → Korean.",
+        aboutText: "643 everyday Korean words (A1–A2, Seoul standard, polite 해요 style) with romanization, English and German meanings, example sentences and pronunciation via your device's speech synthesis. Your progress is stored on this device.",
+        dataSource: "The word list was compiled for this app and sorted into topics; the levels are an editorial grading, not the official TOPIK list. Romanization follows the Revised Romanization of Korean, generated from the Hangul with the main sound changes.",
+        pinyinTipsText: [
+          "Learn Hangul first: it takes a few days and is far more reliable than romanization. Start with the sound chart (Practice → Speak → Sound chart).",
+          "Each syllable block is a consonant + vowel (+ a final consonant, 받침): 한 = ㅎ + ㅏ + ㄴ. A silent ㅇ fills the consonant place before a vowel: 아.",
+          "Three kinds of consonants: plain (ㄱ ㄷ ㅂ ㅈ ㅅ), aspirated with a puff of air (ㅋ ㅌ ㅍ ㅊ) and tense, tight without air (ㄲ ㄸ ㅃ ㅉ ㅆ).",
+          "A final consonant moves to the next syllable when that starts with a vowel: 한국어 is said 한구거 (hangugeo). Words where speech differs from spelling show it in brackets: 독일 [도길].",
+          "Before ㄴ or ㅁ, final ㄱ ㄷ ㅂ become ㅇ ㄴ ㅁ: 감사합니다 is said 감사함니다.",
+          "Korean puts the verb last (subject – object – verb): 저는 사과를 먹어요 = I apple eat.",
+          "Particles mark the role of a word: 은/는 topic, 이/가 subject, 을/를 object, 에 place or time, 의 possessive.",
+          "The polite 해요 style (-아요/-어요) is the everyday form with people you don't know well; this course uses it throughout."
+        ]
+      },
+      de: {
+        modeSayDesc: "Wort sehen und laut sagen. Das Mikrofon prüft es, oder du nimmst dich auf und vergleichst.", stepSpeakDesc: "Sag jedes Wort laut. Das Mikrofon prüft es, oder du nimmst dich auf und vergleichst.",
+        brandSub: "Koreanisch", search: "Hangul, Umschrift oder Bedeutung suchen…", tilePinyin: "Umschrift auf Kacheln", langName: "Koreanisch", typeOr: "…oder tippe es",
+        modeType: "Wort tippen", modeTypeDesc: "Bedeutung sehen, koreanisches Wort in Hangul oder Umschrift eingeben.",
+        typeHint: "Hangul oder Umschrift (감사합니다 = gamsahamnida). Leerzeichen sind egal.", typePlaceholder: "Koreanisch…",
+        modeTyperDesc: "Koreanisch in Hangul so schnell wie möglich abtippen. Enter liest es vor.",
+        typerIntro: "Tippe die Zeile genau ab, in Hangul. Mit Enter bist du fertig: die App liest sie vor und geht weiter.",
+        typerHint: "Nutze die koreanische Tastatur (두벌식). Enter = fertig + vorlesen.",
+        modeNumbers: "Zahlen", modeNumbersDesc: "Sinokoreanische Zahlen 1–99 lesen und schreiben (일, 이, 삼…).",
+        dirHzTr: "Wort → Bedeutung", dirTrHz: "Bedeutung → Wort", dirHzPy: "Wort → Umschrift", dirPyHz: "Umschrift → Wort",
+        pinyinTips: "Hangul-Tipps", numbers: "Zahlen-Trainer", numbersDesc: "1–99 üben",
+        noZhVoice: "Noch keine koreanische Stimme gefunden",
+        ttsHint: "Kein Ton auf dem iPhone? Stell den Klingel-/Stumm-Schalter auf Klingeln und dreh die Lautstärke auf – die Sprachausgabe folgt dem Stumm-Schalter. Wird keine koreanische Stimme angezeigt, füge eine hinzu unter Einstellungen → Bedienungshilfen → Gesprochene Inhalte → Stimmen → Koreanisch.",
+        aboutText: "643 koreanische Alltagswörter (A1–A2, Seoul-Standard, höflicher 해요-Stil) mit Umschrift, englischer und deutscher Bedeutung, Beispielsätzen und Aussprache über die Sprachausgabe deines Geräts. Dein Fortschritt wird auf diesem Gerät gespeichert.",
+        dataSource: "Die Wortliste wurde für diese App zusammengestellt und nach Themen sortiert; die Stufen sind eine redaktionelle Einteilung, nicht die offizielle TOPIK-Liste. Die Umschrift folgt der Revidierten Romanisierung und wird mit den wichtigsten Lautregeln aus dem Hangul erzeugt.",
+        pinyinTipsText: [
+          "Lerne zuerst Hangul: das dauert ein paar Tage und ist viel verlässlicher als die Umschrift. Beginne mit der Lauttabelle (Üben → Sprechen → Lauttabelle).",
+          "Jeder Silbenblock ist Konsonant + Vokal (+ Schlusskonsonant, 받침): 한 = ㅎ + ㅏ + ㄴ. Ein stummes ㅇ füllt vor einem Vokal den Konsonantenplatz: 아.",
+          "Drei Arten von Konsonanten: einfach (ㄱ ㄷ ㅂ ㅈ ㅅ), behaucht mit Luftstoß (ㅋ ㅌ ㅍ ㅊ) und gespannt, fest ohne Luft (ㄲ ㄸ ㅃ ㅉ ㅆ).",
+          "Ein Schlusskonsonant rutscht in die nächste Silbe, wenn diese mit einem Vokal beginnt: 한국어 spricht man 한구거 (hangugeo). Wörter, deren Aussprache von der Schreibung abweicht, zeigen sie in Klammern: 독일 [도길].",
+          "Vor ㄴ oder ㅁ werden ㄱ ㄷ ㅂ am Silbenende zu ㅇ ㄴ ㅁ: 감사합니다 spricht man 감사함니다.",
+          "Im Koreanischen steht das Verb am Ende (Subjekt – Objekt – Verb): 저는 사과를 먹어요 = ich Apfel esse.",
+          "Partikeln zeigen die Rolle eines Wortes: 은/는 Thema, 이/가 Subjekt, 을/를 Objekt, 에 Ort oder Zeit, 의 Besitz.",
+          "Der höfliche 해요-Stil (-아요/-어요) ist die Alltagsform mit Menschen, die man nicht gut kennt; dieser Kurs nutzt ihn durchgehend."
         ]
       }
     },
@@ -887,12 +955,12 @@
     const st = status(id); const fav = S.favs.includes(id);
     openSheet(`
       ${picHtml(w, "big")}
-      ${pyFirst() ? `<div class="detail-py big">${pyHtml(w.py)}</div><div class="detail-sub-hz">${w.hz}</div>` : `<div class="detail-hz">${w.hz}</div><div class="detail-py">${pyShow(w.py)}</div>`}
+      ${pyFirst() ? `<div class="detail-py big">${pyHtml(w.py)}</div><div class="detail-sub-hz">${w.hz}</div>` : `<div class="detail-hz">${w.hz}</div><div class="detail-py">${pyShow(w.py)}</div>${pronHtml(w)}`}
       <div class="detail-tr">${esc(tr(w))}</div>
       ${tr2(w) ? `<div class="detail-tr2">${esc(tr2(w))}</div>` : ""}
       <div class="detail-meta">
         <span class="pill ${st}">${t(st)}</span>
-        <span class="pill new">${CATS[w.cat] ? CATS[w.cat].icon : ""} ${catName(w.cat)}</span>
+        ${(() => { const th = themes().find((x) => x.id === topicOf(w.id)); return th ? `<span class="pill new">${th.icon} ${esc(L(th.name))}</span>` : `<span class="pill new">${CATS[w.cat] ? CATS[w.cat].icon : ""} ${catName(w.cat)}</span>`; })()}
         <span class="pill new">${C.levelName(w.lvl)}${C.id === "zh" ? " · #" + w.id : ""}</span>
       </div>
       <div class="row" style="justify-content:center;margin-top:12px"><button class="speak-btn" id="d-speak" type="button" aria-label="${t("speak")}">🔊</button></div>
@@ -1070,7 +1138,7 @@
         <div class="flashcard" id="fc">
           ${flipped ? `
             ${picHtml(w)}
-            ${pyFirst() ? `<div class="fc-py big">${pyHtml(w.py)}</div><div class="fc-sub-hz">${w.hz}</div>` : `<div class="fc-hz ${isLong(w.hz) ? "long" : ""}">${w.hz}</div><div class="fc-py">${pyShow(w.py)}</div>`}
+            ${pyFirst() ? `<div class="fc-py big">${pyHtml(w.py)}</div><div class="fc-sub-hz">${w.hz}</div>` : `<div class="fc-hz ${isLong(w.hz) ? "long" : ""}">${w.hz}</div><div class="fc-py">${pyShow(w.py)}</div>${pronHtml(w)}`}
             <div class="fc-tr">${esc(tr(w))}</div>
             ${tr2(w) ? `<div class="fc-tr2">${esc(tr2(w))}</div>` : ""}
             ${w.ex ? `<div class="fc-ex">${pyFirst() && w.exPy ? `${w.exPy}<br><span class="hanzi small">${w.ex}</span>` : `<span class="hanzi">${w.ex}</span>${w.exPy}`}<br>${esc(exTr(w))}</div>` : ""}
@@ -1214,6 +1282,8 @@
       } else if (C.id === "ja") {
         const a = stripJa(v);
         ok = a === stripJa(w.kana) || a === stripJa(w.romaji) || a === stripJa(w.hz) || a === stripJa(w.romaji).replace(/'/g, "") || a === toRomaji(w.kana).replace(/ou/g, "oo") || a.replace(/ou/g, "oo") === stripJa(w.romaji).replace(/ou/g, "oo");
+      } else if (C.id === "ko") {
+        ok = koTyped(v, w.hz);
       } else {
         ok = hasDiacritics(v) ? v.normalize("NFC").toLowerCase().replace(/\s+/g, " ").trim() === w.hz.normalize("NFC").toLowerCase() : stripVi(v) === stripVi(w.hz);
       }
@@ -1461,7 +1531,11 @@
     const tens = Math.floor(n / 10), ones = n % 10;
     return (tens > 1 ? H[tens] + sep : "") + H[10] + (ones ? sep + H[ones] : "");
   }
+  // Korean: Sino-Korean numbers (used for money, dates, minutes, phone numbers)
+  const KO_NUM = ["영", "일", "이", "삼", "사", "오", "육", "칠", "팔", "구", "십"];
+  const numToKo = (n) => (n <= 10 ? KO_NUM[n] : (Math.floor(n / 10) > 1 ? KO_NUM[Math.floor(n / 10)] : "") + "십" + (n % 10 ? KO_NUM[n % 10] : ""));
   function numToHanzi(n) {
+    if (C.id === "ko") return numToKo(n);
     if (C.id === "vi") return numToVi(n);
     if (C.id === "ja") return numToJa(n, false);
     if (n <= 10) return NUM_HZ[n];
@@ -1469,6 +1543,7 @@
     return (tens > 1 ? NUM_HZ[tens] : "") + "十" + (ones ? NUM_HZ[ones] : "");
   }
   function numToPinyin(n) {
+    if (C.id === "ko") return window.KO.romanize(numToKo(n));
     if (C.id === "vi") return "";
     if (C.id === "ja") return numToJa(n, true);
     if (n <= 10) return NUM_PY[n];
@@ -1546,6 +1621,8 @@
   }
   // One colour per tone, so the tone pattern of a word is visible at a glance
   const pyHtml = (py) => pyParts(py).map((x) => (x.sep ? esc(x.text) : `<span class="tn${x.tone}">${esc(x.text)}</span>`)).join("");
+  // Korean: how the word is said when it differs from the spelling (독일 → [도길])
+  const pronHtml = (w) => (w.pron ? `<div class="pron-hint" title="${esc(t("pronHint"))}">[${esc(w.pron)}]</div>` : "");
   const pyShow = (py) => (C.id === "zh" ? pyHtml(py) : esc(py));
   // Typing pinyin: tone numbers turn into marks as you type (ni3 → nǐ), the caret stays in place
   function liveToneMarks(e, input) {
@@ -1589,6 +1666,11 @@
         if (m.vowel) return syl.some((x) => x.includes(m.vowel));
         if (m.initial) { const set = m.initial.split("|"); return syl.some((x) => { const r = x.match(VI_INI); return r && set.includes(r[1]); }); }
         if (m.final) { const set = m.final.split("|"); return syl.some((x) => { const r = x.match(VI_FIN); return r && set.includes(r[1]); }); }
+      }
+      if (C.id === "ko") {
+        if (cell && cell.t && w.hz.includes(cell.t)) return true; // the syllable itself
+        if (cell) return false;
+        return Array.from(w.hz).some((ch) => { const j = koJamo(ch); return j && (m.initial ? j.i === m.initial : m.vowel ? j.v === m.vowel : j.f === m.final); });
       }
       if (C.id === "ja") {
         const reading = kataToHira(w.kana || "");
@@ -1877,7 +1959,7 @@
     function bubble(l, k, extra) {
       const o = opt();
       const main = C.id === "zh" ? (zhPf ? pyTapWords(l.py) : `<span class="hanzi">${l.hz}</span>`) : esc(l.hz);
-      const sub = C.id === "zh" ? (zhPf ? (o.hz ? `<div class="b-sub hanzi">${l.hz}</div>` : "") : `<div class="b-sub">${pyTapWords(l.py)}</div>`) : "";
+      const sub = C.id === "zh" ? (zhPf ? (o.hz ? `<div class="b-sub hanzi">${l.hz}</div>` : "") : `<div class="b-sub">${pyTapWords(l.py)}</div>`) : C.id === "ko" ? `<div class="b-sub">${esc(l.py)}</div>` : "";
       return `<div class="bubble ${l.who ? "right" : "left"} ${extra && extra.cls ? extra.cls : ""}" data-line="${k}">
         <div class="b-who">${nameOf(l.who)}</div>
         <div class="b-main">${main}</div>${sub}
@@ -2023,7 +2105,8 @@
   }
   // Typed answer in a dialogue: pinyin (tones optional, but if typed they must match) or the characters
   function checkTyped(l, v) {
-    if (/\p{Script=Han}/u.test(v)) return { ok: matchHeard(l.hz, [v]).score >= 0.9 };
+    if (/[\p{Script=Han}\p{Script=Hangul}]/u.test(v)) return { ok: matchHeard(l.hz, [v]).score >= 0.9 };
+    if (C.id === "ko") return { ok: koTyped(v, l.hz) };
     if (C.id !== "zh") return { ok: hasDiacritics(v) ? norm(v) === norm(l.hz) && v.normalize("NFC").toLowerCase().replace(/[^\p{L}\s]/gu, "").replace(/\s+/g, " ").trim() === l.hz.normalize("NFC").toLowerCase().replace(/[^\p{L}\s]/gu, "").replace(/\s+/g, " ").trim() : norm(v) === norm(l.hz) };
     const clean = (s) => s.replace(/[:;：，。！？、]/g, "");
     if (stripTones(clean(v)) !== stripTones(clean(l.py))) return { ok: false };
@@ -2045,7 +2128,7 @@
   // Units to compare: characters for Chinese and Japanese, words for Vietnamese; digits become number words
   function unitsOf(s) {
     const x = String(s).replace(/\d+/g, (m) => (+m <= 99 ? numToHanzi(+m) + (C.id === "vi" ? " " : "") : m));
-    return C.id === "vi" ? x.normalize("NFC").toLowerCase().split(/[^\p{L}]+/u).filter(Boolean) : Array.from(x).filter((c) => /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]/u.test(c));
+    return C.id === "vi" ? x.normalize("NFC").toLowerCase().split(/[^\p{L}]+/u).filter(Boolean) : Array.from(x).filter((c) => /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/u.test(c));
   }
   // Which target units were heard (longest common subsequence over the recogniser's alternatives)
   function matchHeard(target, alts) {
@@ -2307,7 +2390,7 @@
       view.innerHTML = `${sessionHead(i, list.length, `✓ ${correct}`)}
         <div class="card meet-card">
           ${picHtml(w, "big")}
-          ${pyFirst() ? `<div class="meet-py">${pyHtml(w.py)}</div><div class="meet-hz">${w.hz}</div>` : `<div class="meet-hz big">${w.hz}</div><div class="meet-py sm">${pyShow(w.py)}</div>`}
+          ${pyFirst() ? `<div class="meet-py">${pyHtml(w.py)}</div><div class="meet-hz">${w.hz}</div>` : `<div class="meet-hz big">${w.hz}</div><div class="meet-py sm">${pyShow(w.py)}</div>${pronHtml(w)}`}
           <div class="meet-tr">${esc(tr(w))}</div>
           <div class="row meet-btns"><button class="btn" id="m-say" type="button">🔊 ${t("playModel")}</button>${micButton("w")}</div>
           <div id="say-res"></div>
@@ -2403,7 +2486,7 @@
       view.innerHTML = `${sessionHead(i, list.length)}
         <div class="card meet-card">
           ${picHtml(w, "big")}
-          ${pyFirst() ? `<div class="meet-py">${pyHtml(w.py)}</div><div class="meet-hz">${w.hz}</div>` : `<div class="meet-hz big">${w.hz}</div><div class="meet-py sm">${pyShow(w.py)}</div>`}
+          ${pyFirst() ? `<div class="meet-py">${pyHtml(w.py)}</div><div class="meet-hz">${w.hz}</div>` : `<div class="meet-hz big">${w.hz}</div><div class="meet-py sm">${pyShow(w.py)}</div>${pronHtml(w)}`}
           <div class="meet-tr">${esc(tr(w))}</div>
           <div class="row meet-btns"><button class="btn" id="m-say" type="button">🔊 ${t("play")}</button><button class="btn ghost" id="m-slow" type="button">🐢 ${t("slowly")}</button></div>
           ${w.ex ? `<div class="example"><div class="row"><div class="grow">${pyFirst() && w.exPy ? `<div class="ex-py big">${w.exPy}</div><div class="ex-hz small">${w.ex}</div>` : `<div class="ex-hz">${w.ex}</div>${w.exPy ? `<div class="ex-py">${w.exPy}</div>` : ""}`}<div class="ex-tr">${esc(exTr(w))}</div></div><button class="speak-btn sm" id="m-ex" type="button">🔊</button></div></div>` : ""}

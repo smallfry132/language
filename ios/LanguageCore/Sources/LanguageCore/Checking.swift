@@ -18,7 +18,7 @@ public enum Check {
             return x.precomposedStringWithCanonicalMapping.lowercased().split(whereSeparator: { !$0.isLetter }).map(String.init)
         }
         return x.unicodeScalars.filter { u in
-            u.properties.isIdeographic || (0x3040...0x309F).contains(u.value) || (0x30A0...0x30FF).contains(u.value)
+            u.properties.isIdeographic || (0x3040...0x309F).contains(u.value) || (0x30A0...0x30FF).contains(u.value) || (0xAC00...0xD7A3).contains(u.value)
         }.map { String($0) }
     }
 
@@ -62,6 +62,8 @@ public enum Check {
             if ok && !digits.isEmpty { ok = digits == Lingo.toneSeq(w.py).map(String.init).joined() }
             else if ok && !Lingo.toneSeq(v).isEmpty { ok = Lingo.toneSeq(v) == Lingo.toneSeq(w.py) } // tone marks typed: they must be right
             return ok
+        case "ko":
+            return koTyped(v, hz: w.hz, roman: w.py)
         case "ja":
             let a = Lingo.stripJa(v), ro = Lingo.stripJa(w.romaji ?? "")
             return a == Lingo.stripJa(w.kana ?? "") || a == ro || a == Lingo.stripJa(w.hz) || a == ro.replacingOccurrences(of: "'", with: "")
@@ -82,7 +84,8 @@ public enum Check {
     }
     /// A typed dialogue answer: pinyin (tones optional, but typed tones must match) or the characters
     public static func typedLine(_ v: String, hz: String, py: String, course: String) -> Typed {
-        if v.unicodeScalars.contains(where: { $0.properties.isIdeographic }) { return Typed(ok: matchHeard(hz, [v], course: course).score >= 0.9) }
+        if v.unicodeScalars.contains(where: { $0.properties.isIdeographic || (0xAC00...0xD7A3).contains($0.value) }) { return Typed(ok: matchHeard(hz, [v], course: course).score >= 0.9) }
+        if course == "ko" { return Typed(ok: koTyped(v, hz: hz, roman: py)) }
         if course != "zh" {
             let n = Lingo.norm(v, course: course) == Lingo.norm(hz, course: course)
             if !Lingo.hasDiacritics(v) { return Typed(ok: n) }
@@ -101,6 +104,13 @@ public enum Check {
         let wrong = zip(mine, want).contains { $0.tone != 5 && $0.tone != $1.tone }
         let missing = zip(mine, want).contains { $0.tone == 5 && $1.tone != 5 }
         return Typed(ok: !wrong, tonesMissing: !wrong && missing, tonesWrong: wrong)
+    }
+
+    /// A typed Korean answer: Hangul or romanization; spaces and punctuation don't matter
+    static func koTyped(_ v: String, hz: String, roman: String) -> Bool {
+        let plain = { (s: String) in s.precomposedStringWithCanonicalMapping.lowercased().filter { $0.isLetter } }
+        let a = plain(v)
+        return !a.isEmpty && (a == plain(hz) || a == plain(roman))
     }
 
     /// The dialogue hint: first letter of each word, the rest as dots

@@ -1,6 +1,6 @@
 # Language Trainer
 
-An app for studying vocabulary in three courses: **Chinese, HSK levels 1–3** (150 + 150 + 300 words), **Japanese, JLPT N5–N1** (about 8,000 words) and **Vietnamese, A1–C2** (950 words in six levels). Switch between them with the button in the top-left corner; each course keeps its own words, levels and progress. The app is optimized for **iPhone** (Safari, installable as a full-screen web app) and **Mac**.
+An app for studying vocabulary in four courses: **Chinese, HSK levels 1–3** (150 + 150 + 300 words), **Japanese, JLPT N5–N1** (about 8,000 words), **Vietnamese, A1–C2** (950 words in six levels) and **Korean, A1–A2** (643 words). Switch between them with the button in the top-left corner; each course keeps its own words, levels and progress. The app is optimized for **iPhone** (Safari, installable as a full-screen web app) and **Mac**.
 
 It comes in two forms that share the same courses and sync with each other:
 
@@ -94,6 +94,8 @@ web/
   js/data-vi.js         Vietnamese A1–A2 words (word, pronunciation guide, English, example)
   js/data-vi-2.js       Vietnamese B1–C2 words
   js/data-ja.js         JLPT N5–N1 words as compact rows [level, kanji, kana, meaning]
+  js/data-ko.js         Korean A1–A2 words by topic [id, Hangul, English, German, example, example in English]
+  js/korean.js          Hangul → romanization and spoken form (sound changes between syllables)
   js/sounds-data.js     Sound charts and listening drills per language
   js/dialogues.js       Dialogues per course (Chinese: HSK 1)
   js/themes.js          Topics (ordered groups of word ids) and pictures for the Chinese words
@@ -120,9 +122,11 @@ The word lists follow the official **HSK 2.0** standard (2012): 150 words for HS
 
 The Japanese list is the JLPT N5–N1 vocabulary from [jamsinclair/open-anki-jlpt-decks](https://github.com/jamsinclair/open-anki-jlpt-decks) (MIT), which is based on Jonathan Waller's JLPT lists at tanos.co.uk (CC BY). Kanji, kana reading and English meaning come from that data; romaji and the rough category assignment are derived automatically at load time, and there are no example sentences for Japanese.
 
+The Korean list (643 words, Seoul standard, polite 해요 style, each with an example sentence) was compiled for this app and sorted into the topics by hand; the A1/A2 levels are an editorial grading, not the official TOPIK list. Romanization (Revised Romanization) and the spoken form shown in brackets when sound changes alter the spelling (독일 [도길]) are generated from the Hangul by `js/korean.js`. Korean also has the eight dialogues, a Hangul sound chart with drills for plain/aspirated/tense consonants, similar vowels and final consonants, and Sino-Korean numbers.
+
 The Vietnamese list (950 words, Northern standard) was compiled for this app: A1–B1 cover everyday topics, B2–C1 society, work and formal register, C2 literary and idiomatic vocabulary including common proverbs. The level grading is editorial and not based on an official syllabus. Its pronunciation column is a rough English respelling, not IPA.
 
-Word ids are stable and used as keys for the stored learning progress: 1–150 HSK 1, 151–301 HSK 2, 302–601 HSK 3, `v1`–`v950` Vietnamese (A1 v1–160, A2 v161–350, B1 v351–500, B2 v501–650, C1 v651–800, C2 v801–950), `j1`–`j8034` Japanese in file order (N5 first).
+Word ids are stable and used as keys for the stored learning progress: 1–150 HSK 1, 151–301 HSK 2, 302–601 HSK 3, `v1`–`v950` Vietnamese (A1 v1–160, A2 v161–350, B1 v351–500, B2 v501–650, C1 v651–800, C2 v801–950), `j1`–`j8034` Japanese in file order (N5 first), `k1`–`k643` Korean.
 
 ## Progress storage
 

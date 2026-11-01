@@ -12,7 +12,7 @@ fs.mkdirSync(OUT, { recursive: true });
 
 const ctx = { window: {} };
 vm.createContext(ctx);
-for (const f of ["data.js", "data-hsk2.js", "data-hsk3.js", "data-vi.js", "data-vi-2.js", "data-ja.js", "sounds-data.js", "dialogues.js", "themes.js", "themes-auto.js"]) {
+for (const f of ["data.js", "data-hsk2.js", "data-hsk3.js", "data-vi.js", "data-vi-2.js", "data-ja.js", "korean.js", "data-ko.js", "sounds-data.js", "dialogues.js", "themes.js", "themes-auto.js"]) {
   vm.runInContext(fs.readFileSync(path.join(JS, f), "utf8"), ctx, { filename: f });
 }
 const W = ctx.window;
@@ -34,7 +34,9 @@ const words = {
   ja: W.JA_WORDS_RAW.map(([lvl, expr, reading, meaning], i) => {
     const romaji = ctx.toRomaji(reading);
     return { id: "j" + (i + 1), hz: expr, py: reading === expr ? romaji : `${reading} · ${romaji}`, kana: reading, romaji, en: meaning, cat: ctx.jaCategory(expr, meaning), lvl };
-  })
+  }),
+  // Korean: romanization and the spoken form generated from the Hangul (korean.js)
+  ko: W.KO_WORDS.map((w) => { const pron = W.KO.pronounce(w.w); return clean({ id: w.id, hz: w.w, py: W.KO.romanize(w.w), en: w.en, de: w.de, cat: "misc", lvl: w.lvl, ex: w.ex, exPy: W.KO.romanize(w.ex), exEn: w.exEn, pron: pron !== w.w ? pron : undefined }); })
 };
 for (const [c, list] of Object.entries(words)) fs.writeFileSync(path.join(OUT, `words-${c}.json`), JSON.stringify(list));
 
@@ -57,6 +59,7 @@ const strings = {
 };
 fs.writeFileSync(path.join(OUT, "strings.json"), JSON.stringify(strings, null, 1));
 fs.writeFileSync(path.join(OUT, "categories.json"), JSON.stringify({ ...W.HSK1_CATEGORIES, custom: { en: "My words", de: "Eigene Wörter", icon: "✏️" } }));
+W.DIALOGUES.ko.forEach((d) => d.lines.forEach((l) => { l.py = l.py || W.KO.romanize(l.hz); }));
 fs.writeFileSync(path.join(OUT, "dialogues.json"), JSON.stringify(W.DIALOGUES));
 fs.writeFileSync(path.join(OUT, "sounds.json"), JSON.stringify(W.SOUNDS));
 // Topics with word ids as strings (the native apps use string ids), and pictures per word id

@@ -235,3 +235,25 @@ final class ThemeTests: XCTestCase {
         XCTAssertEqual(vi.groups(of: vi.themes.first { $0.id == "numbers" }!)[0].words.prefix(3).map(\.hz), ["một", "hai", "ba"])
     }
 }
+
+final class KoreanTests: XCTestCase {
+    func testWordsAndRomanization() {
+        let ko = Library.shared.words["ko"]!
+        XCTAssertEqual(ko.count, 643)
+        let w = ko.first { $0.hz == "감사합니다" }!
+        XCTAssertEqual(w.py, "gamsahamnida")
+        XCTAssertEqual(ko.first { $0.hz == "독일" }?.pron, "도길")
+        XCTAssertTrue(Check.typedWord("gamsahamnida", w))
+        XCTAssertTrue(Check.typedWord("감사합니다", w))
+        XCTAssertFalse(Check.typedWord("gomawoyo", w))
+        XCTAssertEqual(Library.shared.dialogues["ko"]?.count, 8)
+        XCTAssertEqual(Library.shared.dialogues["ko"]?.first?.lines.first?.py, "annyeonghaseyo!")
+    }
+    func testNumbersAndListening() {
+        XCTAssertEqual(Numbers.written(17, course: "ko"), "십칠")
+        XCTAssertEqual(Numbers.spoken(11, course: "ko"), "sibil")
+        XCTAssertEqual(Numbers.spoken(25, course: "ko"), "isibo")
+        XCTAssertEqual(Check.matchHeard("오늘 날씨가 좋아요", ["오늘 날씨 좋아요"], course: "ko").score, 7.0 / 8, accuracy: 0.01)
+        XCTAssertEqual(Check.typedLine("bibimbap hana hago gimchijjigae hana juseyo", hz: "비빔밥 하나하고 김치찌개 하나 주세요.", py: "bibimbap hanahago gimchijjigae hana juseyo.", course: "ko").ok, true)
+    }
+}

@@ -3,6 +3,62 @@
  * match: how to find example words for the row in the course word list (see soundExamples in app.js).
  * drills: sets of confusable items; a drill plays one and asks which it was. */
 window.SOUNDS = {
+  ko: {
+    intro: { en: "Hangul is an alphabet: each syllable block is a consonant, a vowel and sometimes a final consonant (받침). Learn the letters before relying on romanization. Tap a cell to hear it; example words come from the course.", de: "Hangul ist ein Alphabet: jeder Silbenblock besteht aus Konsonant, Vokal und manchmal einem Schlusskonsonanten (받침). Lerne die Buchstaben, statt dich auf die Umschrift zu verlassen. Tippe eine Zelle, um sie zu hören; die Beispielwörter stammen aus dem Kurs." },
+    groups: [
+      { id: "vowels", name: { en: "Vowels", de: "Vokale" }, head: ["", "with y"], rows: [
+        { base: "ㅏ", cells: [{ t: "아", sub: "a" }, { t: "야", sub: "ya" }], match: { vowel: "ㅏ" }, note: { en: "a as in 'father'", de: "a wie in „Vater“" } },
+        { base: "ㅓ", cells: [{ t: "어", sub: "eo" }, { t: "여", sub: "yeo" }], match: { vowel: "ㅓ" }, note: { en: "open o, between 'o' and 'u' in 'up'", de: "offenes o, wie in „Sonne“" } },
+        { base: "ㅗ", cells: [{ t: "오", sub: "o" }, { t: "요", sub: "yo" }], match: { vowel: "ㅗ" }, note: { en: "closed o with rounded lips", de: "geschlossenes o, Lippen gerundet" } },
+        { base: "ㅜ", cells: [{ t: "우", sub: "u" }, { t: "유", sub: "yu" }], match: { vowel: "ㅜ" }, note: { en: "oo as in 'moon'", de: "u wie in „Mut“" } },
+        { base: "ㅡ", cells: [{ t: "으", sub: "eu" }], match: { vowel: "ㅡ" }, note: { en: "u with spread lips, no rounding", de: "u mit breiten, ungerundeten Lippen" } },
+        { base: "ㅣ", cells: [{ t: "이", sub: "i" }], match: { vowel: "ㅣ" }, note: { en: "ee as in 'see'", de: "i wie in „Kino“" } },
+        { base: "ㅐ", cells: [{ t: "애", sub: "ae" }, { t: "얘", sub: "yae" }], match: { vowel: "ㅐ" }, note: { en: "e as in 'bed'; in Seoul the same as ㅔ", de: "ä wie in „Bär“; in Seoul wie ㅔ" } },
+        { base: "ㅔ", cells: [{ t: "에", sub: "e" }, { t: "예", sub: "ye" }], match: { vowel: "ㅔ" }, note: { en: "e as in 'bed'", de: "e wie in „Bett“" } }
+      ] },
+      { id: "compound", name: { en: "Combined vowels", de: "Zusammengesetzte Vokale" }, head: [], rows: [
+        { base: "ㅘ", cells: [{ t: "와", sub: "wa" }], match: { vowel: "ㅘ" } },
+        { base: "ㅝ", cells: [{ t: "워", sub: "wo" }], match: { vowel: "ㅝ" } },
+        { base: "ㅙ", cells: [{ t: "왜", sub: "wae" }], match: { vowel: "ㅙ" } },
+        { base: "ㅚ", cells: [{ t: "외", sub: "oe" }], match: { vowel: "ㅚ" }, note: { en: "today said like 'we'", de: "heute wie „we“ gesprochen" } },
+        { base: "ㅟ", cells: [{ t: "위", sub: "wi" }], match: { vowel: "ㅟ" } },
+        { base: "ㅢ", cells: [{ t: "의", sub: "ui" }], match: { vowel: "ㅢ" }, note: { en: "eu + i; as the particle 의 often 'e'", de: "eu + i; als Partikel 의 oft „e“" } }
+      ] },
+      { id: "consonants", name: { en: "Consonants: plain, aspirated, tense", de: "Konsonanten: einfach, behaucht, gespannt" }, head: ["plain", "aspirated", "tense"], rows: [
+        { base: "ㄱ", cells: [{ t: "가", sub: "ga" }, { t: "카", sub: "ka" }, { t: "까", sub: "kka" }], match: { initial: "ㄱ" }, note: { en: "plain: soft k/g · aspirated: k with a puff of air · tense: tight k, no air", de: "einfach: weiches k/g · behaucht: k mit Luftstoß · gespannt: festes k ohne Luft" } },
+        { base: "ㄷ", cells: [{ t: "다", sub: "da" }, { t: "타", sub: "ta" }, { t: "따", sub: "tta" }], match: { initial: "ㄷ" } },
+        { base: "ㅂ", cells: [{ t: "바", sub: "ba" }, { t: "파", sub: "pa" }, { t: "빠", sub: "ppa" }], match: { initial: "ㅂ" } },
+        { base: "ㅈ", cells: [{ t: "자", sub: "ja" }, { t: "차", sub: "cha" }, { t: "짜", sub: "jja" }], match: { initial: "ㅈ" } },
+        { base: "ㅅ", cells: [{ t: "사", sub: "sa" }, {}, { t: "싸", sub: "ssa" }], match: { initial: "ㅅ" }, note: { en: "before ㅣ it sounds like 'sh': 시", de: "vor ㅣ wie „sch“: 시" } },
+        { base: "ㄴ", cells: [{ t: "나", sub: "na" }], match: { initial: "ㄴ" } },
+        { base: "ㅁ", cells: [{ t: "마", sub: "ma" }], match: { initial: "ㅁ" } },
+        { base: "ㄹ", cells: [{ t: "라", sub: "ra" }], match: { initial: "ㄹ" }, note: { en: "a light tap, between r and l", de: "ein leichter Zungenschlag zwischen r und l" } },
+        { base: "ㅎ", cells: [{ t: "하", sub: "ha" }], match: { initial: "ㅎ" } },
+        { base: "ㅇ", cells: [{ t: "아", sub: "–" }], match: { initial: "ㅇ" }, note: { en: "silent at the start of a syllable, 'ng' at the end", de: "am Silbenanfang stumm, am Ende „ng“" } }
+      ] },
+      { id: "finals", name: { en: "Final consonants (받침)", de: "Schlusskonsonanten (받침)" }, head: ["", "sounds like"], rows: [
+        { base: "ㄱ", cells: [{ t: "각", sub: "k" }, { t: "약", sub: "yak" }], match: { final: "ㄱ" }, note: { en: "ㄱ ㅋ ㄲ at the end all sound k, not released", de: "ㄱ ㅋ ㄲ klingen am Ende alle wie k, ohne Luft" } },
+        { base: "ㄴ", cells: [{ t: "간", sub: "n" }, { t: "산", sub: "san" }], match: { final: "ㄴ" } },
+        { base: "ㄷ", cells: [{ t: "갇", sub: "t" }, { t: "옷", sub: "ot" }], match: { final: "ㅅ" }, note: { en: "ㄷ ㅅ ㅆ ㅈ ㅊ ㅌ ㅎ at the end all sound t", de: "ㄷ ㅅ ㅆ ㅈ ㅊ ㅌ ㅎ klingen am Ende alle wie t" } },
+        { base: "ㄹ", cells: [{ t: "갈", sub: "l" }, { t: "물", sub: "mul" }], match: { final: "ㄹ" } },
+        { base: "ㅁ", cells: [{ t: "감", sub: "m" }, { t: "봄", sub: "bom" }], match: { final: "ㅁ" } },
+        { base: "ㅂ", cells: [{ t: "갑", sub: "p" }, { t: "집", sub: "jip" }], match: { final: "ㅂ" } },
+        { base: "ㅇ", cells: [{ t: "강", sub: "ng" }, { t: "방", sub: "bang" }], match: { final: "ㅇ" } }
+      ] }
+    ],
+    drills: [
+      { id: "plain", name: { en: "Plain, aspirated, tense", de: "Einfach, behaucht, gespannt" }, sets: [
+        [{ t: "가" }, { t: "카" }, { t: "까" }], [{ t: "다" }, { t: "타" }, { t: "따" }], [{ t: "바" }, { t: "파" }, { t: "빠" }],
+        [{ t: "자" }, { t: "차" }, { t: "짜" }], [{ t: "사" }, { t: "싸" }], [{ t: "불" }, { t: "풀" }, { t: "뿔" }], [{ t: "달" }, { t: "탈" }, { t: "딸" }]
+      ] },
+      { id: "vowels", name: { en: "Similar vowels", de: "Ähnliche Vokale" }, sets: [
+        [{ t: "어" }, { t: "오" }], [{ t: "으" }, { t: "우" }], [{ t: "여" }, { t: "요" }], [{ t: "워" }, { t: "와" }], [{ t: "서" }, { t: "소" }], [{ t: "그" }, { t: "구" }]
+      ] },
+      { id: "finals", name: { en: "Final consonants", de: "Schlusskonsonanten" }, sets: [
+        [{ t: "안" }, { t: "앙" }], [{ t: "암" }, { t: "압" }], [{ t: "간" }, { t: "갈" }], [{ t: "박" }, { t: "밥" }], [{ t: "산" }, { t: "상" }], [{ t: "곰" }, { t: "공" }]
+      ] }
+    ]
+  },
   zh: {
     intro: { en: "Mandarin syllables are an initial consonant plus a final, spoken in one of four tones (or the light neutral tone). Tap a cell to hear it; example words come from the HSK lists.", de: "Mandarin-Silben bestehen aus Anlaut und Auslaut und werden in einem von vier Tönen (oder dem leichten neutralen Ton) gesprochen. Tippe eine Zelle, um sie zu hören; die Beispielwörter stammen aus den HSK-Listen." },
     groups: [

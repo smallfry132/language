@@ -8,12 +8,13 @@ import path from "node:path";
 const JS = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../web/js");
 const ctx = { window: {} };
 vm.createContext(ctx);
-for (const f of ["data.js", "data-hsk2.js", "data-hsk3.js", "data-vi.js", "data-vi-2.js", "data-ja.js", "themes.js", "themes-auto.js"]) vm.runInContext(fs.readFileSync(path.join(JS, f), "utf8"), ctx);
+for (const f of ["data.js", "data-hsk2.js", "data-hsk3.js", "data-vi.js", "data-vi-2.js", "data-ja.js", "data-ko.js", "themes.js", "themes-auto.js"]) vm.runInContext(fs.readFileSync(path.join(JS, f), "utf8"), ctx);
 const W = ctx.window;
 const COURSES = {
   zh: [].concat(W.HSK1_WORDS, W.HSK2_WORDS, W.HSK3_WORDS).map((w) => ({ id: w.id, hz: w.hz, en: w.en })),
   vi: W.VI_WORDS.map((w) => ({ id: w.id, hz: w.w, en: w.en })),
-  ja: W.JA_WORDS_RAW.map((r, i) => ({ id: "j" + (i + 1), hz: r[1], en: r[3] }))
+  ja: W.JA_WORDS_RAW.map((r, i) => ({ id: "j" + (i + 1), hz: r[1], en: r[3] })),
+  ko: W.KO_WORDS.map((w) => ({ id: w.id, hz: w.w, en: w.en }))
 };
 let failed = false;
 for (const [course, words] of Object.entries(COURSES)) {

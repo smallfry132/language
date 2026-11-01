@@ -94,7 +94,7 @@ extension AppState {
                 switch f {
                 case "favs": favs = d.favs ?? []
                 case "settings": let v = settings.voices; settings = d.settings ?? Settings(); settings.voices = v
-                case "courses": if let c = d.courses { courses = c; for k in ["zh", "vi", "ja"] where (courses[k]?.levels ?? []).isEmpty { courses[k] = CourseState() } }
+                case "courses": if let c = d.courses { courses = c; for c in Course.all where (courses[c.id]?.levels ?? []).isEmpty { courses[c.id] = CourseState() } }
                 case "typer": typer = d.typer
                 default: lang = d.lang ?? lang
                 }

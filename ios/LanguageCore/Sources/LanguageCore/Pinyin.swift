@@ -25,8 +25,20 @@ public enum Lingo {
     public static func stripJa(_ s: String) -> String {
         s.precomposedStringWithCanonicalMapping.lowercased().filter { !" \t\n'’-.,!?・".contains($0) }
     }
+    /// Korean: Hangul or romanization, without spaces, hyphens and punctuation
+    public static func stripKo(_ s: String) -> String {
+        s.precomposedStringWithCanonicalMapping.lowercased().filter { !" \t\n'’-.,!?".contains($0) }
+    }
     public static func norm(_ s: String, course: String) -> String {
-        course == "zh" ? stripTones(s) : course == "ja" ? stripJa(s) : stripVi(s)
+        course == "zh" ? stripTones(s) : course == "ja" ? stripJa(s) : course == "ko" ? stripKo(s) : stripVi(s)
+    }
+    /// Hangul syllable → its letters (initial, vowel, final) as compatibility jamo
+    public static func koJamo(_ c: Character) -> (i: String, v: String, f: String)? {
+        guard let u = c.unicodeScalars.first?.value, (0xAC00...0xD7A3).contains(u) else { return nil }
+        let n = Int(u - 0xAC00)
+        let ini = Array("ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ"), vow = Array("ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ")
+        let fin = ["", "ㄱ", "ㄲ", "ㄳ", "ㄴ", "ㄵ", "ㄶ", "ㄷ", "ㄹ", "ㄺ", "ㄻ", "ㄼ", "ㄽ", "ㄾ", "ㄿ", "ㅀ", "ㅁ", "ㅂ", "ㅄ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"]
+        return (String(ini[n / 588]), String(vow[(n % 588) / 28]), fin[n % 28])
     }
     public static func hasDiacritics(_ s: String) -> Bool {
         s.decomposedStringWithCanonicalMapping.unicodeScalars.contains { combining.contains($0) } || s.lowercased().contains("đ")

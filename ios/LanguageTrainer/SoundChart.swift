@@ -37,6 +37,7 @@ struct SoundChart: View {
                                         VStack(spacing: 1) {
                                             Text(t).scaledFont(17, .semibold).lineLimit(1).minimumScaleFactor(0.6)
                                             if let s = c.s, s != t { Text(s).font(.caption2).foregroundStyle(Color.ink3) }
+                                            if let sub = c.sub { Text(sub).font(.caption2).foregroundStyle(Color.ink3) }
                                         }
                                         .frame(maxWidth: .infinity, minHeight: 52)
                                         .background(picked?.row == ri && picked?.cell == ci ? Color.accentRed.opacity(0.14) : Color.elevated, in: RoundedRectangle(cornerRadius: 10))
@@ -99,6 +100,14 @@ struct SoundChart: View {
                     return syl.contains { s in (try? re.firstMatch(in: s)).flatMap { $0 }.map { set.contains(String($0.1)) } ?? false }
                 }
                 return false
+            case "ko":
+                // A cell: words with that syllable; a row: words with that letter
+                if let t = cell?.t { return w.hz.contains(t) }
+                guard let m else { return false }
+                return w.hz.contains { c in
+                    guard let j = Lingo.koJamo(c) else { return false }
+                    return m.initial.map { $0 == j.i } ?? m.vowel.map { $0 == j.v } ?? m.final.map { $0 == j.f } ?? false
+                }
             default:
                 let reading = Lingo.kataToHira(w.kana ?? "")
                 let keys = cell.map { [Lingo.kataToHira($0.t ?? "")] } ?? row.cells.compactMap { $0.t.map(Lingo.kataToHira) }

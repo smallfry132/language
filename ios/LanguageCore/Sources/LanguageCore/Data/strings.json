@@ -356,7 +356,8 @@
    "modeListenPic": "Hear and pick the picture",
    "modeListenPicDesc": "Hear a word and pick its picture.",
    "pictureQ": "What is this?",
-   "hearPicQ": "Which picture did you hear?"
+   "hearPicQ": "Which picture did you hear?",
+   "pronHint": "How it is said"
   },
   "de": {
    "brandSub": "Trainer",
@@ -713,7 +714,8 @@
    "modeListenPic": "Hören und Bild wählen",
    "modeListenPicDesc": "Wort hören und das passende Bild wählen.",
    "pictureQ": "Was ist das?",
-   "hearPicQ": "Welches Bild hast du gehört?"
+   "hearPicQ": "Welches Bild hast du gehört?",
+   "pronHint": "So wird es gesprochen"
   }
  },
  "pinyinFirst": {
@@ -804,6 +806,86 @@
      "r ist ein leichter Zungenschlag zwischen r und l. f (ふ) wird sanft zwischen den Lippen geblasen. ん vor b, p, m klingt wie m.",
      "Nicht Betonung, sondern Tonhöhe unterscheidet manche Wörter (はし Brücke vs. はし Essstäbchen). Höre das Audio und imitiere die Melodie.",
      "Bedeutungen listen mehrere Lesarten durch Kommas getrennt. Im Multiple Choice zählt jede davon als Bedeutung des Wortes."
+    ]
+   }
+  },
+  "ko": {
+   "en": {
+    "modeSayDesc": "See a word and say it. The microphone checks it, or you record and compare.",
+    "stepSpeakDesc": "Say each word out loud. The microphone checks it, or you record yourself and compare.",
+    "brandSub": "Korean",
+    "search": "Search Hangul, romanization or meaning…",
+    "tilePinyin": "Romanization on tiles",
+    "langName": "Korean",
+    "typeOr": "…or type it",
+    "modeType": "Type the word",
+    "modeTypeDesc": "See the meaning, type the Korean word in Hangul or romanization.",
+    "typeHint": "Hangul or romanization (감사합니다 = gamsahamnida). Spaces don't matter.",
+    "typePlaceholder": "Korean…",
+    "modeTyperDesc": "Copy-type Korean in Hangul as fast as you can. Enter reads it aloud.",
+    "typerIntro": "Type the line exactly as shown, in Hangul. Press Enter when you are done: the app reads it aloud and moves on.",
+    "typerHint": "Use the Korean keyboard (두벌식). Enter = done + speak.",
+    "modeNumbers": "Numbers",
+    "modeNumbersDesc": "Read and write Sino-Korean numbers 1–99 (일, 이, 삼…).",
+    "dirHzTr": "Word → Meaning",
+    "dirTrHz": "Meaning → Word",
+    "dirHzPy": "Word → Romanization",
+    "dirPyHz": "Romanization → Word",
+    "pinyinTips": "Hangul tips",
+    "numbers": "Number trainer",
+    "numbersDesc": "Practice 1–99",
+    "noZhVoice": "No Korean voice found yet",
+    "ttsHint": "No sound on iPhone? Flip the ring/silent switch to ring and turn the volume up: speech follows the silent switch. If no Korean voice is listed, add one under Settings → Accessibility → Spoken Content → Voices → Korean.",
+    "aboutText": "643 everyday Korean words (A1–A2, Seoul standard, polite 해요 style) with romanization, English and German meanings, example sentences and pronunciation via your device's speech synthesis. Your progress is stored on this device.",
+    "dataSource": "The word list was compiled for this app and sorted into topics; the levels are an editorial grading, not the official TOPIK list. Romanization follows the Revised Romanization of Korean, generated from the Hangul with the main sound changes.",
+    "pinyinTipsText": [
+     "Learn Hangul first: it takes a few days and is far more reliable than romanization. Start with the sound chart (Practice → Speak → Sound chart).",
+     "Each syllable block is a consonant + vowel (+ a final consonant, 받침): 한 = ㅎ + ㅏ + ㄴ. A silent ㅇ fills the consonant place before a vowel: 아.",
+     "Three kinds of consonants: plain (ㄱ ㄷ ㅂ ㅈ ㅅ), aspirated with a puff of air (ㅋ ㅌ ㅍ ㅊ) and tense, tight without air (ㄲ ㄸ ㅃ ㅉ ㅆ).",
+     "A final consonant moves to the next syllable when that starts with a vowel: 한국어 is said 한구거 (hangugeo). Words where speech differs from spelling show it in brackets: 독일 [도길].",
+     "Before ㄴ or ㅁ, final ㄱ ㄷ ㅂ become ㅇ ㄴ ㅁ: 감사합니다 is said 감사함니다.",
+     "Korean puts the verb last (subject – object – verb): 저는 사과를 먹어요 = I apple eat.",
+     "Particles mark the role of a word: 은/는 topic, 이/가 subject, 을/를 object, 에 place or time, 의 possessive.",
+     "The polite 해요 style (-아요/-어요) is the everyday form with people you don't know well; this course uses it throughout."
+    ]
+   },
+   "de": {
+    "modeSayDesc": "Wort sehen und laut sagen. Das Mikrofon prüft es, oder du nimmst dich auf und vergleichst.",
+    "stepSpeakDesc": "Sag jedes Wort laut. Das Mikrofon prüft es, oder du nimmst dich auf und vergleichst.",
+    "brandSub": "Koreanisch",
+    "search": "Hangul, Umschrift oder Bedeutung suchen…",
+    "tilePinyin": "Umschrift auf Kacheln",
+    "langName": "Koreanisch",
+    "typeOr": "…oder tippe es",
+    "modeType": "Wort tippen",
+    "modeTypeDesc": "Bedeutung sehen, koreanisches Wort in Hangul oder Umschrift eingeben.",
+    "typeHint": "Hangul oder Umschrift (감사합니다 = gamsahamnida). Leerzeichen sind egal.",
+    "typePlaceholder": "Koreanisch…",
+    "modeTyperDesc": "Koreanisch in Hangul so schnell wie möglich abtippen. Enter liest es vor.",
+    "typerIntro": "Tippe die Zeile genau ab, in Hangul. Mit Enter bist du fertig: die App liest sie vor und geht weiter.",
+    "typerHint": "Nutze die koreanische Tastatur (두벌식). Enter = fertig + vorlesen.",
+    "modeNumbers": "Zahlen",
+    "modeNumbersDesc": "Sinokoreanische Zahlen 1–99 lesen und schreiben (일, 이, 삼…).",
+    "dirHzTr": "Wort → Bedeutung",
+    "dirTrHz": "Bedeutung → Wort",
+    "dirHzPy": "Wort → Umschrift",
+    "dirPyHz": "Umschrift → Wort",
+    "pinyinTips": "Hangul-Tipps",
+    "numbers": "Zahlen-Trainer",
+    "numbersDesc": "1–99 üben",
+    "noZhVoice": "Noch keine koreanische Stimme gefunden",
+    "ttsHint": "Kein Ton auf dem iPhone? Stell den Klingel-/Stumm-Schalter auf Klingeln und dreh die Lautstärke auf – die Sprachausgabe folgt dem Stumm-Schalter. Wird keine koreanische Stimme angezeigt, füge eine hinzu unter Einstellungen → Bedienungshilfen → Gesprochene Inhalte → Stimmen → Koreanisch.",
+    "aboutText": "643 koreanische Alltagswörter (A1–A2, Seoul-Standard, höflicher 해요-Stil) mit Umschrift, englischer und deutscher Bedeutung, Beispielsätzen und Aussprache über die Sprachausgabe deines Geräts. Dein Fortschritt wird auf diesem Gerät gespeichert.",
+    "dataSource": "Die Wortliste wurde für diese App zusammengestellt und nach Themen sortiert; die Stufen sind eine redaktionelle Einteilung, nicht die offizielle TOPIK-Liste. Die Umschrift folgt der Revidierten Romanisierung und wird mit den wichtigsten Lautregeln aus dem Hangul erzeugt.",
+    "pinyinTipsText": [
+     "Lerne zuerst Hangul: das dauert ein paar Tage und ist viel verlässlicher als die Umschrift. Beginne mit der Lauttabelle (Üben → Sprechen → Lauttabelle).",
+     "Jeder Silbenblock ist Konsonant + Vokal (+ Schlusskonsonant, 받침): 한 = ㅎ + ㅏ + ㄴ. Ein stummes ㅇ füllt vor einem Vokal den Konsonantenplatz: 아.",
+     "Drei Arten von Konsonanten: einfach (ㄱ ㄷ ㅂ ㅈ ㅅ), behaucht mit Luftstoß (ㅋ ㅌ ㅍ ㅊ) und gespannt, fest ohne Luft (ㄲ ㄸ ㅃ ㅉ ㅆ).",
+     "Ein Schlusskonsonant rutscht in die nächste Silbe, wenn diese mit einem Vokal beginnt: 한국어 spricht man 한구거 (hangugeo). Wörter, deren Aussprache von der Schreibung abweicht, zeigen sie in Klammern: 독일 [도길].",
+     "Vor ㄴ oder ㅁ werden ㄱ ㄷ ㅂ am Silbenende zu ㅇ ㄴ ㅁ: 감사합니다 spricht man 감사함니다.",
+     "Im Koreanischen steht das Verb am Ende (Subjekt – Objekt – Verb): 저는 사과를 먹어요 = ich Apfel esse.",
+     "Partikeln zeigen die Rolle eines Wortes: 은/는 Thema, 이/가 Subjekt, 을/를 Objekt, 에 Ort oder Zeit, 의 Besitz.",
+     "Der höfliche 해요-Stil (-아요/-어요) ist die Alltagsform mit Menschen, die man nicht gut kennt; dieser Kurs nutzt ihn durchgehend."
     ]
    }
   },

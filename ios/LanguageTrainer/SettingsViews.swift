@@ -165,7 +165,7 @@ struct SettingsView: View {
         .scrollContentBackground(.hidden).background(Color.paper)
         .navigationTitle(store.t("settings")).navigationBarTitleDisplayMode(.inline)
         .toolbar { ToolbarItem(placement: .confirmationAction) { Button(store.t("done")) { dismiss() } } }
-        .sheet(isPresented: $showCourses) { CoursePicker().presentationDetents([.medium]) }
+        .sheet(isPresented: $showCourses) { CoursePicker().presentationDetents([.medium, .large]) }
     }
 }
 
@@ -173,7 +173,7 @@ struct CoursePicker: View {
     @Environment(Store.self) var store
     @Environment(\.dismiss) var dismiss
     var body: some View {
-        VStack(spacing: 12) {
+        ScrollView { VStack(spacing: 12) {
             Text(store.t("switchCourse")).font(.title3.weight(.bold))
             Text(store.t("courseHint")).font(.footnote).foregroundStyle(Color.ink2).multilineTextAlignment(.center)
             ForEach(Course.all) { c in
@@ -193,7 +193,7 @@ struct CoursePicker: View {
                     .foregroundStyle(Color.ink)
                 }.buttonStyle(.plain)
             }
-        }.padding(20).frame(maxHeight: .infinity, alignment: .top).background(Color.paper)
+        }.padding(20) }.background(Color.paper)
     }
 }
 

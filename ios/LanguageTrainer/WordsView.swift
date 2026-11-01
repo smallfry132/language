@@ -129,12 +129,13 @@ struct WordDetail: View {
             VStack(spacing: 12) {
                 if let p = store.words.picture(w.id) { Text(p).scaledFont(72).accessibilityHidden(true) }
                 if store.pyFirst { PinyinText(py: w.py, size: 44, weight: .semibold); Text(w.hz).hanziFont(26).foregroundStyle(Color.ink2) }
-                else { Text(w.hz).hanziFont(64); Pron(py: w.py, size: 22) }
+                else { Text(w.hz).hanziFont(64); Pron(py: w.py, size: 22); PronHint(word: w) }
                 Text(store.tr(w)).font(.title3).multilineTextAlignment(.center)
                 if let t2 = store.tr2(w) { Text(t2).foregroundStyle(Color.ink3) }
                 HStack(spacing: 6) {
                     pill(store.t(st.rawValue), st == .known ? .good : st == .learning ? .gold : .ink2)
-                    pill("\(Library.shared.categories[w.cat]?.icon ?? "") \(store.catName(w.cat))", .ink2)
+                    if let th = store.words.theme(of: w.id) { pill("\(th.icon) \(th.name.get(store.state.lang))", .ink2) }
+                    else { pill("\(Library.shared.categories[w.cat]?.icon ?? "") \(store.catName(w.cat))", .ink2) }
                     pill(store.course.levelName(w.lvl) + (store.course.id == "zh" && Int(w.id) != nil ? " · #\(w.id)" : ""), .ink2)
                 }
                 SpeakButton(text: w.hz)
@@ -184,6 +185,15 @@ struct TopicChips: View {
                 }
             }
         }
+    }
+}
+
+/// Korean: how a word is said when sound changes alter the spelling, e.g. 독일 [도길]
+struct PronHint: View {
+    @Environment(Store.self) var store
+    let word: Word
+    var body: some View {
+        if let p = word.pron { Text("[\(p)]").hanziFont(17).foregroundStyle(Color.ink2).accessibilityLabel(store.t("pronHint") + " " + p) }
     }
 }
 

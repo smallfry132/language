@@ -669,8 +669,11 @@
     const manual = wanted && same.find((v) => v.voiceURI === wanted || v.name === wanted);
     if (manual) { TTS.voice = manual; return; }
     const exact = new RegExp("^" + C.tts.replace("-", "[-_]") + "([-_#].*)?$", "i"); // zh-CN, zh_CN, zh_CN_#Hans
-    const pref = same.find((v) => exact.test(v.lang) && /Tingting|Ting-Ting|Linh|Google|Microsoft|Premium|Enhanced/i.test(v.name))
-      || same.find((v) => exact.test(v.lang) && !/eSpeak/i.test(v.name))
+    // Apple's Eloquence voices (Eddy, Flo, Grandma…) exist for every language but sound robotic: never the automatic choice
+    const robotic = (v) => /eloquence|eSpeak/i.test(v.voiceURI + " " + v.name) || /^(Eddy|Flo|Grandma|Grandpa|Reed|Rocko|Sandy|Shelley)\b/.test(v.name);
+    const pref = same.find((v) => exact.test(v.lang) && /Premium|Enhanced|Erweitert/i.test(v.name) && !robotic(v))
+      || same.find((v) => exact.test(v.lang) && /Tingting|Ting-Ting|Lili|Linh|Yuna|Sora|Jian|Suhyun|Kyoko|Otoya|Google|Microsoft/i.test(v.name) && !robotic(v))
+      || same.find((v) => exact.test(v.lang) && !robotic(v))
       || same.find((v) => exact.test(v.lang))
       || same.find((v) => !/HK|TW/i.test(v.lang)) || same[0];
     TTS.voice = pref || null;
@@ -1686,7 +1689,7 @@
   const soundPrefs = { group: null, row: 0, view: "focus", slow: false };
   // Isolated syllables get clipped by most voices; a sentence-final mark makes the engine give them full length.
   function speakSound(text, twice) {
-    const pad = C.script === "cjk" ? "。" : ".";
+    const pad = C.id === "zh" || C.id === "ja" ? "。" : "."; // Korean ends sentences with "."
     const body = /[。.!?！？]$/.test(text) ? text : text + pad;
     speak(twice ? body + " " + body : body, { rate: soundPrefs.slow ? 0.5 : 0.7 });
   }

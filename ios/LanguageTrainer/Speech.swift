@@ -36,15 +36,26 @@ final class Speaker: NSObject, AVSpeechSynthesizerDelegate {
         AudioSession.playback()
     }
 
-    /// Voices for the course language, best first (premium, enhanced, then the rest)
+    /// Voices for the course language, best first: premium, enhanced, the regular voice, its smallest version,
+    /// and last the Eloquence voices (Eddy, Flo, Grandma…), which share the regular voice's quality level
+    /// but sound deliberately robotic
     func courseVoices(_ c: Course? = nil) -> [AVSpeechSynthesisVoice] {
         let lang = (c ?? course).tts, base = String(lang.prefix(2))
         return AVSpeechSynthesisVoice.speechVoices().filter { $0.language.hasPrefix(base) }
             .sorted { a, b in
                 let ea = a.language == lang, eb = b.language == lang
                 if ea != eb { return ea }
-                return a.quality.rawValue > b.quality.rawValue
+                return Self.rank(a) > Self.rank(b)
             }
+    }
+    static func rank(_ v: AVSpeechSynthesisVoice) -> Int {
+        let id = v.identifier.lowercased()
+        if id.contains("eloquence") || id.contains("speech.synthesis") { return 0 } // robotic and novelty voices
+        switch v.quality {
+        case .premium: return 50
+        case .enhanced: return 40
+        default: return id.contains("super-compact") ? 20 : 30
+        }
     }
     var currentVoice: AVSpeechSynthesisVoice? {
         if let id = voices[course.id], let v = AVSpeechSynthesisVoice(identifier: id) { return v }

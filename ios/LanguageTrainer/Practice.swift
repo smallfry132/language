@@ -433,7 +433,7 @@ struct SoundDrillScreen: View {
 
 /// Isolated syllables get clipped by most voices; a sentence-final mark makes the voice give them full length
 @MainActor func speakSound(_ store: Store, _ text: String, slow: Bool, twice: Bool = false) {
-    let pad = store.course.script == .cjk ? "。" : "."
+    let pad = store.course.id == "zh" || store.course.id == "ja" ? "。" : "." // Korean ends sentences with "."
     let body = text.hasSuffix("。") || text.hasSuffix(".") ? text : text + pad
     store.speaker.say(twice ? body + " " + body : body, rate: slow ? 0.5 : 0.7)
 }

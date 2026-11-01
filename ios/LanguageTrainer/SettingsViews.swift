@@ -156,7 +156,10 @@ struct SettingsView: View {
                     store.speaker.say(store.course.testPhrase)
                 })) {
                     Text(store.t("voiceAuto")).tag("")
-                    ForEach(voices, id: \.identifier) { v in Text(v.name + (v.quality == .premium ? " (Premium)" : v.quality == .enhanced ? " (Enhanced)" : "")).tag(v.identifier) }
+                    ForEach(voices, id: \.identifier) { v in
+                        let robotic = Speaker.rank(v) == 0
+                        Text(v.name + (v.quality == .premium ? " (Premium)" : v.quality == .enhanced ? " (Enhanced)" : robotic ? " (robotic)" : "")).tag(v.identifier)
+                    }
                 }
                 Button { store.speaker.say(store.course.testPhrase) } label: { Label(store.t("ttsTest"), systemImage: "speaker.wave.2") }.tint(.accentRed)
                 Text(voices.isEmpty ? store.t("noZhVoice") + ". " + store.t("voiceHint") : store.t("voiceHint")).font(.footnote).foregroundStyle(Color.ink2)

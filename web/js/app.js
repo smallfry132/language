@@ -95,7 +95,7 @@
     .map(([id, x]) => ({ id, hz: x.hz || x.py, py: x.py, en: x.en, cat: "custom", lvl: 1, ex: "", exPy: "", exEn: "", course }));
   // One look per language (Ink Grid, Quiet Ruby, Block Builder, Tone Color): colours and fonts in style.css
   // under html[data-course]; here the tab labels written in the language itself
-  const LOOK_TABS = { zh: ["今", "课", "练", "字"], ja: ["今", "課", "練", "あ"], ko: ["오", "학", "연", "한"], vi: ["Nay", "Học", "Tập", "Từ"] };
+  const LOOK_TABS = { zh: ["学", "练", "词", "我"], ja: ["学", "練", "語", "私"], ko: ["학", "연", "단", "나"], vi: ["Học", "Tập", "Từ", "Tôi"] };
   function applyCourse() {
     C = COURSES[S.course] || COURSES.zh;
     document.documentElement.dataset.course = C.id;
@@ -291,7 +291,7 @@
       ttsNoVoiceAndroid: (lang) => `No ${lang} voice was found on this device yet. After installing the voice data, tap “Look for voices” or reload the page.`,
       course: "Course", switchCourse: "Switch language", courseHint: "Each language keeps its own words, levels and progress.", knownOf: (k, n) => `${k} of ${n} known`,
       tabToday: "Today", sessionTitle: "Today's session", sessionDesc: (r, n) => `${r} to review · ${n} new`, sessionDone: "Done for today 🎉", sessionDoneSub: "Come back tomorrow for your reviews, or practise freely in Train.",
-      sessionEmpty: "Nothing due and no new words left. Add a lesson below, or learn more words.", moreNew: (n) => (n === 1 ? "Learn 1 more new word" : `Learn ${n} more new words`), fullStats: "All statistics", backToday: "Back to Today",
+      sessionEmpty: "Nothing due and no new words left. Add a lesson below, or learn more words.", moreNew: (n) => (n === 1 ? "Learn 1 more new word" : `Learn ${n} more new words`), fullStats: "All statistics", backToday: "Back to Learn",
       stepOf: (i, n) => `Step ${i} of ${n}`, stepCount: (n) => (n === 1 ? "1 word" : `${n} words`),
       stepReview: "Review", stepReviewDesc: "Words due today. Say each one out loud before you flip the card.",
       stepMeet: "New words", stepMeetDesc: "Listen, then say each word out loud three times. Copy the melody of the tones.",
@@ -299,7 +299,7 @@
       stepWrite: "Write", stepWriteDesc: "Hear a word and type its pinyin with tones (ni3hao3 → nǐhǎo).",
       sayAloud: "Say it out loud 3×, then go on.", slowly: "Slowly", sessionSummary: "Session complete", newLearned: (n) => (n === 1 ? "1 new word" : `${n} new words`),
       lessons: "Lessons", lessonNew: "New lesson", lessonName: "Lesson name", lessonDefault: (n) => `Lesson ${n}`, lessonWords: (n) => (n === 1 ? "1 word" : `${n} words`),
-      lessonEmpty: "No lessons yet. Add the words from each class with your tutor, and Today will train exactly those.",
+      lessonEmpty: "No lessons yet. Add the words from each class with your tutor, and Learn will train exactly those.",
       lessonNoWords: "No words in this lesson yet. Search the list below or add your own.",
       lessonAddSearch: "Add words from the list", lessonSearch: "Search pinyin, meaning or characters…", lessonOwn: "Add your own word",
       ownPy: "Pinyin (ni3hao3 → nǐhǎo)", ownHz: "Characters (needed for audio)", ownEn: "Meaning", ownWord: "Word", ownReading: "Reading (kana)", ownHint: "Not in the list? Ask your tutor for the characters: without them the voice can't read the word.",
@@ -346,6 +346,9 @@
       modePicture: "Picture to word", modePictureDesc: "See a picture and pick the word, without a translation in between.",
       modeListenPic: "Hear and pick the picture", modeListenPicDesc: "Hear a word and pick its picture.",
       pictureQ: "What is this?", hearPicQ: "Which picture did you hear?", pronHint: "How it is said",
+      learn: "Learn", me: "Me", continue: "Continue", wordOfDay: "Word of the day", goalToday: "Today’s goal", minutes: (n) => `${n} min`, words3: (n) => `${n} words`,
+      dailyPlan: "Daily plan", maxReviews: "Max reviews per day", newPerDay: "New words per day", whileStudying: "While studying", colorTones: "Colour by tone", allDialogues: "All dialogues",
+      learningCourse: (l, v) => `Learning ${l} · ${v}`, tipTitle: "Tip",
       readingLayer: "Reading help", readingLayerDesc: "Pinyin, romanization or kana with each word.", readingAlways: "Always", readingNew: "New words", readingOff: "Off"
     },
     de: {
@@ -407,7 +410,7 @@
       ttsNoVoiceAndroid: (lang) => `Auf diesem Gerät wurde noch keine ${lang}-Stimme gefunden. Nach dem Installieren der Sprachdaten auf „Stimmen suchen“ tippen oder die Seite neu laden.`,
       course: "Kurs", switchCourse: "Sprache wechseln", courseHint: "Jede Sprache hat eigene Wörter, Stufen und eigenen Fortschritt.", knownOf: (k, n) => `${k} von ${n} gelernt`,
       tabToday: "Heute", sessionTitle: "Heutige Einheit", sessionDesc: (r, n) => `${r} wiederholen · ${n} neu`, sessionDone: "Für heute geschafft 🎉", sessionDoneSub: "Morgen warten neue Wiederholungen. Oder übe frei unter „Üben“.",
-      sessionEmpty: "Nichts fällig und keine neuen Wörter übrig. Leg unten eine Lektion an oder lerne weitere Wörter.", moreNew: (n) => (n === 1 ? "1 weiteres neues Wort lernen" : `${n} weitere neue Wörter lernen`), fullStats: "Alle Statistiken", backToday: "Zurück zu Heute",
+      sessionEmpty: "Nichts fällig und keine neuen Wörter übrig. Leg unten eine Lektion an oder lerne weitere Wörter.", moreNew: (n) => (n === 1 ? "1 weiteres neues Wort lernen" : `${n} weitere neue Wörter lernen`), fullStats: "Alle Statistiken", backToday: "Zurück zu Lernen",
       stepOf: (i, n) => `Schritt ${i} von ${n}`, stepCount: (n) => (n === 1 ? "1 Wort" : `${n} Wörter`),
       stepReview: "Wiederholen", stepReviewDesc: "Heute fällige Wörter. Sprich jedes Wort laut, bevor du die Karte umdrehst.",
       stepMeet: "Neue Wörter", stepMeetDesc: "Hör zu und sprich jedes Wort dreimal laut nach. Ahme die Tonmelodie nach.",
@@ -415,7 +418,7 @@
       stepWrite: "Schreiben", stepWriteDesc: "Hör ein Wort und tippe sein Pinyin mit Tönen (ni3hao3 → nǐhǎo).",
       sayAloud: "Sprich es 3× laut, dann weiter.", slowly: "Langsam", sessionSummary: "Einheit geschafft", newLearned: (n) => (n === 1 ? "1 neues Wort" : `${n} neue Wörter`),
       lessons: "Lektionen", lessonNew: "Neue Lektion", lessonName: "Name der Lektion", lessonDefault: (n) => `Lektion ${n}`, lessonWords: (n) => (n === 1 ? "1 Wort" : `${n} Wörter`),
-      lessonEmpty: "Noch keine Lektionen. Füge nach jeder Stunde die Wörter deiner Lehrerin oder deines Lehrers hinzu, dann übt „Heute“ genau diese.",
+      lessonEmpty: "Noch keine Lektionen. Füge nach jeder Stunde die Wörter deiner Lehrerin oder deines Lehrers hinzu, dann übt „Lernen“ genau diese.",
       lessonNoWords: "Noch keine Wörter in dieser Lektion. Such unten in der Liste oder füge eigene hinzu.",
       lessonAddSearch: "Wörter aus der Liste hinzufügen", lessonSearch: "Pinyin, Bedeutung oder Zeichen suchen…", lessonOwn: "Eigenes Wort hinzufügen",
       ownPy: "Pinyin (ni3hao3 → nǐhǎo)", ownHz: "Schriftzeichen (für die Aussprache nötig)", ownEn: "Bedeutung", ownWord: "Wort", ownReading: "Lesung (Kana)", ownHint: "Nicht in der Liste? Frag nach den Schriftzeichen: ohne sie kann die Stimme das Wort nicht vorlesen.",
@@ -462,6 +465,9 @@
       modePicture: "Bild zum Wort", modePictureDesc: "Bild sehen und das Wort wählen, ohne Übersetzung dazwischen.",
       modeListenPic: "Hören und Bild wählen", modeListenPicDesc: "Wort hören und das passende Bild wählen.",
       pictureQ: "Was ist das?", hearPicQ: "Welches Bild hast du gehört?", pronHint: "So wird es gesprochen",
+      learn: "Lernen", me: "Ich", continue: "Weiter", wordOfDay: "Wort des Tages", goalToday: "Tagesziel", minutes: (n) => `${n} Min.`, words3: (n) => `${n} Wörter`,
+      dailyPlan: "Tagesplan", maxReviews: "Höchstens Wiederholungen pro Tag", newPerDay: "Neue Wörter pro Tag", whileStudying: "Beim Lernen", colorTones: "Nach Ton einfärben", allDialogues: "Alle Dialoge",
+      learningCourse: (l, v) => `Lernt ${l} · ${v}`, tipTitle: "Tipp",
       readingLayer: "Lesehilfe", readingLayerDesc: "Pinyin, Umschrift oder Kana zu jedem Wort.", readingAlways: "Immer", readingNew: "Neue Wörter", readingOff: "Aus"
     }
   };
@@ -798,14 +804,16 @@
     chat: '<path d="M4 5h11v8H8l-4 3z"/><path d="M15 9h5v8l-3-2h-6v-2"/>',
     stats: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
     play: '<path d="M7 4l13 8-13 8z"/>',
-    stop: '<rect x="6" y="6" width="12" height="12" rx="1.5"/>'
+    stop: '<rect x="6" y="6" width="12" height="12" rx="1.5"/>',
+    more: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>'
   };
   const icon = (k, cls) => `<svg class="ico ${cls || ""}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[k]}</svg>`;
+  // Four sections (style canvas): Learn (today, lessons, dialogues), Practice, Words, Me (settings)
   const TABS = [
-    { id: "today", key: "tabToday", also: ["progress"] },
-    { id: "lessons", key: "lessons", also: [] },
+    { id: "today", key: "learn", also: ["progress", "lessons"] },
     { id: "train", key: "train", also: ["sounds"] },
-    { id: "words", key: "words", also: [] }
+    { id: "words", key: "words", also: [] },
+    { id: "more", key: "me", also: [] }
   ];
   let route = [];
   let cleanup = null;
@@ -1885,71 +1893,110 @@
   let extraNew = 0; // "learn more" taps since the app was opened
   const introducedToday = () => ALL_WORDS.filter((w) => { const c = card(w.id); return c && c.first === todayKey(); }).length;
   function planToday() {
-    const due = ALL_WORDS.filter((w) => isDue(w.id)).sort((a, b) => card(a.id).due - card(b.id).due).slice(0, REVIEW_CAP);
+    const due = ALL_WORDS.filter((w) => isDue(w.id)).sort((a, b) => card(a.id).due - card(b.id).due).slice(0, S.settings.maxReviews || REVIEW_CAP);
     const lw = lessonWords(true);
     const unseen = (lw.length ? lw : WORDS).filter((w) => status(w.id) === "new");
     const room = Math.max(0, S.settings.newPerDay + extraNew - introducedToday());
     return { due, fresh: unseen.slice(0, room), unseen: unseen.length };
   }
 
+  // A greeting for the time of day, in the language being learnt
+  function greeting() {
+    const h = new Date().getHours(), part = h < 11 ? 0 : h < 18 ? 1 : 2;
+    const g = { zh: [["早上好", "zǎoshang hǎo"], ["下午好", "xiàwǔ hǎo"], ["晚上好", "wǎnshang hǎo"]], ja: [["おはよう", "ohayō"], ["こんにちは", "konnichiwa"], ["こんばんは", "konbanwa"]], ko: [["좋은 아침이에요", "joeun achimieyo"], ["안녕하세요", "annyeonghaseyo"], ["좋은 저녁이에요", "joeun jeonyeogieyo"]], vi: [["Chào buổi sáng", ""], ["Chào buổi chiều", ""], ["Chào buổi tối", ""]] }[C.id][part];
+    return { text: g[0], reading: g[1], tr: (S.lang === "de" ? ["Guten Morgen", "Guten Tag", "Guten Abend"] : ["Good morning", "Good afternoon", "Good evening"])[part] };
+  }
+  // The same word all day: one you have met (or the next to meet) that has a picture
+  function wordOfDay() {
+    const pics = WORDS.filter((w) => pic(w)), met = pics.filter((w) => status(w.id) !== "new");
+    const pool = met.length >= 3 ? met : pics.slice(0, 30);
+    return pool.length ? pool[Math.floor(Date.now() / DAY) % pool.length] : null;
+  }
+
+  /* ================= LEARN (home) =================
+   * From the style canvas: greeting in the language, streak, today's goal, one Continue for the daily session,
+   * a word of the day, Review · Listen · Speak, then the next dialogue and your lessons. */
   function renderToday(view) {
     if (route[1] === "session") return startTodaySession(view);
-    setTopbar(t("tabToday"), null);
+    setTopbar(t("learn"), null);
     const p = planToday();
     const n = dayCount(todayKey()), goal = S.settings.dailyGoal, st = streak();
-    const known = ALL_WORDS.filter((w) => status(w.id) === "known").length;
-    const met = ALL_WORDS.filter((w) => status(w.id) !== "new").length;
     const work = p.due.length || p.fresh.length;
-    const hero = work
-      ? `<div class="card today-hero">
-          <div class="hero-title">${t("sessionTitle")}</div>
-          <div class="muted">${t("sessionDesc", p.due.length, p.fresh.length)}</div>
-          <button class="btn primary block" id="go-session" type="button">${icon("play")} ${t("start")}</button>
-        </div>`
-      : `<div class="card today-hero">
-          <div class="hero-title">${n || introducedToday() ? t("sessionDone") : t("sessionTitle")}</div>
-          <div class="muted">${n || introducedToday() ? t("sessionDoneSub") : t("sessionEmpty")}</div>
-          ${p.unseen ? `<button class="btn block" id="more-new" type="button">${t("moreNew", Math.min(5, p.unseen))}</button>` : ""}
-        </div>`;
-    // The next dialogue: the first one not finished in all three ways
-    const dlgs = courseDialogues();
-    const next = dlgs.find((d) => !dlgDone(d.id)) || null;
+    const g = greeting(), pf = pyFirst();
+    const topic = p.fresh[0] && themes().find((x) => x.id === topicOf(p.fresh[0].id));
+    const wd = wordOfDay();
+    const tiles = ({ zh: ["复习", "听", "说"], ja: ["復習", "聞く", "話す"], ko: ["복습", "듣기", "말하기"], vi: ["Ôn", "Nghe", "Nói"] })[C.id];
+    const next = courseDialogues().find((d) => !dlgDone(d.id)) || null;
+    const lessons = courseLessons();
     view.innerHTML = `
-      ${hero}
-      ${next ? `<div class="section-title">${t("dialogues")}</div><div class="list">${dialogueRow(next)}</div>` : ""}
-      ${met || n ? `<div class="today-stats">
-        <div><b>${st}</b><span>${t("statsStreak")}</span></div>
-        <div><b>${n}<small>/${goal}</small></b><span>${t("statsToday")}</span></div>
-        <div><b>${met}</b><span>${t("wordsMet")}</span></div>
-        <div><b>${known}</b><span>${t("statsWords")}</span></div>
-      </div>` : ""}
-      <div class="list" style="margin-top:16px"><button class="list-item" id="go-stats" type="button"><span class="li-ico">${icon("stats")}</span><span class="grow li-title">${t("fullStats")}</span><span class="li-chev">›</span></button></div>
+      <div class="learn-head">
+        <div class="grow">
+          <button class="course-switch" id="course-switch" type="button">${esc(t("langName"))} · ${esc(levelLabel())} ▾</button>
+          ${C.id === "zh" ? (pf ? `<div class="greet py-big">${pyHtml(g.reading)}</div><div class="greet-sub">${g.text} · ${esc(g.tr)}</div>` : `<div class="greet-ruby">${pyHtml(g.reading)}</div><div class="greet hanzi">${g.text}</div><div class="greet-sub">${esc(g.tr)}</div>`)
+            : `<div class="greet hanzi">${C.id === "vi" ? viHtml(g.text) : esc(g.text)}</div><div class="greet-sub">${g.reading ? esc(g.reading) + " · " : ""}${esc(g.tr)}</div>`}
+        </div>
+        <div class="streak-box"><b>${st}</b><span>${t("statsStreak")}</span></div>
+      </div>
+      <div class="goal-row"><span>${t("goalToday")}</span><b>${n} / ${goal}</b></div>
+      <div class="progress-bar"><span style="width:${Math.min(100, (n / goal) * 100)}%"></span></div>
+      <div class="continue-card">
+        ${work ? `${topic ? `<div class="cc-topic">${topic.icon} ${esc(L(topic.name))}</div>` : ""}
+          <div class="cc-title">${t("sessionTitle")}</div><div class="cc-sub">${t("sessionDesc", p.due.length, p.fresh.length)}</div>
+          <button class="btn block cc-btn" id="go-session" type="button">${t("continue")}</button>`
+        : `<div class="cc-title">${n || introducedToday() ? t("sessionDone") : t("sessionTitle")}</div><div class="cc-sub">${n || introducedToday() ? t("sessionDoneSub") : t("sessionEmpty")}</div>
+          ${p.unseen ? `<button class="btn block cc-btn" id="more-new" type="button">${t("moreNew", Math.min(5, p.unseen))}</button>` : ""}`}
+      </div>
+      ${wd ? `<button class="card wod" id="wod" type="button">
+        ${C.id === "zh" ? gridHtml(wd.hz, Array.from(wd.hz).length > 1 ? "sm" : "md") : `<span class="wod-pic" aria-hidden="true">${pic(wd)}</span>`}
+        <span class="grow wod-text"><span class="wod-label">${t("wordOfDay")}</span>
+          ${C.id === "zh" ? `<span class="wod-word">${pyHtml(wd.py)}</span>` : C.id === "vi" ? `<span class="wod-word hanzi">${viHtml(wd.hz)}</span>` : `${C.id === "ja" && wd.kana && wd.kana !== wd.hz ? `<span class="furigana">${esc(wd.kana)}</span>` : ""}<span class="wod-word hanzi">${esc(wd.hz)}</span>`}
+          <span class="wod-tr">${esc(tr(wd))}</span></span>
+        <span class="speak-btn sm" data-speak="${esc(wd.hz)}" aria-label="${t("speak")}">🔊</span>
+      </button>` : ""}
+      <div class="quick-tiles">
+        ${[["train/flash", tiles[0], t("stepReview") + (p.due.length ? " · " + p.due.length : ""), p.due.length], ["train/listen", tiles[1], t("stepListen") + " · " + t("minutes", 5)], ["train/say", tiles[2], t("stepSpeak") + " · " + t("words3", 5)]]
+          .map(([r, big, small, hot]) => `<button class="qt ${hot ? "hot" : ""}" data-go="${r}" type="button"><span class="qt-big hanzi">${big}</span><span class="qt-small">${small}</span></button>`).join("")}
+      </div>
+      ${next ? `<div class="section-title">${t("dialogues")}</div><div class="list">${dialogueRow(next)}<button class="list-item" data-go="lessons" type="button"><span class="li-ico">${icon("chat")}</span><span class="grow li-title">${t("allDialogues")}</span><span class="li-chev">›</span></button></div>` : ""}
+      <div class="section-title row"><span class="grow">${t("myLessons")}</span><button class="btn sm" id="new-lesson" type="button">＋ ${t("lessonNew")}</button></div>
+      ${lessonListHtml(lessons)}
       ${DEV.code ? `<div class="list-hint center" id="sync-line">${syncStatusText()}</div>` : ""}`;
     if ($("#go-session")) $("#go-session").onclick = () => navigate("today/session");
     if ($("#more-new")) $("#more-new").onclick = () => { extraNew += 5; navigate("today/session"); };
+    $("#course-switch").onclick = openCourseSheet;
+    if ($("#wod")) $("#wod").onclick = (e) => { if (e.target.closest("[data-speak]")) speak(wd.hz); else openWord(wd.id); };
+    $$("[data-go]").forEach((b) => (b.onclick = () => navigate(b.dataset.go)));
     $$("[data-dlg]").forEach((b) => (b.onclick = () => navigate("lessons/d/" + b.dataset.dlg)));
-    $("#go-stats").onclick = () => navigate("progress");
+    bindLessonList(lessons);
   }
-
-  /* ================= LESSONS: dialogues + own lessons ================= */
-  function renderLessons(view) {
-    if (route[1] === "d" && route[2]) return renderDialogue(view, route[2], route[3]);
-    if (route[1]) return route[2] === "practice" ? startLessonSession(view, route[1]) : renderLesson(view, route[1]);
-    setTopbar(t("lessons"), null);
-    const dlgs = courseDialogues(), lessons = courseLessons();
-    view.innerHTML = `
-      ${dlgs.length ? `<div class="section-title">${t("dialogues")}</div><div class="list">${dlgs.map(dialogueRow).join("")}</div>` : ""}
-      <div class="section-title row"><span class="grow">${t("myLessons")}</span><button class="btn sm" id="new-lesson" type="button">＋ ${t("lessonNew")}</button></div>
-      ${lessons.length ? `<div class="list">${lessons.slice().reverse().map((l) => {
-        const ws = l.words.filter((id) => BY_ID[id]); const k = ws.filter((id) => status(id) === "known").length; const lr = ws.filter((id) => status(id) === "learning").length;
-        return `<button class="list-item" data-lesson="${l.id}" type="button"><span class="li-ico">${icon("lessons")}</span><span class="grow"><div class="li-title">${esc(l.name)}</div><div class="li-sub">${t("lessonWords", ws.length)} · ${t("knownOf", k, ws.length)}</div><div class="progress-bar lesson-bar"><span class="green" style="width:${ws.length ? (k / ws.length) * 100 : 0}%"></span><span class="gold" style="width:${ws.length ? (lr / ws.length) * 100 : 0}%"></span></div></span><span class="li-chev">›</span></button>`;
-      }).join("")}</div>` : `<div class="card list-hint" style="margin:0">${t("lessonEmpty")}</div>`}`;
+  // Your lessons as a list with progress (Learn and the dialogues page)
+  function lessonListHtml(lessons) {
+    return lessons.length ? `<div class="list">${lessons.slice().reverse().map((l) => {
+      const ws = l.words.filter((id) => BY_ID[id]); const k = ws.filter((id) => status(id) === "known").length; const lr = ws.filter((id) => status(id) === "learning").length;
+      return `<button class="list-item" data-lesson="${l.id}" type="button"><span class="li-ico">${icon("lessons")}</span><span class="grow"><div class="li-title">${esc(l.name)}</div><div class="li-sub">${t("lessonWords", ws.length)} · ${t("knownOf", k, ws.length)}</div><div class="progress-bar lesson-bar"><span class="green" style="width:${ws.length ? (k / ws.length) * 100 : 0}%"></span><span class="gold" style="width:${ws.length ? (lr / ws.length) * 100 : 0}%"></span></div></span><span class="li-chev">›</span></button>`;
+    }).join("")}</div>` : `<div class="card list-hint" style="margin:0">${t("lessonEmpty")}</div>`;
+  }
+  function bindLessonList(lessons) {
     $("#new-lesson").onclick = () => {
       const id = newId("l");
       S.lessons[id] = { course: C.id, name: t("lessonDefault", lessons.length + 1), words: [], created: Date.now() };
       save(); navigate("lessons/" + id);
     };
     $$("[data-lesson]").forEach((b) => (b.onclick = () => navigate("lessons/" + b.dataset.lesson)));
+  }
+
+  /* ================= LESSONS: dialogues + own lessons ================= */
+  function renderLessons(view) {
+    if (route[1] === "d" && route[2]) return renderDialogue(view, route[2], route[3]);
+    if (route[1]) return route[2] === "practice" ? startLessonSession(view, route[1]) : renderLesson(view, route[1]);
+    // All dialogues and lessons (reached from Learn)
+    setTopbar(t("dialogues"), "today");
+    const dlgs = courseDialogues(), lessons = courseLessons();
+    view.innerHTML = `
+      ${dlgs.length ? `<div class="list">${dlgs.map(dialogueRow).join("")}</div>` : ""}
+      <div class="section-title row"><span class="grow">${t("myLessons")}</span><button class="btn sm" id="new-lesson" type="button">＋ ${t("lessonNew")}</button></div>
+      ${lessonListHtml(lessons)}`;
+    bindLessonList(lessons);
     $$("[data-dlg]").forEach((b) => (b.onclick = () => navigate("lessons/d/" + b.dataset.dlg)));
   }
 
@@ -2676,10 +2723,34 @@
     if (sub === "pinyin") return renderPinyinTips(view);
     if (sub === "about") return renderAbout(view);
     if (sub === "sync") return renderSync(view);
-    setTopbar(t("more"), null);
+    setTopbar(t("me"), null);
     const voices = courseVoices();
     const chosen = !!(S.settings.voices && S.settings.voices[C.id]);
+    const known = WORDS.filter((w) => status(w.id) === "known").length, answered = statSum("answered");
+    const glyph = (LOOK_TABS[C.id] || [])[3] || C.glyph;
+    const stepper = (id, label, v) => `<div class="list-item static"><span class="grow li-title">${label}</span><div class="stepper"><button data-step="${id}" data-d="-1" type="button" aria-label="−">−</button><b>${v}</b><button data-step="${id}" data-d="1" type="button" aria-label="+">+</button></div></div>`;
     view.innerHTML = `
+      <button class="me-head" id="me-course" type="button">
+        <span class="me-glyph hanzi" aria-hidden="true">${esc(glyph)}</span>
+        <span class="grow"><span class="me-name">${esc(C.name)}</span><span class="me-sub">${esc(t("learningCourse", t("langName"), levelLabel()))}</span></span><span class="li-chev">›</span>
+      </button>
+      <div class="me-stats">
+        <div><b class="accent">${streak()}</b><span>${t("statsStreak")}</span></div>
+        <div><b>${known}</b><span>${t("statsWords")}</span></div>
+        <div><b>${answered ? Math.round((statSum("correct") / answered) * 100) : 0}%</b><span>${t("statsAccuracy")}</span></div>
+      </div>
+      <div class="list"><button class="list-item" data-go="progress" type="button"><span class="li-ico">${icon("stats")}</span><span class="grow li-title">${t("fullStats")}</span><span class="li-chev">›</span></button></div>
+      <div class="section-title">${t("dailyPlan")}</div>
+      <div class="list">
+        ${stepper("newPerDay", t("newPerDay"), S.settings.newPerDay)}
+        ${stepper("maxReviews", t("maxReviews"), S.settings.maxReviews || REVIEW_CAP)}
+        ${stepper("dailyGoal", t("dailyGoal"), S.settings.dailyGoal)}
+      </div>
+      <div class="section-title">${t("whileStudying")}</div>
+      <div class="list">
+        ${C.id === "zh" || C.id === "vi" ? `<div class="list-item static"><span class="li-ico">🎨</span><span class="grow li-title">${t("colorTones")}</span><button class="switch ${S.settings.toneColors !== false ? "on" : ""}" id="sw-tones" type="button" aria-label="${t("colorTones")}"></button></div>` : ""}
+      </div>
+      <div class="section-title">${t("more")}</div>
       <div class="list">
         ${C.toneOptions ? `<button class="list-item" data-go="more/tones" type="button"><span class="li-ico">🎵</span><span class="grow"><div class="li-title">${t("toneGuide")}</div><div class="li-sub">${t("toneGuideDesc")}</div></span><span class="li-chev">›</span></button>` : ""}
         <button class="list-item" data-go="train/numbers" type="button"><span class="li-ico">🔢</span><span class="grow"><div class="li-title">${t("numbers")}</div><div class="li-sub">${t("numbersDesc")}</div></span><span class="li-chev">›</span></button>
@@ -2712,6 +2783,13 @@
     $$("[data-reading]").forEach((b) => (b.onclick = () => { S.settings.readingLayer = b.dataset.reading; S.settings.tilePinyin = b.dataset.reading !== "off"; save(); render(); }));
     $("#rate").oninput = (e) => { S.settings.rate = +e.target.value; $("#rate-val").textContent = S.settings.rate.toFixed(2) + "×"; save(); };
     $("#tts-test").onclick = () => speak(C.testPhrase);
+    $("#me-course").onclick = openCourseSheet;
+    const STEPS = { newPerDay: [1, 30, 1], maxReviews: [10, 200, 10], dailyGoal: [10, 100, 10] };
+    $$("[data-step]").forEach((b) => (b.onclick = () => {
+      const k = b.dataset.step, [lo, hi, st] = STEPS[k], cur = k === "maxReviews" ? (S.settings.maxReviews || REVIEW_CAP) : S.settings[k];
+      S.settings[k] = Math.max(lo, Math.min(hi, cur + st * +b.dataset.d)); save(); render();
+    }));
+    if ($("#sw-tones")) $("#sw-tones").onclick = () => { S.settings.toneColors = S.settings.toneColors === false; save(); applyTheme(); render(); };
   }
   function renderTones(view) {
     setTopbar(t("toneGuide"), "more");
@@ -2875,6 +2953,7 @@
   function applyTheme() {
     const th = S.settings.theme;
     if (th === "auto") document.documentElement.removeAttribute("data-theme"); else document.documentElement.setAttribute("data-theme", th);
+    document.documentElement.classList.toggle("no-tone-colors", S.settings.toneColors === false);
   }
 
   /* ---------------- Init ---------------- */

@@ -347,7 +347,16 @@
    "heardNo": "That didn't come through. Try again, a little slower.",
    "heardAs": "Heard: {0}",
    "micBlocked": "Speech recognition isn't available here, so you'll record yourself instead. On iPhone it needs Dictation (Settings → General → Keyboard) and microphone access.",
-   "noMic": "No access to the microphone."
+   "noMic": "No access to the microphone.",
+   "topics": "Topics",
+   "allTopics": "All topics",
+   "byTopic": "By topic",
+   "modePicture": "Picture to word",
+   "modePictureDesc": "See a picture and pick the word, without a translation in between.",
+   "modeListenPic": "Hear and pick the picture",
+   "modeListenPicDesc": "Hear a word and pick its picture.",
+   "pictureQ": "What is this?",
+   "hearPicQ": "Which picture did you hear?"
   },
   "de": {
    "brandSub": "Trainer",
@@ -695,7 +704,16 @@
    "heardNo": "Das kam nicht an. Versuch es noch einmal, etwas langsamer.",
    "heardAs": "Gehört: {0}",
    "micBlocked": "Spracherkennung ist hier nicht verfügbar, du nimmst dich stattdessen auf. Auf dem iPhone braucht sie die Diktierfunktion (Einstellungen → Allgemein → Tastatur) und Zugriff aufs Mikrofon.",
-   "noMic": "Kein Zugriff aufs Mikrofon."
+   "noMic": "Kein Zugriff aufs Mikrofon.",
+   "topics": "Themen",
+   "allTopics": "Alle Themen",
+   "byTopic": "Nach Thema",
+   "modePicture": "Bild zum Wort",
+   "modePictureDesc": "Bild sehen und das Wort wählen, ohne Übersetzung dazwischen.",
+   "modeListenPic": "Hören und Bild wählen",
+   "modeListenPicDesc": "Wort hören und das passende Bild wählen.",
+   "pictureQ": "Was ist das?",
+   "hearPicQ": "Welches Bild hast du gehört?"
   }
  },
  "pinyinFirst": {

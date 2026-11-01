@@ -202,3 +202,26 @@ final class PauseTests: XCTestCase {
         XCTAssertEqual(stoppedAt, 6, accuracy: 0.1)
     }
 }
+
+final class ThemeTests: XCTestCase {
+    func testEveryChineseWordHasOneTopic() {
+        let ids = Library.shared.themes["zh"]!.flatMap { $0.groups.flatMap(\.ids) }
+        XCTAssertEqual(ids.count, 601)
+        XCTAssertEqual(Set(ids).count, 601)
+    }
+    func testNewWordsFollowTheTopics() {
+        var s = AppState()
+        s.courses["zh"]?.levels = [1, 2, 3]
+        let w = CourseWords(state: s)
+        let fresh = w.planToday(s, extraNew: 0).fresh.map(\.hz)
+        XCTAssertEqual(fresh, ["再见", "谢谢", "不客气", "对不起", "没关系"])
+        let numbers = w.groups(of: w.themes.first { $0.id == "numbers" }!)[0].words.map(\.hz)
+        XCTAssertEqual(numbers, ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十"])
+        XCTAssertEqual(w.picture("63"), "🐈")
+        XCTAssertEqual(w.theme(of: "63")?.id, "nature")
+    }
+    func testOtherCoursesKeepTheirOrder() {
+        var s = AppState(); s.course = "vi"
+        XCTAssertEqual(CourseWords(state: s).selected.prefix(3).map(\.id), ["v1", "v2", "v3"])
+    }
+}

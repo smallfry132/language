@@ -1,7 +1,8 @@
 import SwiftUI
 import LanguageCore
 
-/* Words: every word of the course as tiles, with search and filters. Words you have met come first. */
+/* Words: every word of the course as tiles, with search and filters. Courses with topics (Chinese) show the words
+ * by topic and group, in learning order; the others list words you have met first, by category. */
 
 struct WordsView: View {
     @Environment(Store.self) var store
@@ -16,7 +17,7 @@ struct WordsView: View {
         let query = q.trimmingCharacters(in: .whitespaces).lowercased(), c = store.course.id, qs = Lingo.norm(query, course: c)
         let favs = Set(store.state.favs.map(\.id)), now = nowMs()
         let list = store.words.selected.filter { w in
-            if cat != "all" && w.cat != cat { return false }
+            if cat != "all" && !themed && w.cat != cat { return false }
             switch statusFilter {
             case "favs": if !favs.contains(w.id) { return false }
             case "due": if !store.state.isDue(w.id, now: now) { return false }
@@ -27,7 +28,23 @@ struct WordsView: View {
             return w.hz.lowercased().contains(query) || Lingo.norm(w.hz, course: c).contains(qs) || Lingo.norm(w.py, course: c).contains(qs) || w.py.lowercased().contains(query)
                 || (w.romaji?.contains(qs) ?? false) || w.en.lowercased().contains(query) || (w.de ?? "").lowercased().contains(query)
         }
+        if themed { return list } // learning order
         return list.filter { store.status($0.id) != .new } + list.filter { store.status($0.id) == .new } // words you have met first
+    }
+    var themed: Bool { !store.words.themes.isEmpty }
+
+    /// Topic → group → words, keeping only the words that pass the filters
+    func sections(_ list: [Word]) -> [(theme: Theme, groups: [(name: String, words: [Word])])] {
+        let pass = Set(list.map(\.id))
+        return store.words.themes.filter { cat == "all" || $0.id == cat }.compactMap { t in
+            let gs = store.words.groups(of: t).map { ($0.name.get(store.state.lang), $0.words.filter { pass.contains($0.id) }) }.filter { !$0.1.isEmpty }
+            return gs.isEmpty ? nil : (t, gs)
+        }
+    }
+    func grid(_ words: [Word]) -> some View {
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: min(tileWidth, 320)), spacing: 10)], spacing: 10) {
+            ForEach(words) { w in Button { open = w } label: { Tile(w: w) }.buttonStyle(.plain) }
+        }
     }
 
     var body: some View {
@@ -39,23 +56,28 @@ struct WordsView: View {
                     ChipButton(label: (k == "favs" ? "★ " : "") + store.t(l), active: statusFilter == k) { statusFilter = k; limit = 240 }
                 }
             }
-            ChipRow {
-                ChipButton(label: store.t("all"), active: cat == "all") { cat = "all"; limit = 240 }
-                ForEach(Library.shared.categoryOrder.filter { c in store.words.selected.contains { $0.cat == c } }, id: \.self) { c in
-                    ChipButton(label: "\(Library.shared.categories[c]?.icon ?? "") \(store.catName(c))", active: cat == c) { cat = c; limit = 240 }
-                }
-            }
+            TopicChips(selection: $cat)
             Text(store.t("wordsCount", list.count, store.words.selected.count)).font(.footnote).foregroundStyle(Color.ink3)
             if list.isEmpty { Text("🔍  " + store.t("noResults")).foregroundStyle(Color.ink2).frame(maxWidth: .infinity).padding(.top, 30) }
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: min(tileWidth, 320)), spacing: 10)], spacing: 10) {
-                ForEach(list.prefix(limit)) { w in
-                    Button { open = w } label: { Tile(w: w) }.buttonStyle(.plain)
+            if themed {
+                LazyVStack(alignment: .leading, spacing: 10) {
+                    ForEach(sections(list), id: \.theme.id) { sec in
+                        Text("\(sec.theme.icon)  \(sec.theme.name.get(store.state.lang))").font(.title3.weight(.bold)).padding(.top, 14)
+                            .accessibilityAddTraits(.isHeader)
+                        ForEach(Array(sec.groups.enumerated()), id: \.offset) { _, g in
+                            SectionTitle(text: g.name)
+                            grid(g.words)
+                        }
+                    }
+                }
+            } else {
+                grid(Array(list.prefix(limit)))
+                if list.count > limit {
+                    Button(store.t("showMore", min(240, list.count - limit), list.count - limit)) { limit += 240 }.buttonStyle(.secondary)
                 }
             }
-            if list.count > limit {
-                Button(store.t("showMore", min(240, list.count - limit), list.count - limit)) { limit += 240 }.buttonStyle(.secondary)
-            }
         }
+        .onChange(of: store.course.id) { cat = "all" }
         .searchable(text: $q, prompt: store.t("search"))
         .textInputAutocapitalization(.never)
         .sheet(item: $open) { w in WordDetail(w: w).presentationDetents([.medium, .large]) }
@@ -76,6 +98,7 @@ struct Tile: View {
                 Spacer()
                 if store.state.favs.contains(WordRef(w.id)) { Text("★").font(.caption2).foregroundStyle(Color.gold) }
             }
+            if let p = store.words.picture(w.id) { Text(p).scaledFont(26).accessibilityHidden(true) }
             if store.pyFirst {
                 PinyinText(py: w.py, size: w.py.count > 10 ? 15 : 19, weight: .semibold).lineLimit(1).minimumScaleFactor(0.6)
                 Text(w.hz).font(.caption).foregroundStyle(Color.ink3)
@@ -104,6 +127,7 @@ struct WordDetail: View {
         let lessons = store.state.lessons(course: store.course.id)
         ScrollView {
             VStack(spacing: 12) {
+                if let p = store.words.picture(w.id) { Text(p).scaledFont(72).accessibilityHidden(true) }
                 if store.pyFirst { PinyinText(py: w.py, size: 44, weight: .semibold); Text(w.hz).hanziFont(26).foregroundStyle(Color.ink2) }
                 else { Text(w.hz).hanziFont(64); Pron(py: w.py, size: 22) }
                 Text(store.tr(w)).font(.title3).multilineTextAlignment(.center)
@@ -140,5 +164,35 @@ struct WordDetail: View {
     }
     func pill(_ s: String, _ c: Color) -> some View {
         Text(s).font(.caption.weight(.medium)).padding(.horizontal, 9).padding(.vertical, 4).background(c.opacity(0.12), in: Capsule()).foregroundStyle(c)
+    }
+}
+
+/// Topic chips for courses with topics (Chinese), category chips for the others
+struct TopicChips: View {
+    @Environment(Store.self) var store
+    @Binding var selection: String
+    var body: some View {
+        ChipRow {
+            ChipButton(label: store.t("all"), active: selection == "all") { selection = "all" }
+            if store.words.themes.isEmpty {
+                ForEach(Library.shared.categoryOrder.filter { c in store.words.selected.contains { $0.cat == c } }, id: \.self) { c in
+                    ChipButton(label: "\(Library.shared.categories[c]?.icon ?? "") \(store.catName(c))", active: selection == c) { selection = c }
+                }
+            } else {
+                ForEach(store.words.themes) { t in
+                    ChipButton(label: "\(t.icon) \(t.name.get(store.state.lang))", active: selection == t.id) { selection = t.id }
+                }
+            }
+        }
+    }
+}
+
+/// A word's picture, when it has one
+struct WordPicture: View {
+    @Environment(Store.self) var store
+    let word: Word
+    var size: CGFloat = 64
+    var body: some View {
+        if let p = store.words.picture(word.id) { Text(p).scaledFont(size).accessibilityHidden(true) }
     }
 }

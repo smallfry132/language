@@ -5,11 +5,12 @@ import LanguageCore
  * is folded into "Adjust". Results lead back here; in a guided session they lead to the next step. */
 
 enum Mode: String, CaseIterable, Hashable {
-    case flash, quiz, type, typer, listen, match, tones, numbers, say
+    case flash, quiz, type, typer, listen, match, tones, numbers, say, picture, listenPic
     var key: String {
         switch self {
         case .flash: "modeFlash"; case .quiz: "modeQuiz"; case .type: "modeType"; case .typer: "modeTyper"; case .listen: "modeListen"
         case .match: "modeMatch"; case .tones: "modeTones"; case .numbers: "modeNumbers"; case .say: "modeSay"
+        case .picture: "modePicture"; case .listenPic: "modeListenPic"
         }
     }
 }
@@ -30,11 +31,11 @@ struct PracticeHome: View {
     @Environment(Store.self) var store
     struct Row { let route: Route; let key: String }
     var skills: [(id: String, icon: String, rows: [Row])] {
-        let c = store.course
+        let c = store.course, pics = store.words.selected.contains { store.words.picture($0.id) != nil }
         return [
-            ("listen", "ear", [Row(route: .mode(.listen), key: "modeListen")] + (c.toneOptions != nil ? [Row(route: .mode(.tones), key: "modeTones")] : []) + [Row(route: .soundDrill, key: "soundDrill")]),
+            ("listen", "ear", [Row(route: .mode(.listen), key: "modeListen")] + (pics ? [Row(route: .mode(.listenPic), key: "modeListenPic")] : []) + (c.toneOptions != nil ? [Row(route: .mode(.tones), key: "modeTones")] : []) + [Row(route: .soundDrill, key: "soundDrill")]),
             ("speak", "mic", [Row(route: .mode(.say), key: "modeSay")] + (store.dialogues.isEmpty ? [] : [Row(route: .dialogues, key: "dialoguesRead")]) + [Row(route: .sounds, key: "soundChart")]),
-            ("read", "book", [Row(route: .mode(.flash), key: "modeFlash"), Row(route: .mode(.quiz), key: "modeQuiz"), Row(route: .mode(.match), key: "modeMatch")]),
+            ("read", "book", (pics ? [Row(route: .mode(.picture), key: "modePicture")] : []) + [Row(route: .mode(.flash), key: "modeFlash"), Row(route: .mode(.quiz), key: "modeQuiz"), Row(route: .mode(.match), key: "modeMatch")]),
             ("write", "pencil", [Row(route: .mode(.type), key: "modeType")] + (c.id == "ja" ? [] : [Row(route: .mode(.typer), key: "modeTyper")]) + [Row(route: .mode(.numbers), key: "modeNumbers")])
         ]
     }
@@ -100,6 +101,8 @@ func exercise(_ mode: Mode, _ list: [Word], direction: QuizDirection = .hzTr, do
     case .flash: Flashcards(words: list, done: done)
     case .quiz: ChoiceQuiz(list: list, direction: direction, done: done)
     case .listen: ChoiceQuiz(list: list, direction: .listen, done: done)
+    case .picture: ChoiceQuiz(list: list, direction: .picWord, done: done)
+    case .listenPic: ChoiceQuiz(list: list, direction: .listenPic, done: done)
     case .type: TypeWord(list: list, done: done)
     case .say: SayWord(list: list, done: done)
     case .match: MatchGame(pairs: list, done: done)
@@ -142,7 +145,8 @@ struct PracticeScreen: View {
             list = Array(pool.shuffled().prefix(10))
         case .numbers: list = []
         default:
-            let pool = prefs.pool(store)
+            var pool = prefs.pool(store)
+            if [.picture, .listenPic].contains(mode) { pool = pool.filter { store.words.picture($0.id) != nil } }
             list = prefs.pool == "due" ? Array(pool.prefix(prefs.count)) : Array(pool.shuffled().prefix(prefs.count))
         }
         if mode == .typer { list = Array(store.words.selected.shuffled().prefix(prefs.count)) }
@@ -162,18 +166,25 @@ final class SetupPrefs {
 
     func pool(_ store: Store) -> [Word] {
         let base = store.words.selected
-        var list = cat == "all" ? base : base.filter { $0.cat == cat }
+        var list = cat == "all" ? base : inTopic(base, store)
+        let all = { (l: [Word]) in self.cat == "all" ? l : self.inTopic(l, store) }
         switch pool {
         case "due":
             let due = list.filter { store.state.isDue($0.id) }, fresh = list.filter { store.status($0.id) == .new }
             list = due + fresh.shuffled()
-            if list.isEmpty { list = cat == "all" ? base : base.filter { $0.cat == cat } }
-        case "lessons": list = store.words.lessonWords(store.state).filter { cat == "all" || $0.cat == cat }
+            if list.isEmpty { list = all(base) }
+        case "lessons": list = all(store.words.lessonWords(store.state))
         case "favs": list = list.filter { store.state.favs.contains(WordRef($0.id)) }
         case "learning": list = list.filter { store.status($0.id) == .learning }
         default: break
         }
         return list
+    }
+    /// The words of the chosen topic (or category, for courses without topics)
+    func inTopic(_ l: [Word], _ store: Store) -> [Word] {
+        guard let t = store.words.themes.first(where: { $0.id == cat }) else { return l.filter { $0.cat == cat } }
+        let ids = Set(t.groups.flatMap(\.ids))
+        return l.filter { ids.contains($0.id) }
     }
 }
 
@@ -184,9 +195,13 @@ struct SetupView: View {
     let start: () -> Void
 
     var counts: [Int] { mode == .flash ? [10, 20, 40, 150] : mode == .say ? [5, 10, 20] : [10, 20, 40] }
+    var available: Int {
+        let p = prefs.pool(store)
+        return [.picture, .listenPic].contains(mode) ? p.filter { store.words.picture($0.id) != nil }.count : p.count
+    }
 
     var body: some View {
-        let n = prefs.pool(store).count
+        let n = available
         Page {
             CardBox {
                 Text(store.t(mode.key)).font(.title2.weight(.bold))
@@ -209,13 +224,8 @@ struct SetupView: View {
                             SectionTitle(text: store.t("whichWords"))
                             let pools = [("due", "dueWords")] + (store.words.lessonWords(store.state).isEmpty ? [] : [("lessons", "lessonsPool")]) + [("all", "allWords"), ("learning", "learningOnly"), ("favs", "favsOnly")]
                             ChipRow { ForEach(pools, id: \.0) { k, l in ChipButton(label: store.t(l), active: prefs.pool == k) { prefs.pool = k } } }
-                            SectionTitle(text: store.t("category"))
-                            ChipRow {
-                                ChipButton(label: store.t("all"), active: prefs.cat == "all") { prefs.cat = "all" }
-                                ForEach(Library.shared.categoryOrder.filter { c in store.words.selected.contains { $0.cat == c } }, id: \.self) { c in
-                                    ChipButton(label: "\(Library.shared.categories[c]?.icon ?? "") \(store.catName(c))", active: prefs.cat == c) { prefs.cat = c }
-                                }
-                            }
+                            SectionTitle(text: store.t(store.words.themes.isEmpty ? "category" : "topics"))
+                            TopicChips(selection: $prefs.cat)
                         }
                         SectionTitle(text: store.t("howMany"))
                         ChipRow { ForEach(counts, id: \.self) { c in ChipButton(label: c == 150 ? store.t("all") : "\(c)", active: prefs.count == c) { prefs.count = c } } }

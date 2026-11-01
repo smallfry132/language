@@ -14,6 +14,7 @@ const ASSETS = [
   "./js/data-ja.js",
   "./js/sounds-data.js",
   "./js/dialogues.js",
+  "./js/themes.js",
   "./js/app.js",
   "./manifest.webmanifest",
   "./icons/icon.svg",

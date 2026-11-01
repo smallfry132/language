@@ -12,7 +12,7 @@ fs.mkdirSync(OUT, { recursive: true });
 
 const ctx = { window: {} };
 vm.createContext(ctx);
-for (const f of ["data.js", "data-hsk2.js", "data-hsk3.js", "data-vi.js", "data-vi-2.js", "data-ja.js", "sounds-data.js", "dialogues.js"]) {
+for (const f of ["data.js", "data-hsk2.js", "data-hsk3.js", "data-vi.js", "data-vi-2.js", "data-ja.js", "sounds-data.js", "dialogues.js", "themes.js"]) {
   vm.runInContext(fs.readFileSync(path.join(JS, f), "utf8"), ctx, { filename: f });
 }
 const W = ctx.window;
@@ -59,4 +59,7 @@ fs.writeFileSync(path.join(OUT, "strings.json"), JSON.stringify(strings, null, 1
 fs.writeFileSync(path.join(OUT, "categories.json"), JSON.stringify({ ...W.HSK1_CATEGORIES, custom: { en: "My words", de: "Eigene Wörter", icon: "✏️" } }));
 fs.writeFileSync(path.join(OUT, "dialogues.json"), JSON.stringify(W.DIALOGUES));
 fs.writeFileSync(path.join(OUT, "sounds.json"), JSON.stringify(W.SOUNDS));
+// Topics with word ids as strings (the native apps use string ids), and pictures per word id
+fs.writeFileSync(path.join(OUT, "themes.json"), JSON.stringify(Object.fromEntries(Object.entries(W.THEMES).map(([c, ts]) => [c, ts.map((t) => ({ ...t, groups: t.groups.map((g) => ({ name: g.name, ids: g.ids.map(String) })) }))]))));
+fs.writeFileSync(path.join(OUT, "pictures.json"), JSON.stringify(W.PICTURES));
 console.log(Object.entries(words).map(([c, l]) => `${c}: ${l.length}`).join(", "), "→", path.relative(ROOT, OUT));

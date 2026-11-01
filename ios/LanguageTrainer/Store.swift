@@ -103,6 +103,7 @@ final class Store {
     func switchCourse(_ id: String) {
         update { $0.course = id }
         extraNew = 0
+        SetupPrefs.shared.cat = "all" // topics and categories differ per course
     }
 
     // MARK: Sync (see web/js/app.js and web/api/sync.mjs)

@@ -19,6 +19,8 @@ The web app's word lists, dialogues, sound charts and texts are the single sourc
 - **Tone curve** (Chinese, Say the word and the daily Speak step) – your pitch is measured on the device while you speak (YIN pitch tracking, nothing is uploaded), split into syllables and drawn over the shape of each expected tone, including the 3rd-tone change (nǐ hǎo → ní hǎo). Mismatches get a short tip. It is a rough guide: it learns the middle of your voice over time.
 - **Speaking** – speech recognition through the browser (Safari on Mac and iPhone, Chrome) checks words and sentences; where it isn't available you record yourself and compare with the model voice.
 - **Practice** is grouped by skill: Listen, Speak, Read, Write. Pinyin is coloured by tone everywhere.
+- **Topics** (Chinese) – all 601 words in 20 topics in learning order (greetings, people, family, countries, numbers, time, food, shopping, home, clothes, town, travel, body, nature, free time, school, verbs, describing, questions, little words), each split into small groups in a natural order: numbers 0 → 10, days yesterday → tomorrow, opposites in pairs, verbs by meaning. Words, practice and the daily new words follow this order.
+- **Pictures** (Chinese) – 184 words that can be drawn have an emoji picture, shown on tiles, new words, flashcards and Say the word. *Picture to word* and *Hear and pick the picture* train meaning without a translation in between; in multiple choice and listening, a word with a picture is asked with pictures.
 - **Lessons** – one lesson per class with your tutor: add words from the lists or your own words (pinyin, characters, meaning). New words for Today come from the newest lesson first; each lesson can also be practised on its own.
 - **Pinyin first** (Chinese, on by default) – for learners who don't read characters yet: pinyin is shown big everywhere, and quizzes, listening and matching use pinyin and meaning instead of characters. Turn it off under More → Settings when you start learning characters.
 - **Sync** – keeps progress, lessons and settings the same on Mac and iPhone through a sync code (More → Sync). Needs the server setup below.
@@ -94,6 +96,7 @@ web/
   js/data-ja.js         JLPT N5–N1 words as compact rows [level, kanji, kana, meaning]
   js/sounds-data.js     Sound charts and listening drills per language
   js/dialogues.js       Dialogues per course (Chinese: HSK 1)
+  js/themes.js          Topics (ordered groups of word ids) and pictures for the Chinese words
   js/app.js             Application logic (views, training modes, spaced repetition, speech, storage, sync)
   api/sync.mjs          Vercel function: sync store (Upstash Redis)
   manifest.webmanifest  PWA manifest
@@ -106,6 +109,7 @@ ios/
   LanguageTrainerUITests/     UI tests that tap through a session, a lesson, a dialogue and the settings
 android/                Placeholder for a native Android app
 tools/export-data.mjs   Copies the web app's data and texts into the iPhone app
+tools/check-themes.mjs  Checks that every word is in exactly one topic and no picture is used twice
 ```
 
 ## Data

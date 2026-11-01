@@ -90,6 +90,15 @@ public struct Dialogue: Codable, Identifiable, Sendable {
     public let lines: [Line]
 }
 
+/// A topic (Food & drink) with ordered groups of words (Meals, Fruit, Drinks…)
+public struct Theme: Codable, Identifiable, Sendable {
+    public struct Group: Codable, Sendable { public let name: LocalText; public let ids: [String] }
+    public let id: String
+    public let icon: String
+    public let name: LocalText
+    public let groups: [Group]
+}
+
 public struct SoundCell: Codable, Hashable, Sendable {
     public let t: String?
     public let s: String?
@@ -135,6 +144,9 @@ public final class Library: @unchecked Sendable {
     public let dialogues: [String: [Dialogue]]
     public let sounds: [String: SoundData]
     public let strings: Strings
+    public let themes: [String: [Theme]]
+    /// An emoji per word id for words that can be shown as a picture
+    public let pictures: [String: String]
     private let index: [String: Word]
 
     private init() {
@@ -154,6 +166,8 @@ public final class Library: @unchecked Sendable {
         dialogues = load("dialogues", [String: [Dialogue]].self)
         sounds = load("sounds", [String: SoundData].self)
         strings = load("strings", Strings.self)
+        themes = load("themes", [String: [Theme]].self)
+        pictures = load("pictures", [String: [String: String]].self).values.reduce(into: [:]) { $0.merge($1) { a, _ in a } }
         index = Dictionary(words.values.flatMap { $0 }.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
     }
 

@@ -92,6 +92,29 @@
   function applyLevels() {
     const lv = curLevels();
     WORDS = ALL_WORDS.filter((w) => lv.includes(w.lvl));
+    // Courses with topics: words in learning order (topic by topic), own words after
+    if (themes().length) { const o = themeOrder(); WORDS = WORDS.map((w, k) => [w, o[w.id] ?? 1e6 + k]).sort((a, b) => a[1] - b[1]).map((x) => x[0]); }
+  }
+  // Topics (themes.js): every word of the course in one ordered group; pictures for words that can be shown
+  const themes = () => (window.THEMES && window.THEMES[C.id]) || [];
+  let themeOrderCache = null;
+  function themeOrder() {
+    if (themeOrderCache && themeOrderCache.course === C.id) return themeOrderCache.order;
+    const order = {}; let n = 0;
+    themes().forEach((t) => t.groups.forEach((g) => g.ids.forEach((id) => { if (order[id] === undefined) order[id] = n++; })));
+    themeOrderCache = { course: C.id, order };
+    return order;
+  }
+  const pic = (w) => (window.PICTURES && window.PICTURES[C.id] && window.PICTURES[C.id][w.id]) || "";
+  const picHtml = (w, cls) => (pic(w) ? `<div class="pic ${cls || ""}" aria-hidden="true">${pic(w)}</div>` : "");
+  const themeOf = (id) => themes().find((t) => t.groups.some((g) => g.ids.includes(id)));
+  // A word passes the topic (or, without topics, category) filter
+  const hasPics = () => WORDS.some((w) => pic(w));
+  const inCat = (w, cat) => cat === "all" || (themes().length ? (themeOf(w.id) || {}).id === cat : w.cat === cat);
+  function topicChips(id, active) {
+    const opts = themes().length ? themes().map((t) => [t.id, `${t.icon} ${esc(L(t.name))}`])
+      : Object.keys(CATS).filter((c) => WORDS.some((w) => w.cat === c)).map((c) => [c, `${CATS[c].icon} ${catName(c)}`]);
+    return `<div class="chips" id="${id}"><button class="chip ${active === "all" ? "active" : ""}" data-cat="all" type="button">${t("all")}</button>${opts.map(([k, l]) => `<button class="chip ${active === k ? "active" : ""}" data-cat="${k}" type="button">${l}</button>`).join("")}</div>`;
   }
   const levelLabel = () => (curLevels().length === C.levels.length ? C.allLabel : curLevels().map((l) => C.levelName(l)).join(" · "));
   const STORAGE_KEY = "hsk1trainer.v1";
@@ -300,7 +323,11 @@
       rateSelf: "Did it sound like the model?",
       heardGreat: "Clear, well done.", heardAlmost: "Almost. Listen to the model and try again.", heardNo: "That didn't come through. Try again, a little slower.", heardAs: (x) => `Heard: ${x}`,
       micBlocked: "Speech recognition isn't available here, so you'll record yourself instead. On iPhone it needs Dictation (Settings → General → Keyboard) and microphone access.",
-      noMic: "No access to the microphone."
+      noMic: "No access to the microphone.",
+      topics: "Topics", allTopics: "All topics", byTopic: "By topic",
+      modePicture: "Picture to word", modePictureDesc: "See a picture and pick the word, without a translation in between.",
+      modeListenPic: "Hear and pick the picture", modeListenPicDesc: "Hear a word and pick its picture.",
+      pictureQ: "What is this?", hearPicQ: "Which picture did you hear?"
     },
     de: {
       brandSub: "Trainer", words: "Wörter", train: "Üben", progress: "Fortschritt", more: "Mehr",
@@ -411,7 +438,11 @@
       rateSelf: "Klang es wie das Vorbild?",
       heardGreat: "Klar und deutlich, super.", heardAlmost: "Fast. Hör dir das Vorbild an und versuch es noch einmal.", heardNo: "Das kam nicht an. Versuch es noch einmal, etwas langsamer.", heardAs: (x) => `Gehört: ${x}`,
       micBlocked: "Spracherkennung ist hier nicht verfügbar, du nimmst dich stattdessen auf. Auf dem iPhone braucht sie die Diktierfunktion (Einstellungen → Allgemein → Tastatur) und Zugriff aufs Mikrofon.",
-      noMic: "Kein Zugriff aufs Mikrofon."
+      noMic: "Kein Zugriff aufs Mikrofon.",
+      topics: "Themen", allTopics: "Alle Themen", byTopic: "Nach Thema",
+      modePicture: "Bild zum Wort", modePictureDesc: "Bild sehen und das Wort wählen, ohne Übersetzung dazwischen.",
+      modeListenPic: "Hören und Bild wählen", modeListenPicDesc: "Wort hören und das passende Bild wählen.",
+      pictureQ: "Was ist das?", hearPicQ: "Welches Bild hast du gehört?"
     }
   };
   // Pinyin-first wording (Chinese while characters are not studied yet)
@@ -795,13 +826,13 @@
   function filteredWords() {
     const q = wf.q.trim().toLowerCase(); const qs = norm(q);
     return WORDS.filter((w) => {
-      if (wf.cat !== "all" && w.cat !== wf.cat) return false;
+      if (!inCat(w, wf.cat)) return false;
       if (wf.status === "favs" && !S.favs.includes(w.id)) return false;
       if (wf.status === "due" && !isDue(w.id)) return false;
       if (["new", "learning", "known"].includes(wf.status) && status(w.id) !== wf.status) return false;
       if (!q) return true;
       return w.hz.toLowerCase().includes(q) || norm(w.hz).includes(qs) || norm(w.py).includes(qs) || w.py.toLowerCase().includes(q) || (w.romaji && w.romaji.includes(qs)) || w.en.toLowerCase().includes(q) || (w.de || "").toLowerCase().includes(q);
-    }).sort((a, b) => (status(a.id) === "new") - (status(b.id) === "new")); // words you have met first
+    }).sort((a, b) => (themes().length ? 0 : (status(a.id) === "new") - (status(b.id) === "new"))); // learning order with topics, else words you have met first
   }
   function renderWords(view) {
     setTopbar(t("words") + " · " + levelLabel(), null);
@@ -810,10 +841,7 @@
       <input class="search" id="search" type="search" placeholder="${esc(t("search"))}" value="${esc(wf.q)}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
       ${levelChips("lvl-chips")}
       <div class="chips" id="status-chips">${statusFilters.map(([k, l]) => `<button class="chip ${wf.status === k ? "active" : ""}" data-status="${k}" type="button">${l}</button>`).join("")}</div>
-      <div class="chips" id="cat-chips">
-        <button class="chip ${wf.cat === "all" ? "active" : ""}" data-cat="all" type="button">${t("all")}</button>
-        ${Object.keys(CATS).filter((c) => WORDS.some((w) => w.cat === c)).map((c) => `<button class="chip ${wf.cat === c ? "active" : ""}" data-cat="${c}" type="button">${CATS[c].icon} ${catName(c)}</button>`).join("")}
-      </div>
+      ${topicChips("cat-chips", wf.cat)}
       <div class="list-hint" id="words-hint"></div>
       <div class="tiles" id="tiles"></div>`;
     const search = $("#search");
@@ -832,16 +860,25 @@
     if (!list.length) { tiles.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="big">🔍</div>${t("noResults")}</div>`; return; }
     const CHUNK = 240;
     const shown = list.slice(0, tileLimit);
-    tiles.innerHTML = shown.map((w) => `
+    const tileHtml = (w) => `
       <button class="tile" data-id="${w.id}" type="button">
         <span class="tile-dot ${status(w.id)}"></span>
         ${S.favs.includes(w.id) ? `<span class="tile-fav">★</span>` : ""}
+        ${pic(w) ? `<span class="tile-pic" aria-hidden="true">${pic(w)}</span>` : ""}
         ${pyFirst()
           ? `<span class="tile-hz py ${w.py.length > 10 ? "long" : ""}">${pyHtml(w.py)}</span><span class="tile-sub-hz">${w.hz}</span>`
           : `<span class="tile-hz ${isLong(w.hz) ? "long" : ""}">${w.hz}</span>${S.settings.tilePinyin ? `<span class="tile-py">${pyShow(w.py)}</span>` : ""}`}
         <span class="tile-tr">${esc(tr(w))}</span>
         <span class="tile-num">${curLevels().length > 1 ? `<span class="lvl-badge l${w.lvl}">${C.levelName(w.lvl)}</span>` : (C.id === "zh" ? w.id : "")}</span>
-      </button>`).join("") + (list.length > shown.length ? `<button class="btn block tiles-more" id="tiles-more" type="button">${t("showMore", Math.min(CHUNK, list.length - shown.length), list.length - shown.length)}</button>` : "");
+      </button>`;
+    if (themes().length) {
+      // Topic → group headings, words in their order
+      const pass = new Set(list.map((w) => w.id));
+      tiles.innerHTML = themes().filter((th) => wf.cat === "all" || th.id === wf.cat).map((th) => {
+        const groups = th.groups.map((g) => [g, g.ids.filter((id) => pass.has(id)).map((id) => BY_ID[id])]).filter(([, ws]) => ws.length);
+        return groups.length ? `<h2 class="topic-head">${th.icon} ${esc(L(th.name))}</h2>` + groups.map(([g, ws]) => `<div class="section-title topic-group">${esc(L(g.name))}</div>${ws.map(tileHtml).join("")}`).join("") : "";
+      }).join("");
+    } else tiles.innerHTML = shown.map(tileHtml).join("") + (list.length > shown.length ? `<button class="btn block tiles-more" id="tiles-more" type="button">${t("showMore", Math.min(CHUNK, list.length - shown.length), list.length - shown.length)}</button>` : "");
     $$(".tile", tiles).forEach((b) => (b.onclick = () => openWord(wid(b.dataset.id))));
     const more = $("#tiles-more"); if (more) more.onclick = () => { tileLimit += CHUNK; drawTiles(false); };
   }
@@ -849,6 +886,7 @@
     const w = BY_ID[id];
     const st = status(id); const fav = S.favs.includes(id);
     openSheet(`
+      ${picHtml(w, "big")}
       ${pyFirst() ? `<div class="detail-py big">${pyHtml(w.py)}</div><div class="detail-sub-hz">${w.hz}</div>` : `<div class="detail-hz">${w.hz}</div><div class="detail-py">${pyShow(w.py)}</div>`}
       <div class="detail-tr">${esc(tr(w))}</div>
       ${tr2(w) ? `<div class="detail-tr2">${esc(tr2(w))}</div>` : ""}
@@ -887,13 +925,15 @@
     { id: "match", ico: "🧩", key: "modeMatch" },
     { id: "tones", ico: "🎵", key: "modeTones" },
     { id: "numbers", ico: "🔢", key: "modeNumbers" },
-    { id: "say", ico: "🎤", key: "modeSay" }
+    { id: "say", ico: "🎤", key: "modeSay" },
+    { id: "picture", ico: "🖼️", key: "modePicture" },
+    { id: "listenPic", ico: "👂", key: "modeListenPic" }
   ];
   // Practice is grouped by what the tutors ask for; each row is a mode or a place in the app
   const SKILLS = [
-    { id: "listen", rows: [["train/listen", "modeListen"], ["train/tones", "modeTones"], ["sounds/drill", "soundDrill"]] },
+    { id: "listen", rows: [["train/listen", "modeListen"], ["train/listenPic", "modeListenPic"], ["train/tones", "modeTones"], ["sounds/drill", "soundDrill"]] },
     { id: "speak", rows: [["train/say", "modeSay"], ["lessons", "dialoguesRead"], ["sounds", "soundChart"]] },
-    { id: "read", rows: [["train/flash", "modeFlash"], ["train/quiz", "modeQuiz"], ["train/match", "modeMatch"]] },
+    { id: "read", rows: [["train/picture", "modePicture"], ["train/flash", "modeFlash"], ["train/quiz", "modeQuiz"], ["train/match", "modeMatch"]] },
     { id: "write", rows: [["train/type", "modeType"], ["train/typer", "modeTyper"], ["train/numbers", "modeNumbers"]] }
   ];
   function renderTrain(view) {
@@ -911,11 +951,12 @@
     if (mode === "tones") return C.toneOptions ? startTones(view) : renderTrainHome(view);
     if (mode === "numbers") return startNumbers(view);
     if (mode === "say") return setupSession(view, mode, { pool: true, count: [5, 10, 20] });
+    if (mode === "picture" || mode === "listenPic") return hasPics() ? setupSession(view, mode, { pool: true, count: [10, 20, 40], pics: true }) : renderTrainHome(view);
   }
   function renderTrainHome(view) {
     setTopbar(t("train"), null);
     const due = dueWords().length;
-    const hidden = (route) => (route === "train/tones" && !C.toneOptions) || (route === "train/typer" && C.id === "ja") || (route === "lessons" && !courseDialogues().length);
+    const hidden = (route) => ((route === "train/picture" || route === "train/listenPic") && !hasPics()) || (route === "train/tones" && !C.toneOptions) || (route === "train/typer" && C.id === "ja") || (route === "lessons" && !courseDialogues().length);
     view.innerHTML = `
       ${due ? `<button class="list-hint due-note" id="due-note" type="button">${t("dueInToday", due)} ›</button>` : ""}
       <div class="skills">${SKILLS.map((sk) => `
@@ -930,12 +971,12 @@
   /* --- Session setup --- */
   const setupPrefs = { pool: "due", count: 10, cat: "all", direction: "hzTr" };
   function poolWords(pool, cat) {
-    let list = cat === "all" ? WORDS : WORDS.filter((w) => w.cat === cat);
+    let list = WORDS.filter((w) => inCat(w, cat));
     if (pool === "due") {
       const due = list.filter((w) => isDue(w.id)); const fresh = list.filter((w) => status(w.id) === "new");
       list = due.concat(shuffle(fresh));
-      if (!list.length) list = cat === "all" ? WORDS : WORDS.filter((w) => w.cat === cat);
-    } else if (pool === "lessons") list = lessonWords().filter((w) => cat === "all" || w.cat === cat);
+      if (!list.length) list = WORDS.filter((w) => inCat(w, cat));
+    } else if (pool === "lessons") list = lessonWords().filter((w) => inCat(w, cat));
     else if (pool === "favs") list = list.filter((w) => S.favs.includes(w.id));
     else if (pool === "learning") list = list.filter((w) => status(w.id) === "learning");
     return list;
@@ -957,8 +998,8 @@
         ${levelChips("s-lvl-chips")}
         <div class="section-title">${t("whichWords")}</div>
         <div class="chips" id="pool-chips">${pools.map(([k, l]) => `<button class="chip ${setupPrefs.pool === k ? "active" : ""}" data-pool="${k}" type="button">${l}</button>`).join("")}</div>
-        <div class="section-title">${t("category")}</div>
-        <div class="chips" id="scat-chips"><button class="chip ${setupPrefs.cat === "all" ? "active" : ""}" data-cat="all" type="button">${t("all")}</button>${Object.keys(CATS).map((c) => `<button class="chip ${setupPrefs.cat === c ? "active" : ""}" data-cat="${c}" type="button">${CATS[c].icon} ${catName(c)}</button>`).join("")}</div>
+        <div class="section-title">${t(themes().length ? "topics" : "category")}</div>
+        ${topicChips("scat-chips", setupPrefs.cat)}
         <div class="section-title">${t("howMany")}</div>
         <div class="chips" id="count-chips">${cfg.count.map((n) => `<button class="chip ${setupPrefs.count === n ? "active" : ""}" data-count="${n}" type="button">${n === 150 ? t("all") : n}</button>`).join("")}</div>
         ${cfg.direction ? `<div class="section-title">${t("direction")}</div><div class="chips" id="dir-chips">${dirs.map(([k, l]) => `<button class="chip ${setupPrefs.direction === k ? "active" : ""}" data-dir="${k}" type="button">${l}</button>`).join("")}</div>` : ""}
@@ -969,16 +1010,19 @@
     bind("#pool-chips", "pool", "pool"); bind("#scat-chips", "cat", "cat"); bind("#count-chips", "count", "count");
     if (cfg.direction) bind("#dir-chips", "dir", "direction");
     bindLevelChips("s-lvl-chips", updateInfo);
-    function updateInfo() { const n = poolWords(setupPrefs.pool, setupPrefs.cat).length; $("#pool-info").textContent = t("wordsCount", Math.min(n, setupPrefs.count), n); $("#start").disabled = n < (mode === "flash" || mode === "type" || mode === "say" ? 1 : 4); }
+    const poolOf = () => poolWords(setupPrefs.pool, setupPrefs.cat).filter((w) => !cfg.pics || pic(w));
+    function updateInfo() { const n = poolOf().length; $("#pool-info").textContent = t("wordsCount", Math.min(n, setupPrefs.count), n); $("#start").disabled = n < (mode === "flash" || mode === "type" || mode === "say" ? 1 : 4); }
     updateInfo();
     $("#start").onclick = () => {
-      let list = poolWords(setupPrefs.pool, setupPrefs.cat);
+      let list = poolOf();
       list = setupPrefs.pool === "due" ? list.slice(0, setupPrefs.count) : sample(list, setupPrefs.count);
       if (mode === "flash") runFlash(view, list);
       else if (mode === "quiz") runQuiz(view, list, setupPrefs.direction);
       else if (mode === "type") runType(view, list);
       else if (mode === "listen") runQuiz(view, list, "listen");
       else if (mode === "say") runSay(view, list);
+      else if (mode === "picture") runQuiz(view, list, "picWord");
+      else if (mode === "listenPic") runQuiz(view, list, "listenPic");
     };
   }
 
@@ -1025,6 +1069,7 @@
         ${sessionHead(i, queue.length)}
         <div class="flashcard" id="fc">
           ${flipped ? `
+            ${picHtml(w)}
             ${pyFirst() ? `<div class="fc-py big">${pyHtml(w.py)}</div><div class="fc-sub-hz">${w.hz}</div>` : `<div class="fc-hz ${isLong(w.hz) ? "long" : ""}">${w.hz}</div><div class="fc-py">${pyShow(w.py)}</div>`}
             <div class="fc-tr">${esc(tr(w))}</div>
             ${tr2(w) ? `<div class="fc-tr2">${esc(tr2(w))}</div>` : ""}
@@ -1072,15 +1117,22 @@
     return Math.round(iv) + " d";
   }
 
-  /* --- Multiple choice / listening quiz --- */
+  /* --- Multiple choice / listening quiz ---
+   * Directions: hzTr, trHz, hzPy, pyHz, listen, picWord (see a picture, pick the word), listenPic (hear, pick the picture).
+   * Where a word has a picture, its meaning is asked as a picture instead of a translation. */
   function runQuiz(view, list, direction) {
     let i = 0, correct = 0, answered = false; const mistakes = [];
     const optCount = 4;
+    const listens = direction === "listen" || direction === "listenPic";
+    const usesPics = (w) => direction === "picWord" || direction === "listenPic" || ((direction === "hzTr" || direction === "listen") && !!pic(w));
+    const picsOnly = (w) => usesPics(w) && (direction === "hzTr" || direction === "listenPic");
     function optionsFor(w) {
       // Options must look different: no repeated meaning, and with pinyin shown no repeated pinyin (他/她 are both tā)
       const shown = (x) => (direction === "hzPy" || pyFirst() && direction !== "hzTr" ? x.py : direction === "hzTr" ? tr(x) : x.hz);
       const seen = new Set([shown(w)]); const distractors = [];
-      for (const x of shuffle(WORDS.length >= 8 ? WORDS : ALL_WORDS)) {
+      let pool = WORDS.length >= 8 ? WORDS : ALL_WORDS;
+      if (usesPics(w)) { const p = (l) => l.filter((x) => pic(x)); pool = p(WORDS).length >= 8 ? p(WORDS) : p(ALL_WORDS); }
+      for (const x of shuffle(pool)) {
         if (distractors.length === optCount - 1) break;
         if (x.id === w.id || seen.has(shown(x)) || (direction !== "hzPy" && direction !== "pyHz" && direction !== "listen" && tr(x) === tr(w))) continue;
         seen.add(shown(x)); distractors.push(x);
@@ -1088,17 +1140,21 @@
       return shuffle([w].concat(distractors));
     }
     function draw(autoPlay) {
-      if (i >= list.length) { if (cleanup) { cleanup(); cleanup = null; } return showResult(view, { correct, total: list.length, mistakes, onAgain: () => navigate("train/" + (direction === "listen" ? "listen" : "quiz")) }); }
+      if (i >= list.length) { if (cleanup) { cleanup(); cleanup = null; } return showResult(view, { correct, total: list.length, mistakes, onAgain: () => navigate("train/" + ({ listen: "listen", picWord: "picture", listenPic: "listenPic" }[direction] || "quiz")) }); }
       const w = list[i]; const opts = optionsFor(w); answered = false;
       let prompt, optHtml;
-      const label = (x) => direction === "hzTr" ? esc(tr(x)) : direction === "hzPy" ? x.py : face(x);
+      const label = (x) => picsOnly(w) ? `<span class="pic-opt" aria-label="${esc(tr(x))}">${pic(x)}</span>`
+        : direction === "listen" && usesPics(w) ? `<span class="pic-sm" aria-hidden="true">${pic(x)}</span> ${face(x)}`
+        : direction === "hzTr" ? esc(tr(x)) : direction === "hzPy" ? x.py : face(x);
       const optClass = !pyFirst() && (direction === "trHz" || direction === "pyHz" || direction === "listen") ? "hanzi" : "";
       if (direction === "hzTr" || direction === "hzPy") prompt = `${pyFirst() ? `<div class="q-text py-face">${pyHtml(w.py)}</div>` : `<div class="q-hz ${isLong(w.hz) ? "long" : ""}">${w.hz}</div>`}<button class="speak-btn sm" id="q-speak" type="button">🔊</button>`;
       else if (direction === "trHz") prompt = `<div class="q-text">${esc(tr(w))}</div>${tr2(w) ? `<div class="q-sub">${esc(tr2(w))}</div>` : ""}`;
       else if (direction === "pyHz") prompt = `<div class="q-text">${w.py}</div>`;
+      else if (direction === "picWord") prompt = `<div class="pic huge" aria-label="${esc(tr(w))}">${pic(w)}</div><div class="q-sub">${t("pictureQ")}</div>`;
+      else if (direction === "listenPic") prompt = `<div class="q-sub">${t("hearPicQ")}</div><button class="btn primary" id="q-play" type="button" style="margin-top:8px">▶︎ ${t("play")}</button><div class="q-sub small">${t("listenHint")}</div>`;
       else prompt = `<div class="q-sub">${t("listenPrompt")}</div><button class="btn primary" id="q-play" type="button" style="margin-top:8px">▶︎ ${t("play")}</button><div class="q-sub small">${t("listenHint")}</div>`;
-      optHtml = opts.map((x, k) => `<button class="option ${optClass}" data-id="${x.id}" type="button"><span class="opt-key">${k + 1}</span><span>${label(x)}</span></button>`).join("");
-      view.innerHTML = `${sessionHead(i, list.length, `✓ ${correct}`)}<div class="quiz-q">${prompt}</div><div class="options">${optHtml}</div><div id="fb"></div><div class="kbd-hint">${t("keys")}</div>`;
+      optHtml = opts.map((x, k) => `<button class="option ${picsOnly(w) ? "" : optClass}" data-id="${x.id}" type="button"><span class="opt-key">${k + 1}</span><span>${label(x)}</span></button>`).join("");
+      view.innerHTML = `${sessionHead(i, list.length, `✓ ${correct}`)}<div class="quiz-q">${prompt}</div><div class="options ${picsOnly(w) ? "pics" : ""}">${optHtml}</div><div id="fb"></div><div class="kbd-hint">${t("keys")}</div>`;
       if ($("#q-speak")) $("#q-speak").onclick = () => speak(w.hz);
       if ($("#q-play")) { $("#q-play").onclick = () => speak(w.hz); if (autoPlay) speak(w.hz); }
       $$(".option").forEach((b) => (b.onclick = () => answer(wid(b.dataset.id))));
@@ -1112,13 +1168,13 @@
       $("#fb").innerHTML = `<div class="feedback ${ok ? "ok" : "bad"}"><span>${ok ? "✓ " + t("correct") : "✗ " + t("wrong")}</span><span class="grow"><span class="hanzi">${w.hz}</span> ${w.py} · ${esc(tr(w))}</span><button class="speak-btn sm" id="fb-speak" type="button">🔊</button></div><button class="btn primary block" id="q-next" type="button" style="margin-top:12px">${t("next")}</button>`;
       $("#fb-speak").onclick = () => speak(w.hz);
       $("#q-next").onclick = next;
-      if (S.settings.autoSpeak && direction !== "listen") speak(w.hz);
+      if (S.settings.autoSpeak && !listens) speak(w.hz);
     }
     function next() { i++; draw(true); }
     bindKeys((e) => {
       if (/^[1-4]$/.test(e.key) && !answered) { const b = $$(".option")[+e.key - 1]; if (b) b.click(); }
       else if ((e.key === "Enter" || e.key === " ") && answered) { e.preventDefault(); next(); }
-      else if (e.key === " " && direction === "listen") { e.preventDefault(); speak(list[i].hz); }
+      else if (e.key === " " && listens) { e.preventDefault(); speak(list[i].hz); }
     });
     draw(false);
   }
@@ -2250,6 +2306,7 @@
       const w = list[i];
       view.innerHTML = `${sessionHead(i, list.length, `✓ ${correct}`)}
         <div class="card meet-card">
+          ${picHtml(w, "big")}
           ${pyFirst() ? `<div class="meet-py">${pyHtml(w.py)}</div><div class="meet-hz">${w.hz}</div>` : `<div class="meet-hz big">${w.hz}</div><div class="meet-py sm">${pyShow(w.py)}</div>`}
           <div class="meet-tr">${esc(tr(w))}</div>
           <div class="row meet-btns"><button class="btn" id="m-say" type="button">🔊 ${t("playModel")}</button>${micButton("w")}</div>
@@ -2345,6 +2402,7 @@
       const w = list[i];
       view.innerHTML = `${sessionHead(i, list.length)}
         <div class="card meet-card">
+          ${picHtml(w, "big")}
           ${pyFirst() ? `<div class="meet-py">${pyHtml(w.py)}</div><div class="meet-hz">${w.hz}</div>` : `<div class="meet-hz big">${w.hz}</div><div class="meet-py sm">${pyShow(w.py)}</div>`}
           <div class="meet-tr">${esc(tr(w))}</div>
           <div class="row meet-btns"><button class="btn" id="m-say" type="button">🔊 ${t("play")}</button><button class="btn ghost" id="m-slow" type="button">🐢 ${t("slowly")}</button></div>

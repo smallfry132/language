@@ -107,16 +107,33 @@ public struct CourseWords {
     public let course: Course
     public let all: [Word]          // built-in + own words
     public let selected: [Word]     // in the selected levels
+    public let themes: [Theme]      // topics of the course (empty when it has none)
     private let index: [String: Word]
+    private let order: [String: Int] // position in the topics' learning order
 
     public init(state: AppState) {
         course = Course.byId(state.course)
         all = (Library.shared.words[course.id] ?? []) + state.customWords(course: course.id)
         let lv = state.courses[course.id]?.levels ?? [1]
-        selected = all.filter { lv.contains($0.lvl) }
+        themes = Library.shared.themes[course.id] ?? []
+        var order: [String: Int] = [:]
+        for t in themes { for g in t.groups { for id in g.ids where order[id] == nil { order[id] = order.count } } }
+        self.order = order
+        // Words in learning order: by topic when the course has topics, own words after
+        selected = all.filter { lv.contains($0.lvl) }.enumerated()
+            .sorted { (order[$0.element.id] ?? Int.max - 100_000 + $0.offset) < (order[$1.element.id] ?? Int.max - 100_000 + $1.offset) }
+            .map(\.element)
         index = Dictionary(all.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
     }
     public func word(_ id: String) -> Word? { index[id] ?? Library.shared.word(id) }
+    public func picture(_ id: String) -> String? { Library.shared.pictures[id] }
+    /// The topic a word belongs to
+    public func theme(of id: String) -> Theme? { themes.first { $0.groups.contains { $0.ids.contains(id) } } }
+    /// The words of a topic in its order, grouped, from the selected levels
+    public func groups(of t: Theme) -> [(name: LocalText, words: [Word])] {
+        let sel = Set(selected.map(\.id))
+        return t.groups.map { g in (g.name, g.ids.filter { sel.contains($0) }.compactMap { index[$0] }) }.filter { !$0.words.isEmpty }
+    }
 
     /// The words of all lessons, each once; newest lesson first when picking new words
     public func lessonWords(_ state: AppState, newestFirst: Bool = false) -> [Word] {

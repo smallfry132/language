@@ -38,6 +38,7 @@ struct Flashcards: View {
                     }
                     .opacity(flipped ? 0 : 1)
                     VStack(spacing: 10) {
+                        WordPicture(word: w, size: 64)
                         WordFace(word: w, size: 56)
                         if store.pyFirst { Text(w.hz).hanziFont(22).foregroundStyle(Color.ink2) } else { Pron(py: w.py, size: 20) }
                         Text(store.tr(w)).font(.title3).multilineTextAlignment(.center)
@@ -95,9 +96,15 @@ struct Flashcards: View {
     }
 }
 
-enum QuizDirection: String, CaseIterable { case hzTr, trHz, hzPy, pyHz, listen }
+enum QuizDirection: String, CaseIterable {
+    case hzTr, trHz, hzPy, pyHz, listen
+    case picWord    // see a picture, pick the word
+    case listenPic  // hear a word, pick the picture
+    var listens: Bool { self == .listen || self == .listenPic }
+}
 
-/// Multiple choice, also used for listening (hear the word, pick it)
+/// Multiple choice, also used for listening (hear the word, pick it). Where a word has a picture, the meaning is
+/// asked as a picture instead of a translation, so you connect the word with the thing itself.
 struct ChoiceQuiz: View {
     @Environment(Store.self) var store
     let list: [Word]
@@ -114,17 +121,36 @@ struct ChoiceQuiz: View {
         Page {
             ProgressHeader(i: i, n: list.count, extra: "✓ \(correct)")
             VStack(spacing: 10) { prompt(w) }.frame(maxWidth: .infinity).padding(.vertical, 20)
-            ForEach(Array(options.enumerated()), id: \.element.id) { k, x in
-                Button { answer(x) } label: {
-                    HStack(spacing: 12) {
-                        Text("\(k + 1)").font(.caption.weight(.bold)).frame(width: 24, height: 24).background(Color.sunken, in: Circle())
-                        label(x).frame(maxWidth: .infinity, alignment: .leading)
+            if picturesOnly(w) {
+                // Pictures as large tiles, two by two
+                LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
+                    ForEach(options) { x in
+                        Button { answer(x) } label: {
+                            VStack(spacing: 4) {
+                                Text(store.words.picture(x.id) ?? "").scaledFont(52)
+                                if picked != nil { Text(store.tr(x)).font(.caption).foregroundStyle(Color.ink2).lineLimit(1) }
+                            }
+                            .frame(maxWidth: .infinity, minHeight: 104)
+                            .background(bg(x), in: RoundedRectangle(cornerRadius: 16))
+                            .overlay(RoundedRectangle(cornerRadius: 16).stroke(border(x), lineWidth: 1.5))
+                        }
+                        .buttonStyle(.plain).disabled(picked != nil)
+                        .accessibilityLabel(store.tr(x))
                     }
-                    .padding(14)
-                    .background(bg(x), in: RoundedRectangle(cornerRadius: 14))
-                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(border(x), lineWidth: 1.5))
-                    .foregroundStyle(Color.ink)
-                }.buttonStyle(.plain).disabled(picked != nil)
+                }
+            } else {
+                ForEach(Array(options.enumerated()), id: \.element.id) { k, x in
+                    Button { answer(x) } label: {
+                        HStack(spacing: 12) {
+                            Text("\(k + 1)").font(.caption.weight(.bold)).frame(width: 24, height: 24).background(Color.sunken, in: Circle())
+                            label(x).frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .padding(14)
+                        .background(bg(x), in: RoundedRectangle(cornerRadius: 14))
+                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(border(x), lineWidth: 1.5))
+                        .foregroundStyle(Color.ink)
+                    }.buttonStyle(.plain).disabled(picked != nil)
+                }
             }
             if let p = picked {
                 let ok = p == w.id
@@ -132,8 +158,15 @@ struct ChoiceQuiz: View {
                 Button(store.t("next")) { next() }.buttonStyle(.primary)
             }
         }
-        .onAppear { if options.isEmpty { options = optionsFor(w) } ; if direction == .listen { store.speaker.say(w.hz) } }
+        .onAppear { if options.isEmpty { options = optionsFor(w) } ; if direction.listens { store.speaker.say(w.hz) } }
     }
+
+    /// This question works with pictures: the picture modes, and meaning or listening questions about a word that has one
+    func usesPictures(_ w: Word) -> Bool {
+        [.picWord, .listenPic].contains(direction) || ([.hzTr, .listen].contains(direction) && store.words.picture(w.id) != nil)
+    }
+    /// The options are pictures alone (no words): the meaning is what is asked
+    func picturesOnly(_ w: Word) -> Bool { usesPictures(w) && [.hzTr, .listenPic].contains(direction) }
 
     func feedbackText(_ w: Word, _ ok: Bool) -> AttributedString {
         var a = AttributedString((ok ? store.t("correct") : store.t("wrong")) + "  ")
@@ -151,8 +184,11 @@ struct ChoiceQuiz: View {
             if let t2 = store.tr2(w) { Text(t2).foregroundStyle(Color.ink3) }
         case .pyHz:
             Text(w.py).font(.title)
-        case .listen:
-            Text(store.t("listenPrompt")).foregroundStyle(Color.ink2)
+        case .picWord:
+            Text(store.words.picture(w.id) ?? "").scaledFont(88).accessibilityLabel(store.tr(w))
+            Text(store.t("pictureQ")).foregroundStyle(Color.ink2)
+        case .listen, .listenPic:
+            Text(store.t(direction == .listenPic ? "hearPicQ" : "listenPrompt")).foregroundStyle(Color.ink2)
             Button { store.speaker.say(w.hz) } label: { Label(store.t("play"), systemImage: "play.fill").padding(.horizontal, 20) }.buttonStyle(PrimaryButtonStyle()).frame(width: 180)
             Text(store.t("listenHint")).font(.footnote).foregroundStyle(Color.ink3)
         }
@@ -161,6 +197,8 @@ struct ChoiceQuiz: View {
         switch direction {
         case .hzTr: Text(store.tr(x)).lineLimit(2)
         case .hzPy: Pron(py: x.py, size: 19)
+        case .listen where usesPictures(list[i]):
+            HStack(spacing: 12) { Text(store.words.picture(x.id) ?? "").scaledFont(30); WordFace(word: x, size: 26) }
         default: WordFace(word: x, size: 26)
         }
     }
@@ -181,7 +219,12 @@ struct ChoiceQuiz: View {
             direction == .hzPy || store.pyFirst && direction != .hzTr ? x.py : direction == .hzTr ? store.tr(x) : x.hz
         }
         var seen: Set<String> = [shown(w)], out: [Word] = []
-        let pool = store.words.selected.count >= 8 ? store.words.selected : store.words.all
+        var pool = store.words.selected.count >= 8 ? store.words.selected : store.words.all
+        if usesPictures(w) {
+            // Only words with pictures, preferably from the selected levels
+            let withPics = { (l: [Word]) in l.filter { store.words.picture($0.id) != nil } }
+            pool = withPics(store.words.selected).count >= 8 ? withPics(store.words.selected) : withPics(store.words.all)
+        }
         for x in pool.shuffled() {
             if out.count == 3 { break }
             if x.id == w.id || seen.contains(shown(x)) { continue }
@@ -197,12 +240,12 @@ struct ChoiceQuiz: View {
         Haptic.answer(ok)
         store.answer(w, ok: ok)
         if ok { correct += 1 } else { mistakes.append(w) }
-        if store.state.settings.autoSpeak && direction != .listen { store.speaker.say(w.hz) }
+        if store.state.settings.autoSpeak && !direction.listens { store.speaker.say(w.hz) }
     }
     func next() {
         if i + 1 >= list.count { done(SessionResult(correct: correct, total: list.count, mistakes: mistakes)); return }
         i += 1; picked = nil; options = optionsFor(list[i])
-        if direction == .listen { store.speaker.say(list[i].hz) }
+        if direction.listens { store.speaker.say(list[i].hz) }
     }
 }
 
@@ -305,6 +348,7 @@ struct Meet: View {
             ProgressHeader(i: i, n: list.count)
             CardBox(padding: 24) {
                 VStack(spacing: 10) {
+                    WordPicture(word: w, size: 72)
                     WordFace(word: w, size: 60)
                     if store.pyFirst { Text(w.hz).hanziFont(24).foregroundStyle(Color.ink2) } else { Pron(py: w.py, size: 22) }
                     Text(store.tr(w)).font(.title3).multilineTextAlignment(.center)
@@ -360,6 +404,7 @@ struct SayWord: View {
             ProgressHeader(i: i, n: list.count, extra: "✓ \(correct)")
             CardBox(padding: 22) {
                 VStack(spacing: 10) {
+                    WordPicture(word: w, size: 72)
                     WordFace(word: w, size: 60)
                     if store.pyFirst { Text(w.hz).hanziFont(24).foregroundStyle(Color.ink2) } else { Pron(py: w.py, size: 22) }
                     Text(store.tr(w)).font(.title3).multilineTextAlignment(.center)

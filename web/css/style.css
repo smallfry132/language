@@ -797,3 +797,17 @@ details.adjust summary { cursor: pointer; color: var(--text-2); font-weight: 600
 .pitch-msg { font-size: 14px; }
 .pitch-msg ul { margin: 0; padding-left: 18px; }
 #say-res .row { margin-top: 8px; }
+
+/* Pictures (themes.js) and topic headings */
+.pic { font-size: 52px; line-height: 1.1; text-align: center; margin-bottom: 4px; }
+.pic.big { font-size: 64px; }
+.pic.huge { font-size: 88px; }
+.tile .tile-pic { font-size: 24px; line-height: 1; margin-bottom: 2px; }
+.options.pics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.options.pics .option { justify-content: center; min-height: 104px; }
+.options.pics .opt-key { position: absolute; top: 8px; left: 8px; }
+.options.pics .option { position: relative; }
+.pic-opt { font-size: 52px; line-height: 1; }
+.pic-sm { font-size: 26px; vertical-align: middle; margin-right: 6px; }
+.tiles .topic-head { grid-column: 1 / -1; font-size: 20px; font-weight: 800; margin: 18px 0 0; }
+.tiles .topic-group { grid-column: 1 / -1; margin: 6px 0 0; }

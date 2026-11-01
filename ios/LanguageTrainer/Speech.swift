@@ -138,7 +138,7 @@ final class Microphone {
 
     private func start(key: String, target: String, py: String, course: Course, pitch: Bool, f0base: Double?, done: @escaping (Spoken?) -> Void) {
         self.target = target; self.py = py; self.course = course.id; self.pitchMode = pitch; self.f0base = f0base
-        finish = done; alts = []; final = false
+        finish = done; alts = []; final = false; lastText = Date()
         buffer = SampleBuffer(maxSeconds: pitch ? 6 : 15, quiet: pitch ? 0.8 : 1.2)
         do { try AudioSession.record() } catch { done(nil); return }
         let input = engine.inputNode
@@ -148,7 +148,7 @@ final class Microphone {
 
         if recognitionOK, let rec = SFSpeechRecognizer(locale: Locale(identifier: course.tts)), rec.isAvailable {
             let req = SFSpeechAudioBufferRecognitionRequest()
-            req.shouldReportPartialResults = false
+            req.shouldReportPartialResults = true // partial results show when the words stop coming
             if rec.supportsOnDeviceRecognition { req.requiresOnDeviceRecognition = true }
             request = req
             task = rec.recognitionTask(with: req) { [weak self] result, error in
@@ -156,7 +156,7 @@ final class Microphone {
                 let isFinal = result?.isFinal ?? (error != nil)
                 Task { @MainActor in
                     guard let self else { return }
-                    if !texts.isEmpty { self.alts = texts }
+                    if !texts.isEmpty && texts != self.alts { self.alts = texts; self.lastText = Date() }
                     if isFinal { self.final = true }
                 }
             }
@@ -171,12 +171,25 @@ final class Microphone {
         do { try engine.start() } catch { input.removeTap(onBus: 0); done(nil); return }
         started = Date()
         phase = .listening(key)
+        // Second way to notice the end: the recogniser has heard words and no new ones came for a while
+        // (in a noisy room the level may never drop low enough for the pause detection)
+        watchdog?.cancel()
+        let quietAfterWords = pitch ? 1.0 : 1.4
+        watchdog = Task { [weak self] in
+            while let self, self.isListening, !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(200))
+                if self.isListening, !self.alts.isEmpty, Date().timeIntervalSince(self.lastText) > quietAfterWords { self.stop() }
+            }
+        }
     }
+    private var lastText = Date()
+    private var watchdog: Task<Void, Never>?
 
     /// Stops listening (the second tap, or by itself after a pause)
     func stop() {
         guard isListening else { return }
         phase = .idle
+        watchdog?.cancel(); watchdog = nil
         engine.inputNode.removeTap(onBus: 0)
         engine.stop()
         request?.endAudio()
@@ -209,18 +222,14 @@ final class Microphone {
     }
 }
 
-/// Microphone samples, collected on the audio thread; detects the pause after speaking
+/// Microphone samples, collected on the audio thread; a PauseDetector decides when you have finished
 final class SampleBuffer: @unchecked Sendable {
     private let lock = NSLock()
     private var chunks: [[Float]] = []
-    private var heard = false
-    private var quietFor = 0.0
-    private var total = 0.0
+    private var pause: PauseDetector
     private var stopped = false
     var rate = 48_000.0
-    let maxSeconds: Double
-    let quiet: Double
-    init(maxSeconds: Double = 6, quiet: Double = 0.8) { self.maxSeconds = maxSeconds; self.quiet = quiet }
+    init(maxSeconds: Double = 6, quiet: Double = 0.8) { pause = PauseDetector(maxSeconds: maxSeconds, quiet: quiet) }
 
     /// Returns true once it is time to stop
     func add(_ pcm: AVAudioPCMBuffer) -> Bool {
@@ -232,10 +241,7 @@ final class SampleBuffer: @unchecked Sendable {
         let rms = n > 0 ? (s / Float(n)).squareRoot() : 0
         lock.lock(); defer { lock.unlock() }
         chunks.append(x)
-        let secs = Double(n) / rate
-        total += secs
-        if rms > 0.02 { heard = true; quietFor = 0 } else if heard { quietFor += secs }
-        if !stopped && ((heard && quietFor > quiet) || total > maxSeconds) { stopped = true; return true }
+        if !stopped && pause.feed(rms: rms, seconds: Double(n) / rate) { stopped = true; return true }
         return false
     }
     func samples() -> [Float] { lock.lock(); defer { lock.unlock() }; return chunks.flatMap { $0 } }

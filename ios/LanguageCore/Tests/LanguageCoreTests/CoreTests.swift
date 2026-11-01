@@ -164,3 +164,41 @@ final class PitchTests: XCTestCase {
         XCTAssertTrue(Pitch.check(py: "mā", frames: Pitch.track([Float](repeating: 0, count: 16000)), f0base: nil).none)
     }
 }
+
+final class PauseTests: XCTestCase {
+    /// Feeds 43 ms chunks: background, then speech (with small dips between syllables), then background again.
+    /// Returns when it stopped, in seconds (nil = never before the end).
+    func run(background: Float, speech: Float, speechSeconds: Double, quiet: Double = 0.8, max: Double = 15) -> Double? {
+        var d = PauseDetector(maxSeconds: max, quiet: quiet)
+        let chunk = 2048.0 / 48000, t0 = 0.6, t1 = t0 + speechSeconds
+        var t = 0.0, k = 0
+        while t < t1 + 4 {
+            let speaking = t >= t0 && t < t1
+            let rms = speaking ? (k % 6 == 5 ? speech * 0.35 : speech) : background * Float(0.8 + 0.4 * Double((k * 7) % 5) / 4)
+            if d.feed(rms: rms, seconds: chunk) { return t }
+            t += chunk; k += 1
+        }
+        return nil
+    }
+    func testStopsAfterSpeakingInAQuietRoom() {
+        let t = run(background: 0.002, speech: 0.04, speechSeconds: 1.2)!
+        XCTAssertEqual(t, 0.6 + 1.2 + 0.8, accuracy: 0.25)
+    }
+    func testSoftVoiceBelowTheOldFixedThreshold() {
+        XCTAssertNotNil(run(background: 0.0008, speech: 0.009, speechSeconds: 1.0)) // the old fixed 0.02 never heard this
+    }
+    func testNoisyRoom() {
+        let t = run(background: 0.03, speech: 0.2, speechSeconds: 1.5)! // the old fixed 0.02 never found a pause here
+        XCTAssertLessThan(t, 0.6 + 1.5 + 1.5)
+    }
+    func testLongSentenceIsNotCutShort() {
+        let t = run(background: 0.003, speech: 0.03, speechSeconds: 7, quiet: 1.2)!
+        XCTAssertGreaterThan(t, 0.6 + 7)
+    }
+    func testSilenceStopsAtTheLimit() {
+        var d = PauseDetector(maxSeconds: 6, quiet: 0.8)
+        var stoppedAt = 0.0
+        for k in 0..<400 { if d.feed(rms: 0.002, seconds: 0.0427) { stoppedAt = Double(k) * 0.0427; break } }
+        XCTAssertEqual(stoppedAt, 6, accuracy: 0.1)
+    }
+}

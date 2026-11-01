@@ -105,23 +105,29 @@ struct TapWords: View {
 /// A simple flow layout: items left to right, wrapping to the next line
 struct WrapLayout: Layout {
     var spacing: CGFloat = 6
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-        let maxW = proposal.width ?? .infinity
-        var x: CGFloat = 0, y: CGFloat = 0, lineH: CGFloat = 0, widest: CGFloat = 0
+    var lineSpacing: CGFloat = 2
+
+    /// Each item's position, the line breaks decided once for a width. Measuring and placing use the same
+    /// breaks, so a line can never wrap one more time than was measured and run into the text below.
+    private func arrange(_ subviews: Subviews, width maxW: CGFloat) -> (points: [CGPoint], size: CGSize) {
+        var points: [CGPoint] = [], x: CGFloat = 0, y: CGFloat = 0, lineH: CGFloat = 0, widest: CGFloat = 0
         for v in subviews {
             let s = v.sizeThatFits(.unspecified)
-            if x > 0 && x + s.width > maxW { y += lineH + 2; x = 0; lineH = 0 }
-            x += s.width + spacing; lineH = max(lineH, s.height); widest = max(widest, x - spacing)
+            if x > 0 && x + s.width > maxW + 0.5 { y += lineH + lineSpacing; x = 0; lineH = 0 }
+            points.append(CGPoint(x: x, y: y))
+            widest = max(widest, x + s.width)
+            x += s.width + spacing; lineH = max(lineH, s.height)
         }
-        return CGSize(width: min(widest, maxW), height: y + lineH)
+        return (points, CGSize(width: min(widest, maxW), height: y + lineH))
+    }
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        arrange(subviews, width: proposal.width ?? .infinity).size
     }
     func placeSubviews(in b: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
-        var x = b.minX, y = b.minY, lineH: CGFloat = 0
-        for v in subviews {
-            let s = v.sizeThatFits(.unspecified)
-            if x > b.minX && x + s.width > b.maxX { y += lineH + 2; x = b.minX; lineH = 0 }
-            v.place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(s))
-            x += s.width + spacing; lineH = max(lineH, s.height)
+        // The width the layout was measured with, not the (possibly narrower, rounded) bounds
+        let w = max(proposal.width ?? b.width, b.width)
+        for (v, p) in zip(subviews, arrange(subviews, width: w).points) {
+            v.place(at: CGPoint(x: b.minX + p.x, y: b.minY + p.y), proposal: .unspecified)
         }
     }
 }

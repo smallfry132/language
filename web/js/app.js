@@ -93,8 +93,12 @@
   // Own words (added in a lesson) live in S.custom as { course, hz, py, en, t }; they join level 1 of their course
   const customWords = (course) => Object.entries(S.custom || {}).filter(([, x]) => !x.gone && x.course === course)
     .map(([id, x]) => ({ id, hz: x.hz || x.py, py: x.py, en: x.en, cat: "custom", lvl: 1, ex: "", exPy: "", exEn: "", course }));
+  // One look per language (Ink Grid, Quiet Ruby, Block Builder, Tone Color): colours and fonts in style.css
+  // under html[data-course]; here the tab labels written in the language itself
+  const LOOK_TABS = { zh: ["今", "课", "练", "字"], ja: ["今", "課", "練", "あ"], ko: ["오", "학", "연", "한"], vi: ["Nay", "Học", "Tập", "Từ"] };
   function applyCourse() {
     C = COURSES[S.course] || COURSES.zh;
+    document.documentElement.dataset.course = C.id;
     const own = customWords(C.id);
     own.forEach((w) => (BY_ID[w.id] = w));
     ALL_WORDS = C.words.concat(own);
@@ -166,7 +170,7 @@
     srs: {},
     favs: [],
     stats: { answered: 0, correct: 0, days: {}, sessions: 0, since: 0 },
-    settings: { rate: 0.85, autoSpeak: true, tilePinyin: true, quizSize: 10, dailyGoal: 20, theme: "auto", newPerDay: 5 },
+    settings: { rate: 0.85, autoSpeak: true, tilePinyin: true, quizSize: 10, dailyGoal: 20, theme: "auto", newPerDay: 5 }, // readingLayer: always | new | off
     course: "zh",
     courses: { zh: { levels: [1] }, vi: { levels: [1] }, ja: { levels: [1] }, ko: { levels: [1] } },
     lessons: {},  // id → { course, name, words: [ids], created, t }
@@ -341,7 +345,8 @@
       topics: "Topics", allTopics: "All topics", byTopic: "By topic",
       modePicture: "Picture to word", modePictureDesc: "See a picture and pick the word, without a translation in between.",
       modeListenPic: "Hear and pick the picture", modeListenPicDesc: "Hear a word and pick its picture.",
-      pictureQ: "What is this?", hearPicQ: "Which picture did you hear?", pronHint: "How it is said"
+      pictureQ: "What is this?", hearPicQ: "Which picture did you hear?", pronHint: "How it is said",
+      readingLayer: "Reading help", readingLayerDesc: "Pinyin, romanization or kana with each word.", readingAlways: "Always", readingNew: "New words", readingOff: "Off"
     },
     de: {
       brandSub: "Trainer", words: "Wörter", train: "Üben", progress: "Fortschritt", more: "Mehr",
@@ -456,7 +461,8 @@
       topics: "Themen", allTopics: "Alle Themen", byTopic: "Nach Thema",
       modePicture: "Bild zum Wort", modePictureDesc: "Bild sehen und das Wort wählen, ohne Übersetzung dazwischen.",
       modeListenPic: "Hören und Bild wählen", modeListenPicDesc: "Wort hören und das passende Bild wählen.",
-      pictureQ: "Was ist das?", hearPicQ: "Welches Bild hast du gehört?", pronHint: "So wird es gesprochen"
+      pictureQ: "Was ist das?", hearPicQ: "Welches Bild hast du gehört?", pronHint: "So wird es gesprochen",
+      readingLayer: "Lesehilfe", readingLayerDesc: "Pinyin, Umschrift oder Kana zu jedem Wort.", readingAlways: "Immer", readingNew: "Neue Wörter", readingOff: "Aus"
     }
   };
   // Pinyin-first wording (Chinese while characters are not studied yet)
@@ -808,7 +814,8 @@
   function navigate(path) { location.hash = "#/" + path; }
   function parseRoute() { const h = location.hash.replace(/^#\/?/, ""); return h ? h.split("/") : ["today"]; }
   function renderNav() {
-    const html = TABS.map((tab) => `<button class="tab ${route[0] === tab.id || tab.also.includes(route[0]) ? "active" : ""}" data-route="${tab.id}" type="button"><span class="tab-ico">${icon(tab.id)}</span><span>${t(tab.key)}</span></button>`).join("");
+    const glyphs = LOOK_TABS[C.id];
+    const html = TABS.map((tab, k) => `<button class="tab ${route[0] === tab.id || tab.also.includes(route[0]) ? "active" : ""}" data-route="${tab.id}" type="button"><span class="tab-ico ${glyphs ? "tab-glyph" : ""}" aria-hidden="true">${glyphs ? esc(glyphs[k]) : icon(tab.id)}</span><span>${t(tab.key)}</span></button>`).join("");
     $("#nav-desktop").innerHTML = html; $("#nav-mobile").innerHTML = html;
     $$("[data-route]").forEach((b) => (b.onclick = () => navigate(b.dataset.route)));
     $$(".lang-toggle").forEach((b) => { b.innerHTML = icon("settings"); b.setAttribute("aria-label", t("settings")); b.classList.toggle("active", route[0] === "more"); b.onclick = () => navigate("more"); });
@@ -938,7 +945,7 @@
         ${pic(w) ? `<span class="tile-pic" aria-hidden="true">${pic(w)}</span>` : ""}
         ${pyFirst()
           ? `<span class="tile-hz py ${w.py.length > 10 ? "long" : ""}">${pyHtml(w.py)}</span><span class="tile-sub-hz">${w.hz}</span>`
-          : `<span class="tile-hz ${isLong(w.hz) ? "long" : ""}">${w.hz}</span>${S.settings.tilePinyin ? `<span class="tile-py">${pyShow(w.py)}</span>` : ""}`}
+          : `<span class="tile-hz ${isLong(w.hz) ? "long" : ""}">${C.id === "vi" ? viHtml(w.hz) : w.hz}</span>${showsReading(w) ? `<span class="tile-py">${C.id === "ja" ? esc(w.kana && w.kana !== w.hz ? w.kana : w.romaji) : pyShow(w.py)}</span>` : ""}`}
         <span class="tile-tr">${esc(tr(w))}</span>
         <span class="tile-num">${curLevels().length > 1 ? `<span class="lvl-badge l${w.lvl}">${C.levelName(w.lvl)}</span>` : (C.id === "zh" ? w.id : "")}</span>
       </button>`;
@@ -958,7 +965,7 @@
     const st = status(id); const fav = S.favs.includes(id);
     openSheet(`
       ${picHtml(w, "big")}
-      ${pyFirst() ? `<div class="detail-py big">${pyHtml(w.py)}</div><div class="detail-sub-hz">${w.hz}</div>` : `<div class="detail-hz">${w.hz}</div><div class="detail-py">${pyShow(w.py)}</div>${pronHtml(w)}`}
+      ${heroHtml(w)}
       <div class="detail-tr">${esc(tr(w))}</div>
       ${tr2(w) ? `<div class="detail-tr2">${esc(tr2(w))}</div>` : ""}
       <div class="detail-meta">
@@ -1141,12 +1148,12 @@
         <div class="flashcard" id="fc">
           ${flipped ? `
             ${picHtml(w)}
-            ${pyFirst() ? `<div class="fc-py big">${pyHtml(w.py)}</div><div class="fc-sub-hz">${w.hz}</div>` : `<div class="fc-hz ${isLong(w.hz) ? "long" : ""}">${w.hz}</div><div class="fc-py">${pyShow(w.py)}</div>${pronHtml(w)}`}
+            ${heroHtml(w)}
             <div class="fc-tr">${esc(tr(w))}</div>
             ${tr2(w) ? `<div class="fc-tr2">${esc(tr2(w))}</div>` : ""}
             ${w.ex ? `<div class="fc-ex">${pyFirst() && w.exPy ? `${w.exPy}<br><span class="hanzi small">${w.ex}</span>` : `<span class="hanzi">${w.ex}</span>${w.exPy}`}<br>${esc(exTr(w))}</div>` : ""}
             <button class="speak-btn" id="fc-speak" type="button" style="margin-top:10px">🔊</button>`
-          : `${pyFirst() ? `<div class="fc-py big">${pyHtml(w.py)}</div>` : `<div class="fc-hz ${isLong(w.hz) ? "long" : ""}">${w.hz}</div>`}<div class="fc-hint">${t("tapToFlip")}</div>`}
+          : `${pyFirst() ? `<div class="fc-py big">${pyHtml(w.py)}</div>` : `<div class="fc-hz ${isLong(w.hz) ? "long" : ""}">${C.id === "vi" ? viHtml(w.hz) : w.hz}</div>`}<div class="fc-hint">${t("tapToFlip")}</div>`}
         </div>
         ${flipped ? `
           <div class="rate-grid">
@@ -1624,6 +1631,26 @@
   }
   // One colour per tone, so the tone pattern of a word is visible at a glance
   const pyHtml = (py) => pyParts(py).map((x) => (x.sep ? esc(x.text) : `<span class="tn${x.tone}">${esc(x.text)}</span>`)).join("");
+  // Vietnamese: each syllable in its tone's colour (the marks stay, so colour is never the only cue)
+  const VI_TONE_CLASS = ["", "level", "falling", "rising", "dipping", "broken", "light"];
+  const viHtml = (s) => esc(s).replace(/[\p{L}]+/gu, (syl) => `<span class="tc-${VI_TONE_CLASS[firstToneVi(syl)]}">${syl}</span>`);
+  const firstToneVi = (syl) => { const m = Array.from(syl.normalize("NFD")).map((c) => VI_TONE_MARKS[c]).filter(Boolean); return m[0] || 1; };
+  // The reading layer (pinyin, romanization, kana) with a word: always, for words not yet known, or off
+  const readingLayer = () => S.settings.readingLayer || (S.settings.tilePinyin === false ? "off" : "always");
+  const showsReading = (w) => (readingLayer() === "off" ? false : readingLayer() === "new" ? status(w.id) !== "known" : true);
+  // The word large, with what its language needs: 田字格 grid, furigana, Hangul letters, tone contours
+  function heroHtml(w) {
+    if (C.id === "zh") return pyFirst()
+      ? `<div class="hero-py">${pyHtml(w.py)}</div>${gridHtml(w.hz, "sm")}`
+      : `${gridHtml(w.hz, Array.from(w.hz).length > 2 ? "md" : "")}<div class="hero-sub">${pyShow(w.py)}</div>`;
+    if (C.id === "ja") return `${w.kana && w.kana !== w.hz ? `<div class="furigana">${esc(w.kana)}</div>` : ""}<div class="hero-word">${esc(w.hz)}</div>${w.romaji ? `<div class="romaji">${esc(w.romaji)}</div>` : ""}`;
+    if (C.id === "ko") return `<div class="hero-word">${esc(w.hz)}</div><div class="hero-sub">${esc(w.py)}</div>${pronHtml(w)}${koBlocksHtml(w.hz)}`;
+    if (C.id === "vi") return `<div class="hero-word">${viHtml(w.hz)}</div><div class="romaji">${esc(w.py)}</div>${contoursHtml(w.hz)}`;
+    return `<div class="hero-word">${esc(w.hz)}</div><div class="hero-sub">${pyShow(w.py)}</div>`;
+  }
+  const gridHtml = (hz, size) => `<div class="grid-chars ${size || ""}" role="img" aria-label="${esc(hz)}">${Array.from(hz).filter((c) => /\S/.test(c)).map((c) => `<span class="gc" aria-hidden="true">${esc(c)}</span>`).join("")}</div>`;
+  const koBlocksHtml = (hz) => `<div class="ko-blocks" aria-hidden="true">${Array.from(hz).map((ch) => { const j = koJamo(ch); return j ? `<span class="kb"><i class="kb-i">${j.i}</i><i class="kb-v">${j.v}</i>${j.f ? `<i class="kb-f">${j.f}</i>` : ""}<b>→ ${ch}</b></span>` : ""; }).join("")}</div>`;
+  const contoursHtml = (hz) => `<div class="contours">${hz.split(/\s+/).filter(Boolean).map((syl) => { const n = firstToneVi(syl); return `<span class="contour tc-${VI_TONE_CLASS[n]}">${toneSvg(n)} ${VI_TONE_NAMES[n - 1]}</span>`; }).join("")}</div>`;
   // Korean: how the word is said when it differs from the spelling (독일 → [도길])
   const pronHtml = (w) => (w.pron ? `<div class="pron-hint" title="${esc(t("pronHint"))}">[${esc(w.pron)}]</div>` : "");
   const pyShow = (py) => (C.id === "zh" ? pyHtml(py) : esc(py));
@@ -1961,8 +1988,9 @@
     const say = (text, onend) => speak(text, { rate: opt().slow ? 0.55 : S.settings.rate, onend });
     function bubble(l, k, extra) {
       const o = opt();
-      const main = C.id === "zh" ? (zhPf ? pyTapWords(l.py) : `<span class="hanzi">${l.hz}</span>`) : esc(l.hz);
-      const sub = C.id === "zh" ? (zhPf ? (o.hz ? `<div class="b-sub hanzi">${l.hz}</div>` : "") : `<div class="b-sub">${pyTapWords(l.py)}</div>`) : C.id === "ko" ? `<div class="b-sub">${esc(l.py)}</div>` : "";
+      const main = C.id === "zh" ? (zhPf ? pyTapWords(l.py) : `<span class="hanzi">${l.hz}</span>`) : C.id === "vi" ? viHtml(l.hz) : `<span class="hanzi">${esc(l.hz)}</span>`;
+      const reading = readingLayer() !== "off";
+      const sub = C.id === "zh" ? (zhPf ? (o.hz ? `<div class="b-sub hanzi">${l.hz}</div>` : "") : reading ? `<div class="b-sub">${pyTapWords(l.py)}</div>` : "") : C.id === "ko" && reading ? `<div class="b-sub">${esc(l.py)}</div>` : "";
       return `<div class="bubble ${l.who ? "right" : "left"} ${extra && extra.cls ? extra.cls : ""}" data-line="${k}">
         <div class="b-who">${nameOf(l.who)}</div>
         <div class="b-main">${main}</div>${sub}
@@ -2393,7 +2421,7 @@
       view.innerHTML = `${sessionHead(i, list.length, `✓ ${correct}`)}
         <div class="card meet-card">
           ${picHtml(w, "big")}
-          ${pyFirst() ? `<div class="meet-py">${pyHtml(w.py)}</div><div class="meet-hz">${w.hz}</div>` : `<div class="meet-hz big">${w.hz}</div><div class="meet-py sm">${pyShow(w.py)}</div>${pronHtml(w)}`}
+          ${heroHtml(w)}
           <div class="meet-tr">${esc(tr(w))}</div>
           <div class="row meet-btns"><button class="btn" id="m-say" type="button">🔊 ${t("playModel")}</button>${micButton("w")}</div>
           <div id="say-res"></div>
@@ -2489,7 +2517,7 @@
       view.innerHTML = `${sessionHead(i, list.length)}
         <div class="card meet-card">
           ${picHtml(w, "big")}
-          ${pyFirst() ? `<div class="meet-py">${pyHtml(w.py)}</div><div class="meet-hz">${w.hz}</div>` : `<div class="meet-hz big">${w.hz}</div><div class="meet-py sm">${pyShow(w.py)}</div>${pronHtml(w)}`}
+          ${heroHtml(w)}
           <div class="meet-tr">${esc(tr(w))}</div>
           <div class="row meet-btns"><button class="btn" id="m-say" type="button">🔊 ${t("play")}</button><button class="btn ghost" id="m-slow" type="button">🐢 ${t("slowly")}</button></div>
           ${w.ex ? `<div class="example"><div class="row"><div class="grow">${pyFirst() && w.exPy ? `<div class="ex-py big">${w.exPy}</div><div class="ex-hz small">${w.ex}</div>` : `<div class="ex-hz">${w.ex}</div>${w.exPy ? `<div class="ex-py">${w.exPy}</div>` : ""}`}<div class="ex-tr">${esc(exTr(w))}</div></div><button class="speak-btn sm" id="m-ex" type="button">🔊</button></div></div>` : ""}
@@ -2666,7 +2694,7 @@
         <div class="list-item static"><span class="li-ico">🔊</span><span class="grow li-title">${t("autoSpeak")}</span><button class="switch ${S.settings.autoSpeak ? "on" : ""}" id="sw-speak" type="button" aria-label="${t("autoSpeak")}"></button></div>
         <div class="list-item static"><span class="li-ico">🐢</span><span class="grow li-title">${t("ttsRate")}<div class="li-sub" id="rate-val">${S.settings.rate.toFixed(2)}×</div></span><input type="range" id="rate" min="0.5" max="1.2" step="0.05" value="${S.settings.rate}"></div>
         ${C.id === "zh" ? `<div class="list-item static"><span class="li-ico">🔤</span><span class="grow li-title">${t("pinyinFirst")}<div class="li-sub">${t("pinyinFirstDesc")}</div></span><button class="switch ${pyFirst() ? "on" : ""}" id="sw-pf" type="button" aria-label="${t("pinyinFirst")}"></button></div>` : ""}
-        <div class="list-item static"><span class="li-ico">🀄</span><span class="grow li-title">${t("tilePinyin")}</span><button class="switch ${S.settings.tilePinyin ? "on" : ""}" id="sw-tile" type="button" aria-label="${t("tilePinyin")}"></button></div>
+        <div class="list-item static"><span class="li-ico">🀄</span><span class="grow li-title">${t("readingLayer")}<div class="li-sub">${t("readingLayerDesc")}</div></span><div class="seg" id="reading-seg">${["always", "new", "off"].map((k) => `<button data-reading="${k}" class="${readingLayer() === k ? "active" : ""}" type="button">${t("reading" + k[0].toUpperCase() + k.slice(1))}</button>`).join("")}</div></div>
         <div class="list-item static"><span class="li-ico">🎙️</span><span class="grow li-title">${t("voice")}<div class="li-sub">${TTS.voice ? esc(TTS.voice.name) + " (" + esc(TTS.voice.lang) + ")" : (TTS.available ? t("noZhVoice") : t("noTts"))}</div></span>
           ${voices.length ? `<select id="voice-sel" class="voice-sel"><option value="">${t("voiceAuto")}</option>${voices.map((v) => `<option value="${esc(v.voiceURI)}" ${TTS.voice && v.voiceURI === TTS.voice.voiceURI && chosen ? "selected" : ""}>${esc(v.name)}</option>`).join("")}</select>` : `<button class="btn sm" id="voice-refresh" type="button">${t("refreshVoices")}</button>`}
         </div>
@@ -2681,7 +2709,7 @@
     $$("button[data-th]").forEach((b) => (b.onclick = () => { S.settings.theme = b.dataset.th; save(); applyTheme(); render(); }));
     $("#sw-speak").onclick = () => { S.settings.autoSpeak = !S.settings.autoSpeak; save(); $("#sw-speak").classList.toggle("on", S.settings.autoSpeak); };
     if ($("#sw-pf")) $("#sw-pf").onclick = () => { S.courses.zh.pinyinFirst = !pyFirst(); save(); render(); };
-    $("#sw-tile").onclick = () => { S.settings.tilePinyin = !S.settings.tilePinyin; save(); $("#sw-tile").classList.toggle("on", S.settings.tilePinyin); };
+    $$("[data-reading]").forEach((b) => (b.onclick = () => { S.settings.readingLayer = b.dataset.reading; S.settings.tilePinyin = b.dataset.reading !== "off"; save(); render(); }));
     $("#rate").oninput = (e) => { S.settings.rate = +e.target.value; $("#rate-val").textContent = S.settings.rate.toFixed(2) + "×"; save(); };
     $("#tts-test").onclick = () => speak(C.testPhrase);
   }

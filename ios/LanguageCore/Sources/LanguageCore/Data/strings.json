@@ -357,7 +357,12 @@
    "modeListenPicDesc": "Hear a word and pick its picture.",
    "pictureQ": "What is this?",
    "hearPicQ": "Which picture did you hear?",
-   "pronHint": "How it is said"
+   "pronHint": "How it is said",
+   "readingLayer": "Reading help",
+   "readingLayerDesc": "Pinyin, romanization or kana with each word.",
+   "readingAlways": "Always",
+   "readingNew": "New words",
+   "readingOff": "Off"
   },
   "de": {
    "brandSub": "Trainer",
@@ -715,7 +720,12 @@
    "modeListenPicDesc": "Wort hören und das passende Bild wählen.",
    "pictureQ": "Was ist das?",
    "hearPicQ": "Welches Bild hast du gehört?",
-   "pronHint": "So wird es gesprochen"
+   "pronHint": "So wird es gesprochen",
+   "readingLayer": "Lesehilfe",
+   "readingLayerDesc": "Pinyin, Umschrift oder Kana zu jedem Wort.",
+   "readingAlways": "Immer",
+   "readingNew": "Neue Wörter",
+   "readingOff": "Aus"
   }
  },
  "pinyinFirst": {

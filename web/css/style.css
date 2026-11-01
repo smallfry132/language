@@ -812,3 +812,58 @@ details.adjust summary { cursor: pointer; color: var(--text-2); font-weight: 600
 .tiles .topic-head { grid-column: 1 / -1; font-size: 20px; font-weight: 800; margin: 18px 0 0; }
 .tiles .topic-group { grid-column: 1 / -1; margin: 6px 0 0; }
 .pron-hint { color: var(--text-2); font-size: 15px; text-align: center; margin-top: 2px; font-family: var(--font-hanzi); }
+
+/* ============================================================
+   One look per language (style canvas): Ink Grid · Quiet Ruby · Block Builder · Tone Color.
+   Each sets the palette (light and dark, text ≥ 4.5:1), corners and the font for words.
+   --accent is the main button colour, --seal the highlight (progress, selection).
+   ============================================================ */
+html[data-course="zh"] { --bg: #FAF8F3; --bg-elev: #FFFFFF; --bg-sunken: #EFEBE2; --text: #1C1C1C; --text-2: #5F5A55; --text-3: #6B655F; --line: #DDD5C6; --accent: #1C1C1C; --accent-text: #FAF8F3; --accent-soft: rgba(184, 50, 42, 0.10); --seal: #B8322A; --grid: #E8B4AC; --radius: 4px; --radius-sm: 2px; --font-hanzi: "Noto Serif SC", "Songti SC", "STSong", serif; }
+html[data-course="ja"] { --bg: #F7F7F4; --bg-elev: #FFFFFF; --bg-sunken: #ECECE7; --text: #1E1E1E; --text-2: #4E4E4A; --text-3: #66665F; --line: #E2E2DC; --accent: #24365C; --accent-text: #FFFFFF; --accent-soft: rgba(36, 54, 92, 0.10); --seal: #24365C; --radius: 10px; --radius-sm: 8px; --font-hanzi: "Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", serif; }
+html[data-course="ko"] { --bg: #F6F8FD; --bg-elev: #FFFFFF; --bg-sunken: #E3E8F4; --text: #16213E; --text-2: #4A5578; --text-3: #5A6488; --line: #D7DDEC; --accent: #1D4E9E; --accent-text: #FFFFFF; --accent-soft: rgba(29, 78, 158, 0.10); --seal: #1D4E9E; --radius: 18px; --radius-sm: 12px; --font-hanzi: "Gowun Dodum", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; }
+html[data-course="vi"] { --bg: #FAFAF7; --bg-elev: #FFFFFF; --bg-sunken: #DDE6E1; --text: #0F2A24; --text-2: #3F5A53; --text-3: #4F6B63; --line: #DDE6E1; --accent: #0F2A24; --accent-text: #C5F27A; --accent-soft: rgba(15, 42, 36, 0.08); --seal: #0F2A24; --radius: 16px; --radius-sm: 12px; --font-hanzi: "Be Vietnam Pro", system-ui, sans-serif; }
+@media (prefers-color-scheme: dark) {
+  html[data-course="zh"]:not([data-theme="light"]) { --bg: #161514; --bg-elev: #211F1D; --bg-sunken: #0F0E0D; --text: #F2EEE6; --text-2: #B9B2A8; --text-3: #9A938A; --line: #3A3632; --accent: #F2EEE6; --accent-text: #161514; --accent-soft: rgba(226, 118, 107, 0.16); --seal: #E2766B; --grid: #5A3A36; }
+  html[data-course="ja"]:not([data-theme="light"]) { --bg: #171716; --bg-elev: #222220; --bg-sunken: #101010; --text: #EEEEEA; --text-2: #B5B5AE; --text-3: #97978F; --line: #3A3A36; --accent: #A9BBE0; --accent-text: #171716; --accent-soft: rgba(169, 187, 224, 0.16); --seal: #A9BBE0; }
+  html[data-course="ko"]:not([data-theme="light"]) { --bg: #10141F; --bg-elev: #1A2030; --bg-sunken: #0B0E16; --text: #EDF1FA; --text-2: #AEB8D3; --text-3: #8F9AB8; --line: #2E3750; --accent: #8DB0F0; --accent-text: #10141F; --accent-soft: rgba(141, 176, 240, 0.16); --seal: #8DB0F0; }
+  html[data-course="vi"]:not([data-theme="light"]) { --bg: #0F1A17; --bg-elev: #172420; --bg-sunken: #0A1210; --text: #E6F0EC; --text-2: #A9C2BA; --text-3: #87A39A; --line: #2A3B36; --accent: #C5F27A; --accent-text: #0F2A24; --accent-soft: rgba(197, 242, 122, 0.14); --seal: #C5F27A; }
+}
+html[data-course="zh"][data-theme="dark"] { --bg: #161514; --bg-elev: #211F1D; --bg-sunken: #0F0E0D; --text: #F2EEE6; --text-2: #B9B2A8; --text-3: #9A938A; --line: #3A3632; --accent: #F2EEE6; --accent-text: #161514; --accent-soft: rgba(226, 118, 107, 0.16); --seal: #E2766B; --grid: #5A3A36; }
+html[data-course="ja"][data-theme="dark"] { --bg: #171716; --bg-elev: #222220; --bg-sunken: #101010; --text: #EEEEEA; --text-2: #B5B5AE; --text-3: #97978F; --line: #3A3A36; --accent: #A9BBE0; --accent-text: #171716; --accent-soft: rgba(169, 187, 224, 0.16); --seal: #A9BBE0; }
+html[data-course="ko"][data-theme="dark"] { --bg: #10141F; --bg-elev: #1A2030; --bg-sunken: #0B0E16; --text: #EDF1FA; --text-2: #AEB8D3; --text-3: #8F9AB8; --line: #2E3750; --accent: #8DB0F0; --accent-text: #10141F; --accent-soft: rgba(141, 176, 240, 0.16); --seal: #8DB0F0; }
+html[data-course="vi"][data-theme="dark"] { --bg: #0F1A17; --bg-elev: #172420; --bg-sunken: #0A1210; --text: #E6F0EC; --text-2: #A9C2BA; --text-3: #87A39A; --line: #2A3B36; --accent: #C5F27A; --accent-text: #0F2A24; --accent-soft: rgba(197, 242, 122, 0.14); --seal: #C5F27A; }
+html[data-course] .tab.active, html[data-course] .nav .tab.active { color: var(--seal); }
+html[data-course] .progress-bar span:not(.green):not(.gold) { background: var(--seal); }
+html[data-course] .chip.active { background: var(--text); border-color: var(--text); color: var(--bg); }
+.tab-glyph { font-family: var(--font-hanzi); font-size: 20px; font-weight: 600; line-height: 22px; height: 22px; display: inline-flex; align-items: center; }
+
+/* Tone colours shared by Mandarin and Vietnamese: the same contour has the same colour */
+:root { --tone1: #C62828; --tone2: #B45309; --tone3: #15803D; --tone4: #1D4ED8; --tone5: #475569; --tone-broken: #7C3AED; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --tone1: #F28B82; --tone2: #F6B35A; --tone3: #6FCF97; --tone4: #8AB4F8; --tone5: #A3AEBF; --tone-broken: #C4A7FF; } }
+:root[data-theme="dark"] { --tone1: #F28B82; --tone2: #F6B35A; --tone3: #6FCF97; --tone4: #8AB4F8; --tone5: #A3AEBF; --tone-broken: #C4A7FF; }
+.tc-level { color: var(--tone1); } .tc-rising { color: var(--tone2); } .tc-dipping { color: var(--tone3); } .tc-falling { color: var(--tone4); } .tc-light { color: var(--tone5); } .tc-broken { color: var(--tone-broken); }
+
+/* The word large, per language */
+.hero-word { font-family: var(--font-hanzi); font-size: 52px; line-height: 1.3; text-align: center; font-weight: 600; }
+html[data-course="ja"] .hero-word, html[data-course="zh"] .hero-word { font-weight: 400; }
+.furigana { font-family: var(--font-hanzi); font-size: 17px; color: var(--text-2); text-align: center; }
+.romaji { font-size: 15px; color: var(--text-3); text-align: center; margin-top: 2px; }
+.grid-chars { display: flex; justify-content: center; gap: 4px; margin: 6px 0; }
+.grid-chars .gc { position: relative; width: 96px; height: 96px; display: flex; align-items: center; justify-content: center; font-family: var(--font-hanzi); font-size: 68px; line-height: 1; color: var(--text); background: var(--bg-elev); border: 1.5px solid var(--seal); box-sizing: border-box; }
+.grid-chars .gc::before, .grid-chars .gc::after { content: ""; position: absolute; border: 0 dashed var(--grid, #E8B4AC); pointer-events: none; }
+.grid-chars .gc::before { left: 0; right: 0; top: 50%; border-top-width: 1px; }
+.grid-chars .gc::after { top: 0; bottom: 0; left: 50%; border-left-width: 1px; }
+.grid-chars.md .gc { width: 72px; height: 72px; font-size: 50px; }
+.grid-chars.sm .gc { width: 52px; height: 52px; font-size: 36px; }
+.ko-blocks { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 14px; margin-top: 8px; }
+.ko-blocks .kb { display: inline-flex; align-items: center; gap: 3px; }
+.ko-blocks i { font-style: normal; width: 26px; height: 26px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600; }
+.ko-blocks .kb-i { background: var(--accent); color: var(--accent-text); }
+.ko-blocks .kb-v { background: #F2B544; color: #16213E; }
+.ko-blocks .kb-f { background: #C8323C; color: #FFFFFF; }
+.ko-blocks b { font-family: var(--font-hanzi); font-weight: 400; font-size: 20px; margin-left: 4px; color: var(--text); }
+.contours { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 8px; }
+.contour { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600; padding: 3px 10px 3px 4px; border-radius: 10px; background: var(--bg-sunken); }
+.contour .tone-svg { width: 30px; height: 22px; }
+.hero-py { font-size: 40px; font-weight: 600; line-height: 1.25; text-align: center; }
+.hero-sub { font-size: 20px; color: var(--text-2); text-align: center; margin-top: 2px; }

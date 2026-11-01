@@ -1,0 +1,174 @@
+import Foundation
+import Accelerate
+
+/* Pitch and tones, all on the device.
+ * YIN pitch tracking every 10 ms, split into syllables, each syllable's contour compared with the
+ * shape of the tone it should have. A rough guide, not a verdict: it shows what to change. */
+
+public enum Pitch {
+    public static let sampleRate = 16_000.0
+
+    /// f0 in Hz per 10 ms frame (nil = unvoiced)
+    public static func track(_ x: [Float], sr: Double = sampleRate) -> [Double?] {
+        let hop = Int((sr * 0.01).rounded()), W = Int((sr * 0.032).rounded())
+        let tMin = Int(sr / 450), tMax = Int(sr / 70)
+        guard x.count > W + tMax + 1 else { return [] }
+        var d = [Float](repeating: 1, count: tMax + 1)
+        var frames: [(rms: Double, f0: Double?)] = []
+        x.withUnsafeBufferPointer { p in
+            let base = p.baseAddress!
+            var s = 0
+            while s + W + tMax < x.count {
+                var e: Float = 0
+                vDSP_svesq(base + s, 1, &e, vDSP_Length(W))
+                var run: Float = 0
+                for k in 1...tMax {
+                    var sum: Float = 0
+                    vDSP_distancesq(base + s, 1, base + s + k, 1, &sum, vDSP_Length(W))
+                    run += sum
+                    d[k] = run > 0 ? sum * Float(k) / run : 1
+                }
+                var tau = -1
+                var k = tMin
+                while k <= tMax {
+                    if d[k] < 0.15 { while k < tMax && d[k + 1] < d[k] { k += 1 }; tau = k; break }
+                    k += 1
+                }
+                var f0: Double?
+                if tau > 0 {
+                    let a = Double(d[tau - 1]), b = Double(d[tau]), c = tau < tMax ? Double(d[tau + 1]) : b
+                    let den = a - 2 * b + c, q = den != 0 ? (a - c) / (2 * den) : 0
+                    f0 = sr / (Double(tau) + (abs(q) < 1 ? q : 0))
+                }
+                frames.append((Double((e / Float(W)).squareRoot()), f0))
+                s += hop
+            }
+        }
+        let maxR = frames.map(\.rms).max() ?? 0
+        var f = frames.map { $0.rms < max(0.008, maxR * 0.12) ? nil : $0.f0 }
+        // Octave errors: fold values far from the median back; then a 5-frame median filter
+        let med = median(f.compactMap { $0 })
+        f = f.map { v in guard let v else { return nil }; return v > med * 1.7 ? v / 2 : v < med * 0.6 ? v * 2 : v }
+        return f.indices.map { i in
+            guard f[i] != nil else { return nil }
+            return median(f[max(0, i - 2)..<min(f.count, i + 3)].compactMap { $0 })
+        }
+    }
+
+    public static func median(_ a: [Double]) -> Double {
+        guard !a.isEmpty else { return 0 }
+        let s = a.sorted(); return s[s.count / 2]
+    }
+
+    /// Voiced stretches (short gaps bridged, tiny blips dropped) as arrays of frame indices
+    static func voicedRuns(_ f: [Double?]) -> [[Int]] {
+        var runs: [[Int]] = [], gap = 0
+        for (i, v) in f.enumerated() {
+            if v != nil {
+                if !runs.isEmpty && gap <= 3 && gap < i { runs[runs.count - 1].append(i) } else { runs.append([i]) }
+                gap = 0
+            } else { gap += 1 }
+        }
+        return runs.filter { $0.count >= 4 }
+    }
+
+    /// Tone shapes on a 1–5 scale (5 = high), five points each; the 3rd tone stays low inside words
+    public static let shapes: [Int: [Double]] = [1: [4.5, 4.5, 4.5, 4.5, 4.5], 2: [2.8, 3.1, 3.6, 4.2, 4.8], 3: [2.2, 1.6, 1.2, 1.3, 1.8], 4: [4.8, 4.2, 3.3, 2.4, 1.6]]
+    public static let tone3End: [Double] = [2.2, 1.5, 1.2, 2, 3.3] // a 3rd tone at the end may rise again
+
+    public struct Syllable: Equatable {
+        public let text: String
+        public let want: Int          // the tone to say (after the 3rd-tone change); 5 = neutral, not checked
+        public let got: Int?
+        public let ok: Bool?
+        public let levels: [Double]   // your pitch, 1–5
+        public let tip: String?       // text key: tipFlat, tipHigher, tipRise, tipLower, tipFall
+        public let last: Bool
+        public var shape: [Double]? { want == 3 && last ? Pitch.tone3End : Pitch.shapes[want] }
+    }
+    public struct Result: Equatable {
+        public let syllables: [Syllable]
+        public let sandhi: Bool
+        public let score: Double
+        public let f0base: Double     // the learnt middle of your voice, updated
+        public let none: Bool
+    }
+
+    /// Compares what was said with the tones of the pinyin. f0base: the middle of your voice so far (nil at first).
+    public static func check(py: String, frames: [Double?], f0base: Double?) -> Result {
+        let sylls = Lingo.pyParts(py).filter { !$0.sep }
+        var want = sylls.map(\.tone)
+        var sandhi = false
+        // Tone change: 3rd + 3rd is said 2nd + 3rd (nǐ hǎo → ní hǎo)
+        if want.count > 1 { for i in 0..<(want.count - 1) where want[i] == 3 && want[i + 1] == 3 { want[i] = 2; sandhi = true } }
+        var runs = voicedRuns(frames).map { $0.filter { frames[$0] != nil } }
+        let none = Result(syllables: [], sandhi: false, score: 0, f0base: f0base ?? 0, none: true)
+        if runs.isEmpty || runs.joined().count < sylls.count || sylls.isEmpty { return none }
+        let n = sylls.count
+        while runs.count > n { // merge across the smallest gap
+            var k = 0, g = Int.max
+            for i in 0..<(runs.count - 1) { let gi = runs[i + 1][0] - runs[i].last!; if gi < g { g = gi; k = i } }
+            runs.replaceSubrange(k...(k + 1), with: [runs[k] + runs[k + 1]])
+        }
+        while runs.count < n { // split the longest stretch in two
+            var k = 0
+            for (i, r) in runs.enumerated() where r.count > runs[k].count { k = i }
+            let r = runs[k], h = (r.count + 1) / 2
+            runs.replaceSubrange(k...k, with: [Array(r[..<h]), Array(r[h...])])
+        }
+        let all = runs.joined().compactMap { frames[$0] }, med = median(all)
+        let center = f0base.map { n > 1 ? ($0 * med).squareRoot() : $0 } ?? med
+        let newBase = (f0base.map { pow($0, 0.85) * pow(med, 0.15) } ?? med).rounded()
+        let level = { (f0: Double) in max(0.3, min(5.7, 3 + (12 * log2(f0 / center)) / 3.5)) }
+        let mean = { (a: [Double]) in a.reduce(0, +) / Double(a.count) }
+
+        let res: [Syllable] = sylls.enumerated().map { i, x in
+            let lv = runs[i].compactMap { frames[$0] }.map(level)
+            let cut = lv.count >= 10 ? Int(Double(lv.count) * 0.15) : 0 // edges are consonants and creak
+            let core = Array(lv[cut..<(lv.count - cut)])
+            let pts: [Double] = (0..<5).map { b in
+                let lo = b * core.count / 5, hi = max((b + 1) * core.count / 5, lo + 1)
+                return mean(Array(core[lo..<min(hi, core.count)]))
+            }
+            let w = want[i], last = i == n - 1
+            if w == 5 { return Syllable(text: x.text, want: w, got: nil, ok: nil, levels: lv, tip: nil, last: last) }
+            let dist = { (tpl: [Double]) -> Double in
+                let ms = mean(pts), mt = mean(tpl)
+                return zip(pts, tpl).reduce(0) { $0 + pow(($1.0 - ms) - ($1.1 - mt), 2) } / 5 + 0.3 * pow(ms - mt, 2)
+            }
+            let ds: [Int: Double] = [1: dist(shapes[1]!), 2: dist(shapes[2]!), 3: min(dist(shapes[3]!), last ? dist(tone3End) : .infinity), 4: dist(shapes[4]!)]
+            let got = [1, 2, 3, 4].min { ds[$0]! < ds[$1]! }!
+            let ok = got == w || ds[w]! <= ds[got]! + 0.35
+            let slope = pts[4] - pts[0]
+            let tip = ok ? nil : w == 1 ? (abs(slope) > 1.2 ? "tipFlat" : "tipHigher") : w == 2 ? "tipRise" : w == 3 ? "tipLower" : "tipFall"
+            return Syllable(text: x.text, want: w, got: got, ok: ok, levels: lv, tip: tip, last: last)
+        }
+        let scored = res.filter { $0.ok != nil }
+        let score = scored.isEmpty ? 1 : Double(scored.filter { $0.ok == true }.count) / Double(scored.count)
+        return Result(syllables: res, sandhi: sandhi, score: score, f0base: newBase, none: false)
+    }
+
+    /// Linear resampling to 16 kHz
+    public static func resample(_ x: [Float], from: Double, to: Double = sampleRate) -> [Float] {
+        if from == to { return x }
+        let n = Int(Double(x.count) * to / from), step = from / to
+        var out = [Float](repeating: 0, count: n)
+        for i in 0..<n {
+            let p = Double(i) * step, k = Int(p), f = Float(p - Double(k))
+            out[i] = x[k] * (1 - f) + (k + 1 < x.count ? x[k + 1] : 0) * f
+        }
+        return out
+    }
+
+    /// 16-bit mono WAV, for playing back your own voice
+    public static func wav(_ x: [Float], rate: Int = Int(sampleRate)) -> Data {
+        var d = Data()
+        func u32(_ v: UInt32) { withUnsafeBytes(of: v.littleEndian) { d.append(contentsOf: $0) } }
+        func u16(_ v: UInt16) { withUnsafeBytes(of: v.littleEndian) { d.append(contentsOf: $0) } }
+        d.append(contentsOf: Array("RIFF".utf8)); u32(UInt32(36 + x.count * 2)); d.append(contentsOf: Array("WAVEfmt ".utf8))
+        u32(16); u16(1); u16(1); u32(UInt32(rate)); u32(UInt32(rate * 2)); u16(2); u16(16)
+        d.append(contentsOf: Array("data".utf8)); u32(UInt32(x.count * 2))
+        for v in x { u16(UInt16(bitPattern: Int16(max(-1, min(1, v)) * 32767))) }
+        return d
+    }
+}

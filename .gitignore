@@ -1,0 +1,6 @@
+.DS_Store
+xcuserdata/
+*.xcuserstate
+ios/LanguageCore/.build/
+ios/LanguageCore/.swiftpm/
+DerivedData/

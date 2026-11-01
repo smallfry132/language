@@ -1,8 +1,16 @@
 # Language Trainer
 
-A web app for studying vocabulary in three courses: **Chinese, HSK levels 1–3** (150 + 150 + 300 words), **Japanese, JLPT N5–N1** (about 8,000 words) and **Vietnamese, A1–C2** (950 words in six levels). Switch between them with the button in the top-left corner; each course keeps its own words, levels and progress. The app is optimized for **iPhone** (Safari, installable as a full-screen web app) and **Mac**.
+An app for studying vocabulary in three courses: **Chinese, HSK levels 1–3** (150 + 150 + 300 words), **Japanese, JLPT N5–N1** (about 8,000 words) and **Vietnamese, A1–C2** (950 words in six levels). Switch between them with the button in the top-left corner; each course keeps its own words, levels and progress. The app is optimized for **iPhone** (Safari, installable as a full-screen web app) and **Mac**.
 
-No build step, no dependencies, no backend: plain HTML, CSS and JavaScript. Progress is stored locally in the browser.
+It comes in two forms that share the same courses and sync with each other:
+
+| Folder | What | Runs on |
+|---|---|---|
+| [`web/`](web) | The web app: plain HTML, CSS and JavaScript, no build step. Also hosts the sync server. | Any browser; installable on iPhone, Mac and Android home screens |
+| [`ios/`](ios) | The native iPhone app in SwiftUI, with Apple's on-device speech recognition and voices | iPhone and iPad (iOS 17+) |
+| [`android/`](android) | Reserved for a native Android app (not started) | – |
+
+The web app's word lists, dialogues, sound charts and texts are the single source: `node tools/export-data.mjs` copies them into the iPhone app.
 
 ## Features
 
@@ -38,19 +46,21 @@ No build step, no dependencies, no backend: plain HTML, CSS and JavaScript. Prog
 Any static web server works. For local use:
 
 ```bash
-python3 -m http.server 8000
+cd web && python3 -m http.server 8000
 # then open http://localhost:8000
 ```
 
-Or publish the repository with GitHub Pages (Settings → Pages → deploy from the `main` branch, root folder) and open the resulting URL on your iPhone or Mac.
+On Vercel the project's **Root Directory** is `web` (Project → Settings → Build and Deployment).
+
+The iPhone app: see [ios/README.md](ios/README.md).
 
 ## Sync setup (Vercel)
 
-Sync runs as a Vercel function (`api/sync.mjs`) that stores one JSON document per sync code in Upstash Redis.
+Sync runs as a Vercel function (`web/api/sync.mjs`) that stores one JSON document per sync code in Upstash Redis.
 
 1. In the Vercel dashboard open the project → **Storage** → **Create Database** → **Upstash for Redis** (free plan) and connect it to the project for all environments. This adds `KV_REST_API_URL` and `KV_REST_API_TOKEN`.
 2. Redeploy.
-3. In the app: More → Sync → **Turn on sync**, then enter the code on the other device. On iPhone, enter it in the Home Screen app: it has its own storage, separate from Safari.
+3. In the app: More → Sync → **Turn on sync**, then enter the code on the other device. On iPhone, enter it in the Home Screen app: it has its own storage, separate from Safari. The native iPhone app has the same screen under Settings → Sync and syncs with the web app.
 
 The code is the only credential: whoever has it can read and change the progress. The server keeps only a SHA-256 hash of it as the key. Without the database the app works as before and More → Sync says that sync isn't set up.
 
@@ -73,21 +83,29 @@ On a Mac, use Safari's **File → Add to Dock** or bookmark the page.
 ## Project layout
 
 ```
-index.html            App shell
-css/style.css         Styles (light/dark, iPhone safe areas, desktop sidebar)
-js/data.js            HSK 1 words: hanzi, pinyin, EN/DE, category, example sentence
-js/data-hsk2.js       HSK 2 words (English)
-js/data-hsk3.js       HSK 3 words (English)
-js/data-vi.js         Vietnamese A1–A2 words (word, pronunciation guide, English, example)
-js/data-vi-2.js       Vietnamese B1–C2 words
-js/data-ja.js         JLPT N5–N1 words as compact rows [level, kanji, kana, meaning]
-js/sounds-data.js     Sound charts and listening drills per language
-js/dialogues.js       Dialogues per course (Chinese: HSK 1)
-js/app.js             Application logic (views, training modes, spaced repetition, speech, storage, sync)
-api/sync.mjs          Vercel function: sync store (Upstash Redis)
-manifest.webmanifest  PWA manifest
-sw.js                 Service worker (offline cache)
-icons/                App icons (SVG + PNG for iOS home screen)
+web/
+  index.html            App shell
+  css/style.css         Styles (light/dark, iPhone safe areas, desktop sidebar)
+  js/data.js            HSK 1 words: hanzi, pinyin, EN/DE, category, example sentence
+  js/data-hsk2.js       HSK 2 words (English)
+  js/data-hsk3.js       HSK 3 words (English)
+  js/data-vi.js         Vietnamese A1–A2 words (word, pronunciation guide, English, example)
+  js/data-vi-2.js       Vietnamese B1–C2 words
+  js/data-ja.js         JLPT N5–N1 words as compact rows [level, kanji, kana, meaning]
+  js/sounds-data.js     Sound charts and listening drills per language
+  js/dialogues.js       Dialogues per course (Chinese: HSK 1)
+  js/app.js             Application logic (views, training modes, spaced repetition, speech, storage, sync)
+  api/sync.mjs          Vercel function: sync store (Upstash Redis)
+  manifest.webmanifest  PWA manifest
+  sw.js                 Service worker (offline cache)
+  icons/                App icons (SVG + PNG for iOS home screen)
+ios/
+  LanguageTrainer.xcodeproj   Xcode project (app + UI tests)
+  LanguageTrainer/            SwiftUI screens, speech, microphone, sync client
+  LanguageCore/               Swift package: data, spaced repetition, sync merge, answer checks, tone curve (swift test)
+  LanguageTrainerUITests/     UI tests that tap through a session, a lesson, a dialogue and the settings
+android/                Placeholder for a native Android app
+tools/export-data.mjs   Copies the web app's data and texts into the iPhone app
 ```
 
 ## Data
@@ -102,4 +120,4 @@ Word ids are stable and used as keys for the stored learning progress: 1–150 H
 
 ## Progress storage
 
-Everything is stored in the browser's localStorage under one key. Each word has a spaced-repetition record (ease factor, interval in days, repetitions, lapses, next due time); a word with no record is *new*, an interval under 21 days is *learning*, 21 days or more is *known*. Daily answer counts feed the streak, heatmap and daily goal. Nothing is sent to a server, so progress does not sync between devices.
+The web app stores everything in the browser's localStorage under one key; the iPhone app keeps the same document as a JSON file. Each word has a spaced-repetition record (ease factor, interval in days, repetitions, lapses, next due time); a word with no record is *new*, an interval under 21 days is *learning*, 21 days or more is *known*. Daily answer counts feed the streak, heatmap and daily goal. Nothing leaves the device unless you turn on sync.

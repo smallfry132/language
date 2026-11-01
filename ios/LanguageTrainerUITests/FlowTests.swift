@@ -1,0 +1,100 @@
+import XCTest
+
+/// Taps through the app like a learner would. Runs with the demo learner (-demo) and silent speech (-mute).
+final class FlowTests: XCTestCase {
+    var app: XCUIApplication!
+
+    override func setUp() {
+        continueAfterFailure = false
+        app = XCUIApplication()
+    }
+    func launch(_ extra: [String] = []) {
+        app.launchArguments = ["-demo", "-mute"] + extra
+        app.launch()
+    }
+    func button(_ prefix: String) -> XCUIElement { app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", prefix)).firstMatch }
+    func text(_ part: String) -> XCUIElement { app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", part)).firstMatch }
+
+    func testTodaySessionRunsToTheEnd() {
+        launch()
+        button("Start").tap()
+        var steps: [String] = []
+        for _ in 0..<200 {
+            if text("Session complete").exists { break }
+            if text("Step ").exists && app.buttons["Start"].exists {
+                steps.append(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Step '")).firstMatch.label)
+                app.buttons["Start"].tap(); continue
+            }
+            if app.buttons["Show answer"].exists { app.buttons["Show answer"].tap(); continue }
+            if button("Good").exists { button("Good").tap(); continue }
+            if text("Say it out loud").exists { app.buttons["Next"].tap(); continue }       // meet
+            if text("Which word did you hear").exists {                                    // listen
+                if app.buttons["Next"].exists { app.buttons["Next"].tap() } else { button("1").tap() }
+                continue
+            }
+            if app.buttons["Speak"].exists && app.buttons["Skip"].exists { app.buttons["Skip"].tap(); continue } // speak
+            if app.textFields.firstMatch.exists {                                           // write
+                if app.buttons["Next"].exists { app.buttons["Next"].tap(); continue }
+                let f = app.textFields.firstMatch
+                f.tap(); f.typeText("ni3hao3")
+                XCTAssertEqual(f.value as? String, "nǐhǎo", "tone numbers become marks while typing")
+                app.buttons["Check"].tap(); continue
+            }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.3))
+        }
+        XCTAssertTrue(text("Session complete").exists)
+        XCTAssertEqual(steps.count, 5, "review, new words, listen, speak, write: \(steps)")
+        app.buttons["Back to Today"].tap()
+        XCTAssertTrue(text("Done for today").waitForExistence(timeout: 3))
+    }
+
+    func testLessonWithOwnWord() {
+        launch(["-route", "lessons"])
+        button("New lesson").tap()
+        let search = app.textFields["Search pinyin, meaning or characters…"]
+        if !search.waitForExistence(timeout: 3) { print("TREE", app.debugDescription) }
+        XCTAssertTrue(search.exists)
+        search.tap(); search.typeText("chá")
+        app.buttons.matching(NSPredicate(format: "label CONTAINS 'Add'")).firstMatch.tap()
+        let py = app.textFields["Pinyin (ni3hao3 → nǐhǎo)"]
+        py.tap(); py.typeText("hao3chi1")
+        XCTAssertEqual(py.value as? String, "hǎochī")
+        let hz = app.textFields["Characters (needed for audio)"]
+        hz.tap(); hz.typeText("好吃")
+        let en = app.textFields["Meaning"]
+        en.tap(); en.typeText("tasty")
+        app.buttons["own-add"].tap()
+        XCTAssertTrue(text("tasty").waitForExistence(timeout: 2))
+        XCTAssertTrue(text("tea").exists)
+        app.navigationBars.buttons.firstMatch.tap()
+        XCTAssertTrue(text("2 words").waitForExistence(timeout: 3))
+    }
+
+    func testDialogueTypedAnswer() {
+        launch(["-route", "lessons/dialogue/zh-greet", "-dlgmode", "turn"])
+        button("I'm Ānnà").tap()
+        let field = app.textFields["…or type the pinyin"]
+        XCTAssertTrue(field.waitForExistence(timeout: 8), "my turn comes after Wáng Míng's first line")
+        field.tap(); field.typeText("ni3 hao3\n")
+        XCTAssertTrue(text("Correct").waitForExistence(timeout: 3))
+        // Second turn: answer without tones
+        XCTAssertTrue(field.waitForExistence(timeout: 8))
+        let next = app.staticTexts["I'm fine, thanks. And you?"]
+        XCTAssertTrue(next.waitForExistence(timeout: 8))
+        field.tap(); field.typeText("wo hen hao xiexie ni ne\n")
+        XCTAssertTrue(text("Next time add the tones too").waitForExistence(timeout: 3))
+    }
+
+    func testGermanAndCourseSwitch() {
+        launch()
+        app.buttons["Settings"].tap()
+        app.buttons["Language, English"].firstMatch.tap()
+        app.buttons["Deutsch"].firstMatch.tap()
+        app.buttons["Fertig"].firstMatch.tap()
+        XCTAssertTrue(app.tabBars.buttons["Heute"].waitForExistence(timeout: 3) || app.buttons["Heute"].exists)
+        app.buttons["Sprache wechseln"].tap()
+        app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Tiếng Việt")).firstMatch.tap()
+        app.buttons["Wörter"].firstMatch.tap()
+        XCTAssertTrue(text("xin chào").waitForExistence(timeout: 3))
+    }
+}

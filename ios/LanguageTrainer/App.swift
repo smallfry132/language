@@ -13,6 +13,7 @@ struct LanguageTrainerApp: App {
                 .tint(.accentRed)
         }
         .onChange(of: phase) { _, p in
+            if p == .active { store.voiceCheck += 1 }
             if p == .active || store.device.dirty { Task { await store.syncNow() } }
         }
     }

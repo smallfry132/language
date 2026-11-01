@@ -67,7 +67,19 @@ public struct Texts: Sendable {
             "voiceHint": "Better voices: Settings → Accessibility → Spoken Content → Voices. Download a Premium or Enhanced voice for the language, then pick it here.",
             "installApp": "This is the native iPhone app. The same course also runs in the browser at language-smoky-five.vercel.app, and sync keeps both in step.",
             "deleteConfirm": "Delete",
-            "newPerDay": "New words per day"
+            "newPerDay": "New words per day",
+            "voiceGuideTitle": "Get a natural voice",
+            "voiceGuideBanner": "This iPhone only has the basic {0} voice. A free, much more natural one takes a minute to download.",
+            "voiceGuideWhy": "Apps can't download voices themselves: the iPhone keeps them in the Settings app. Do this once per language:",
+            "voiceStep1": "Tap “Open Settings” below, then go back to the main list of Settings.",
+            "voiceStep2": "Go to Accessibility → Spoken Content → Voices. Or type “Voices” into the search field at the top of Settings.",
+            "voiceStep3": "Choose {0}, then a voice such as {1}, and tap the download symbol next to “Premium” or “Enhanced”.",
+            "voiceStep4": "Come back here: the app uses the new voice by itself.",
+            "voiceNow": "Voice now: {0}",
+            "voiceGood": "✓ A natural voice is installed.",
+            "voiceNone": "No voice for this language yet.",
+            "voiceShowMe": "Show me how",
+            "notNow": "Not now"
         ],
         "de": [
             "micPermission": "Erlaube Mikrofon und Spracherkennung in den Einstellungen, um das Sprechen zu üben.",
@@ -77,7 +89,19 @@ public struct Texts: Sendable {
             "voiceHint": "Bessere Stimmen: Einstellungen → Bedienungshilfen → Gesprochene Inhalte → Stimmen. Lade eine Premium- oder erweiterte Stimme für die Sprache und wähle sie hier.",
             "installApp": "Das ist die native iPhone-App. Derselbe Kurs läuft auch im Browser unter language-smoky-five.vercel.app, und die Synchronisierung hält beide gleich.",
             "deleteConfirm": "Löschen",
-            "newPerDay": "Neue Wörter pro Tag"
+            "newPerDay": "Neue Wörter pro Tag",
+            "voiceGuideTitle": "Natürliche Stimme einrichten",
+            "voiceGuideBanner": "Auf diesem iPhone gibt es nur die einfache Stimme für {0}. Eine kostenlose, viel natürlichere ist in einer Minute geladen.",
+            "voiceGuideWhy": "Apps können Stimmen nicht selbst laden: das iPhone verwaltet sie in den Einstellungen. Einmal pro Sprache:",
+            "voiceStep1": "Tippe unten auf „Einstellungen öffnen“ und geh dann zurück zur Hauptliste der Einstellungen.",
+            "voiceStep2": "Öffne Bedienungshilfen → Gesprochene Inhalte → Stimmen. Oder tippe „Stimmen“ oben ins Suchfeld der Einstellungen.",
+            "voiceStep3": "Wähle {0}, dann eine Stimme wie {1}, und tippe auf das Download-Symbol neben „Premium“ oder „Erweitert“.",
+            "voiceStep4": "Komm hierher zurück: die App nutzt die neue Stimme von selbst.",
+            "voiceNow": "Stimme jetzt: {0}",
+            "voiceGood": "✓ Eine natürliche Stimme ist installiert.",
+            "voiceNone": "Noch keine Stimme für diese Sprache.",
+            "voiceShowMe": "Zeig mir wie",
+            "notNow": "Später"
         ]
     ]
 }

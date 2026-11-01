@@ -268,7 +268,7 @@
       installMac: "On a Mac: in Safari choose File → Add to Dock, or simply bookmark the page.",
       aboutText: "All 600 words of HSK levels 1–3 with pinyin, English translations (German for HSK 1), example sentences and pronunciation via your device's speech synthesis. Your progress is stored locally on this device.",
       noTts: "Speech synthesis is not available in this browser.", speak: "Pronounce",
-      noZhVoice: "No Chinese voice found yet", ttsHint: "No sound on iPhone? Flip the ring/silent switch to ring and turn the volume up: speech follows the silent switch. If no Chinese voice is listed, add one under Settings → Accessibility → Spoken Content → Voices → Chinese.",
+      noZhVoice: "No Chinese voice found yet", ttsHint: "No sound on iPhone? Flip the ring/silent switch to ring and turn the volume up: speech follows the silent switch. For a natural sound, download a Premium or Enhanced Chinese voice under Settings → Accessibility → Spoken Content → Voices → Chinese (or search Settings for “Voices”): the app picks it by itself.",
       pinyinTipsText: [
         "Pinyin is the Latin transcription of Mandarin. It is not English: “q” sounds like “ch” in “cheese”, “x” like a soft “sh”, “zh” like “j” in “judge”, “c” like “ts” in “cats”.",
         "“ü” (written “u” after j, q, x, y) is pronounced like the German “ü”.",
@@ -383,7 +383,7 @@
       installMac: "Auf dem Mac: in Safari Ablage → Zum Dock hinzufügen wählen oder die Seite als Lesezeichen speichern.",
       aboutText: "Alle 600 Wörter der HSK-Stufen 1–3 mit Pinyin, englischer Übersetzung (Deutsch für HSK 1), Beispielsätzen und Aussprache über die Sprachausgabe deines Geräts. Dein Fortschritt wird lokal auf diesem Gerät gespeichert.",
       noTts: "Sprachausgabe ist in diesem Browser nicht verfügbar.", speak: "Aussprechen",
-      noZhVoice: "Noch keine chinesische Stimme gefunden", ttsHint: "Kein Ton auf dem iPhone? Stell den Klingel-/Stumm-Schalter auf Klingeln und dreh die Lautstärke auf – die Sprachausgabe folgt dem Stumm-Schalter. Wird keine chinesische Stimme angezeigt, füge eine hinzu unter Einstellungen → Bedienungshilfen → Gesprochene Inhalte → Stimmen → Chinesisch.",
+      noZhVoice: "Noch keine chinesische Stimme gefunden", ttsHint: "Kein Ton auf dem iPhone? Stell den Klingel-/Stumm-Schalter auf Klingeln und dreh die Lautstärke auf – die Sprachausgabe folgt dem Stumm-Schalter. Für einen natürlichen Klang lade eine Premium- oder erweiterte chinesische Stimme unter Einstellungen → Bedienungshilfen → Gesprochene Inhalte → Stimmen → Chinesisch (oder suche in den Einstellungen nach „Stimmen“): die App wählt sie von selbst.",
       pinyinTipsText: [
         "Pinyin ist die lateinische Umschrift des Mandarin. Achtung: „q“ klingt wie „tch“, „x“ wie ein weiches „sch“, „zh“ wie „dsch“ in „Dschungel“, „c“ wie „ts“ in „Zahl“.",
         "„ü“ (nach j, q, x, y nur als „u“ geschrieben) spricht man wie das deutsche „ü“.",
@@ -486,7 +486,7 @@
         typeHint: "Kana or romaji (たべる = taberu). Long vowels as written: ou / oo.", typePlaceholder: "reading…",
         pinyinTips: "Reading tips", numbers: "Number trainer", numbersDesc: "Practice 1–99",
         noZhVoice: "No Japanese voice found yet",
-        ttsHint: "No sound on iPhone? Flip the ring/silent switch to ring and turn the volume up: speech follows the silent switch. If no Japanese voice is listed, add one under Settings → Accessibility → Spoken Content → Voices → Japanese.",
+        ttsHint: "No sound on iPhone? Flip the ring/silent switch to ring and turn the volume up: speech follows the silent switch. For a natural sound, download a Premium or Enhanced Japanese voice under Settings → Accessibility → Spoken Content → Voices → Japanese (or search Settings for “Voices”): the app picks it by itself.",
         aboutText: "The JLPT vocabulary from N5 to N1 (about 8,000 words) with kana reading, romaji and English meaning, and pronunciation via your device's speech synthesis. Your progress is stored locally on this device.",
         dataSource: "Words, readings and meanings come from the open JLPT lists in",
         pinyinTipsText: [
@@ -507,7 +507,7 @@
         typeHint: "Kana oder Romaji (たべる = taberu). Lange Vokale wie geschrieben: ou / oo.", typePlaceholder: "Lesung…",
         pinyinTips: "Lese-Tipps", numbers: "Zahlen-Trainer", numbersDesc: "1–99 üben",
         noZhVoice: "Noch keine japanische Stimme gefunden",
-        ttsHint: "Kein Ton auf dem iPhone? Stell den Klingel-/Stumm-Schalter auf Klingeln und dreh die Lautstärke auf – die Sprachausgabe folgt dem Stumm-Schalter. Wird keine japanische Stimme angezeigt, füge eine hinzu unter Einstellungen → Bedienungshilfen → Gesprochene Inhalte → Stimmen → Japanisch.",
+        ttsHint: "Kein Ton auf dem iPhone? Stell den Klingel-/Stumm-Schalter auf Klingeln und dreh die Lautstärke auf – die Sprachausgabe folgt dem Stumm-Schalter. Für einen natürlichen Klang lade eine Premium- oder erweiterte japanische Stimme unter Einstellungen → Bedienungshilfen → Gesprochene Inhalte → Stimmen → Japanisch (oder suche in den Einstellungen nach „Stimmen“): die App wählt sie von selbst.",
         aboutText: "Der JLPT-Wortschatz von N5 bis N1 (rund 8.000 Wörter) mit Kana-Lesung, Romaji und englischer Bedeutung sowie Aussprache über die Sprachausgabe deines Geräts. Dein Fortschritt wird lokal auf diesem Gerät gespeichert.",
         dataSource: "Wörter, Lesungen und Bedeutungen stammen aus den offenen JLPT-Listen in",
         pinyinTipsText: [
@@ -533,7 +533,7 @@
         dirHzTr: "Word → Meaning", dirTrHz: "Meaning → Word", dirHzPy: "Word → Romanization", dirPyHz: "Romanization → Word",
         pinyinTips: "Hangul tips", numbers: "Number trainer", numbersDesc: "Practice 1–99",
         noZhVoice: "No Korean voice found yet",
-        ttsHint: "No sound on iPhone? Flip the ring/silent switch to ring and turn the volume up: speech follows the silent switch. If no Korean voice is listed, add one under Settings → Accessibility → Spoken Content → Voices → Korean.",
+        ttsHint: "No sound on iPhone? Flip the ring/silent switch to ring and turn the volume up: speech follows the silent switch. For a natural sound, download a Premium or Enhanced Korean voice under Settings → Accessibility → Spoken Content → Voices → Korean (or search Settings for “Voices”): the app picks it by itself.",
         aboutText: "643 everyday Korean words (A1–A2, Seoul standard, polite 해요 style) with romanization, English and German meanings, example sentences and pronunciation via your device's speech synthesis. Your progress is stored on this device.",
         dataSource: "The word list was compiled for this app and sorted into topics; the levels are an editorial grading, not the official TOPIK list. Romanization follows the Revised Romanization of Korean, generated from the Hangul with the main sound changes.",
         pinyinTipsText: [
@@ -559,7 +559,7 @@
         dirHzTr: "Wort → Bedeutung", dirTrHz: "Bedeutung → Wort", dirHzPy: "Wort → Umschrift", dirPyHz: "Umschrift → Wort",
         pinyinTips: "Hangul-Tipps", numbers: "Zahlen-Trainer", numbersDesc: "1–99 üben",
         noZhVoice: "Noch keine koreanische Stimme gefunden",
-        ttsHint: "Kein Ton auf dem iPhone? Stell den Klingel-/Stumm-Schalter auf Klingeln und dreh die Lautstärke auf – die Sprachausgabe folgt dem Stumm-Schalter. Wird keine koreanische Stimme angezeigt, füge eine hinzu unter Einstellungen → Bedienungshilfen → Gesprochene Inhalte → Stimmen → Koreanisch.",
+        ttsHint: "Kein Ton auf dem iPhone? Stell den Klingel-/Stumm-Schalter auf Klingeln und dreh die Lautstärke auf – die Sprachausgabe folgt dem Stumm-Schalter. Für einen natürlichen Klang lade eine Premium- oder erweiterte koreanische Stimme unter Einstellungen → Bedienungshilfen → Gesprochene Inhalte → Stimmen → Koreanisch (oder suche in den Einstellungen nach „Stimmen“): die App wählt sie von selbst.",
         aboutText: "643 koreanische Alltagswörter (A1–A2, Seoul-Standard, höflicher 해요-Stil) mit Umschrift, englischer und deutscher Bedeutung, Beispielsätzen und Aussprache über die Sprachausgabe deines Geräts. Dein Fortschritt wird auf diesem Gerät gespeichert.",
         dataSource: "Die Wortliste wurde für diese App zusammengestellt und nach Themen sortiert; die Stufen sind eine redaktionelle Einteilung, nicht die offizielle TOPIK-Liste. Die Umschrift folgt der Revidierten Romanisierung und wird mit den wichtigsten Lautregeln aus dem Hangul erzeugt.",
         pinyinTipsText: [
@@ -601,7 +601,7 @@
           "Speaking to a stranger, a safe polite pattern is “xin chào” + “anh/chị” and adding “ạ” at the end of sentences for politeness."
         ],
         noZhVoice: "No Vietnamese voice found yet", langName: "Vietnamese",
-        ttsHint: "No sound on iPhone? Flip the ring/silent switch to ring and turn the volume up: speech follows the silent switch. If no Vietnamese voice is listed, add one under Settings → Accessibility → Spoken Content → Voices → Vietnamese.",
+        ttsHint: "No sound on iPhone? Flip the ring/silent switch to ring and turn the volume up: speech follows the silent switch. For a natural sound, download a Premium or Enhanced Vietnamese voice under Settings → Accessibility → Spoken Content → Voices → Vietnamese (or search Settings for “Voices”): the app picks it by itself.",
         tone1: "Ngang – level", tone2: "Huyền – low falling", tone3: "Sắc – rising", tone4: "Hỏi – dipping-rising", tone5: "Ngã – broken rising", tone6: "Nặng – low, short",
         tone1d: "Flat, mid-high, no mark: ma.", tone2d: "Starts mid and falls gently, grave accent: mà.", tone3d: "Rises sharply, acute accent: má.", tone4d: "Dips then rises, hook: mả.", tone5d: "Rises with a catch in the throat, tilde: mã.", tone6d: "Drops abruptly and stops, dot below: mạ."
       },
@@ -631,7 +631,7 @@
           "Gegenüber Fremden ist „xin chào“ + „anh/chị“ höflich; ein „ạ“ am Satzende macht den Satz respektvoll."
         ],
         noZhVoice: "Noch keine vietnamesische Stimme gefunden", langName: "Vietnamesisch",
-        ttsHint: "Kein Ton auf dem iPhone? Stell den Klingel-/Stumm-Schalter auf Klingeln und dreh die Lautstärke auf – die Sprachausgabe folgt dem Stumm-Schalter. Wird keine vietnamesische Stimme angezeigt, füge eine hinzu unter Einstellungen → Bedienungshilfen → Gesprochene Inhalte → Stimmen → Vietnamesisch.",
+        ttsHint: "Kein Ton auf dem iPhone? Stell den Klingel-/Stumm-Schalter auf Klingeln und dreh die Lautstärke auf – die Sprachausgabe folgt dem Stumm-Schalter. Für einen natürlichen Klang lade eine Premium- oder erweiterte vietnamesische Stimme unter Einstellungen → Bedienungshilfen → Gesprochene Inhalte → Stimmen → Vietnamesisch (oder suche in den Einstellungen nach „Stimmen“): die App wählt sie von selbst.",
         tone1: "Ngang – eben", tone2: "Huyền – tief fallend", tone3: "Sắc – steigend", tone4: "Hỏi – fallend-steigend", tone5: "Ngã – gebrochen steigend", tone6: "Nặng – tief, kurz",
         tone1d: "Flach, mittelhoch, kein Zeichen: ma.", tone2d: "Beginnt mittel und fällt sanft, Gravis: mà.", tone3d: "Steigt deutlich, Akut: má.", tone4d: "Fällt und steigt wieder, Haken: mả.", tone5d: "Steigt mit Kehlknacks, Tilde: mã.", tone6d: "Fällt abrupt und stoppt, Punkt unten: mạ."
       }

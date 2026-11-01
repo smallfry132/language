@@ -6,6 +6,7 @@ import LanguageCore
 struct TodayView: View {
     @Environment(Store.self) var store
     @Environment(\.dynamicTypeSize) var dynamicType
+    @State private var showVoiceGuide = Launch.has("-voiceguide")
     @Binding var path: NavigationPath
 
     var body: some View {
@@ -29,6 +30,18 @@ struct TodayView: View {
                     }
                 }
             }
+            // Once per language: the iPhone only has a basic voice, here is how to get a natural one
+            let _ = store.voiceCheck
+            if store.speaker.level() != .natural && !store.voiceGuideDismissed.contains(store.course.id) && !store.speaker.muted || Launch.has("-voicebanner") {
+                CardBox {
+                    Label(store.t("voiceGuideTitle"), systemImage: "waveform").font(.headline)
+                    Text(store.t("voiceGuideBanner", store.t("langName"))).font(.subheadline).foregroundStyle(Color.ink2)
+                    HStack {
+                        Button(store.t("notNow")) { store.dismissVoiceGuide() }.buttonStyle(.secondary)
+                        Button(store.t("voiceShowMe")) { showVoiceGuide = true }.buttonStyle(.primary)
+                    }
+                }
+            }
             if let next {
                 SectionTitle(text: store.t("dialogues"))
                 NavigationLink(value: Route.dialogue(next.id)) { DialogueRow(d: next) }.buttonStyle(.plain)
@@ -48,6 +61,7 @@ struct TodayView: View {
                 Text("☁️ " + store.syncStatusText).font(.footnote).foregroundStyle(Color.ink3).frame(maxWidth: .infinity)
             }
         }
+        .sheet(isPresented: $showVoiceGuide) { NavigationStack { VoiceGuide() }.environment(store) }
     }
 
     func stat(_ v: String, _ label: String, sub: String? = nil) -> some View {

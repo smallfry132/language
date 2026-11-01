@@ -16,6 +16,14 @@ final class Store {
     var device: Device
     var syncState: SyncState = .idle
     var toastText: String?
+    /// Bumped whenever the app comes back to the front: voices may have been downloaded in Settings meanwhile
+    var voiceCheck = 0
+    /// Courses whose "get a natural voice" notice was dismissed (this device only)
+    var voiceGuideDismissed = Set(UserDefaults.standard.stringArray(forKey: "voiceGuideDismissed") ?? [])
+    func dismissVoiceGuide() {
+        voiceGuideDismissed.insert(course.id)
+        UserDefaults.standard.set(Array(voiceGuideDismissed), forKey: "voiceGuideDismissed")
+    }
     private var syncTask: Task<Void, Never>?
     private var syncAgain = false
     private var syncTimer: Task<Void, Never>?

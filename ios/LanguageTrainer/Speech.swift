@@ -48,6 +48,15 @@ final class Speaker: NSObject, AVSpeechSynthesizerDelegate {
                 return Self.rank(a) > Self.rank(b)
             }
     }
+    enum Level { case none, robotic, basic, natural }
+    /// How good the best installed voice for the course is
+    func level(_ c: Course? = nil) -> Level {
+        guard let best = courseVoices(c).first else { return .none }
+        let r = Self.rank(best)
+        return r >= 40 ? .natural : r > 0 ? .basic : .robotic
+    }
+    /// Voices worth downloading, by course
+    static let suggested = ["zh": "Lilian, Tingting", "ko": "Yuna", "ja": "Kyoko, Otoya", "vi": "Linh"]
     static func rank(_ v: AVSpeechSynthesisVoice) -> Int {
         let id = v.identifier.lowercased()
         if id.contains("eloquence") || id.contains("speech.synthesis") { return 0 } // robotic and novelty voices

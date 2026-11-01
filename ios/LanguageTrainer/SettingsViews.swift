@@ -162,6 +162,13 @@ struct SettingsView: View {
                     }
                 }
                 Button { store.speaker.say(store.course.testPhrase) } label: { Label(store.t("ttsTest"), systemImage: "speaker.wave.2") }.tint(.accentRed)
+                NavigationLink { VoiceGuide() } label: {
+                    HStack {
+                        Text(store.t("voiceGuideTitle"))
+                        Spacer()
+                        if store.speaker.level() == .natural { Image(systemName: "checkmark.circle.fill").foregroundStyle(Color.good) }
+                    }
+                }
                 Text(voices.isEmpty ? store.t("noZhVoice") + ". " + store.t("voiceHint") : store.t("voiceHint")).font(.footnote).foregroundStyle(Color.ink2)
             }
         }
@@ -298,5 +305,45 @@ struct AboutView: View {
             CardBox { Text(store.t("installApp")).font(.subheadline) }
         }
         .navigationTitle(store.t("about")).navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+/// How to download a natural voice. Apps can't download voices or open that page of Settings,
+/// so this shows the way there and checks again when you come back.
+struct VoiceGuide: View {
+    @Environment(Store.self) var store
+    @Environment(\.dismiss) var dismiss
+    var body: some View {
+        let _ = store.voiceCheck
+        let level = store.speaker.level(), voice = store.speaker.currentVoice
+        Page {
+            CardBox(padding: 18) {
+                Group {
+                    switch level {
+                    case .natural: Text(store.t("voiceGood")).foregroundStyle(Color.good)
+                    case .none: Text(store.t("voiceNone")).foregroundStyle(Color.bad)
+                    default: Text(store.t("voiceGuideBanner", store.t("langName"))).foregroundStyle(Color.ink2)
+                    }
+                }.font(.subheadline)
+                if let voice { Text(store.t("voiceNow", voice.name)).font(.footnote).foregroundStyle(Color.ink3) }
+                Button { store.speaker.say(store.course.testPhrase) } label: { Label(store.t("ttsTest"), systemImage: "speaker.wave.2.fill") }.buttonStyle(.secondary)
+            }
+            Text(store.t("voiceGuideWhy")).font(.subheadline).padding(.top, 6)
+            ForEach(Array([
+                store.t("voiceStep1"), store.t("voiceStep2"),
+                store.t("voiceStep3", store.t("langName"), Speaker.suggested[store.course.id] ?? ""), store.t("voiceStep4")
+            ].enumerated()), id: \.offset) { k, step in
+                HStack(alignment: .top, spacing: 12) {
+                    Text("\(k + 1)").font(.subheadline.weight(.bold)).frame(width: 28, height: 28)
+                        .background(Color.accentRed.opacity(0.12), in: Circle()).foregroundStyle(Color.accentRed)
+                    Text(step).frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+            Button {
+                if let u = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(u) }
+            } label: { Label(store.t("openSettings"), systemImage: "gear") }.buttonStyle(.primary).padding(.top, 6)
+        }
+        .navigationTitle(store.t("voiceGuideTitle")).navigationBarTitleDisplayMode(.inline)
+        .toolbar { ToolbarItem(placement: .confirmationAction) { Button(store.t("done")) { dismiss() } } }
     }
 }

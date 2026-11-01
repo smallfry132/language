@@ -64,8 +64,8 @@ struct Bubble<Extra: View>: View {
             if right { Spacer(minLength: 40) }
             VStack(alignment: .leading, spacing: 5) {
                 Text(pf ? d.people[line.who].py : d.people[line.who].hz).font(.caption.weight(.semibold)).foregroundStyle(Color.ink3)
-                if zh && pf { TapWords(py: line.py, size: 20) } else { Text(line.hz).font(zh ? .hanzi(22) : .title3) }
-                if zh { if pf { if s.dlgHz == true { Text(line.hz).font(.hanzi(16)).foregroundStyle(Color.ink2) } } else { TapWords(py: line.py, size: 15) } }
+                if zh && pf { TapWords(py: line.py, size: 20) } else if zh { Text(line.hz).hanziFont(22) } else { Text(line.hz).font(.title3) }
+                if zh { if pf { if s.dlgHz == true { Text(line.hz).hanziFont(16).foregroundStyle(Color.ink2) } } else { TapWords(py: line.py, size: 15) } }
                 if s.dlgTr != false { Text(line.tr(store.state.lang)).font(.footnote).foregroundStyle(Color.ink2) }
                 extra
             }
@@ -269,6 +269,7 @@ struct DialogueTurn: View {
         let l = d.lines[i], r = Check.typedLine(v, hz: l.hz, py: l.py, course: store.course.id)
         let note = r.ok ? (r.tonesMissing ? store.t("tonesMissing") : "✓ " + store.t("correct")) : r.tonesWrong ? store.t("tonesWrong") : "✗ " + store.t("wrong")
         typed = ""
+        Haptic.answer(r.ok)
         answer(ok: r.ok, note: note, spoken: nil)
     }
     /// ok nil: recording without a recogniser (self-rated later, counted as tried)

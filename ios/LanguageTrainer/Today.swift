@@ -5,6 +5,7 @@ import LanguageCore
 
 struct TodayView: View {
     @Environment(Store.self) var store
+    @Environment(\.dynamicTypeSize) var dynamicType
     @Binding var path: NavigationPath
 
     var body: some View {
@@ -34,7 +35,7 @@ struct TodayView: View {
                     .background(Color.elevated, in: RoundedRectangle(cornerRadius: 16))
             }
             if met > 0 || n > 0 {
-                HStack(spacing: 8) {
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: dynamicType.isAccessibilitySize ? 2 : 4), spacing: 8) {
                     stat("\(store.state.streak())", store.t("statsStreak"))
                     stat("\(n)", store.t("statsToday"), sub: "/\(goal)")
                     stat("\(met)", store.t("wordsMet"))
@@ -132,7 +133,7 @@ struct FlowScreen: View {
             CardBox(padding: 24) {
                 VStack(spacing: 10) {
                     Text(store.t("stepOf", i + 1, steps.count)).font(.footnote).foregroundStyle(Color.ink3)
-                    Image(systemName: s.icon).font(.system(size: 40)).foregroundStyle(Color.accentRed).padding(6)
+                    Image(systemName: s.icon).scaledFont(40).foregroundStyle(Color.accentRed).padding(6)
                     Text(store.t(s.title)).font(.title.weight(.bold))
                     Text(store.t(s.title + "Desc")).multilineTextAlignment(.center).foregroundStyle(Color.ink2)
                     Text(store.t("stepCount", s.list.count)).font(.footnote).foregroundStyle(Color.ink3)
@@ -146,7 +147,7 @@ struct FlowScreen: View {
         let mistakes = results.flatMap { $0.1.mistakes }.reduce(into: [Word]()) { a, w in if !a.contains(where: { $0.id == w.id }) { a.append(w) } }
         return Page {
             CardBox(padding: 24) {
-                VStack(spacing: 6) { Text("🎉").font(.system(size: 52)); Text(store.t("sessionSummary")).font(.title2.weight(.bold)) }.frame(maxWidth: .infinity)
+                VStack(spacing: 6) { Text("🎉").scaledFont(52); Text(store.t("sessionSummary")).font(.title2.weight(.bold)) }.frame(maxWidth: .infinity)
                 ForEach(Array(results.enumerated()), id: \.offset) { _, r in
                     HStack {
                         Image(systemName: r.0.icon).frame(width: 26).foregroundStyle(Color.ink2)

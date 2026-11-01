@@ -62,8 +62,8 @@ struct TyperRun: View {
                 let it = items[i]
                 ProgressHeader(i: i, n: items.count)
                 CardBox(padding: 20) {
-                    if !it.show.isEmpty { Text(it.show).font(.hanzi(26)).frame(maxWidth: .infinity) }
-                    Text(line(it.text, typed)).font(.system(size: 24, design: .monospaced)).frame(maxWidth: .infinity)
+                    if !it.show.isEmpty { Text(it.show).hanziFont(26).frame(maxWidth: .infinity) }
+                    Text(line(it.text, typed)).scaledFont(24, design: .monospaced).frame(maxWidth: .infinity)
                     Text(it.sub).font(.footnote).foregroundStyle(Color.ink2).frame(maxWidth: .infinity)
                     TextField("", text: $typed)
                         .font(.title3).textInputAutocapitalization(.never).autocorrectionDisabled()
@@ -84,7 +84,7 @@ struct TyperRun: View {
                 }
                 if let last = finished.last {
                     HStack {
-                        Text(line(last.item.text, last.typed)).font(.system(size: 15, design: .monospaced))
+                        Text(line(last.item.text, last.typed)).scaledFont(15, design: .monospaced)
                         Spacer()
                         Text("\(last.wpm) \(store.t("wpm")) · \(last.acc)%").font(.footnote.monospacedDigit()).foregroundStyle(last.acc == 100 ? Color.good : Color.bad)
                     }.padding(12).background(Color.elevated, in: RoundedRectangle(cornerRadius: 12))

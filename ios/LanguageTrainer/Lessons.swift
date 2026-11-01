@@ -179,7 +179,7 @@ struct LessonEditor: View {
                     PinyinText(py: w.py, size: 19, weight: .semibold)
                     Text("\(w.hz) · \(store.tr(w))").font(.footnote).foregroundStyle(Color.ink2)
                 } else {
-                    (Text(w.hz).font(.hanzi(20)) + Text("  " + w.py).foregroundColor(Color.ink3))
+                    HStack(spacing: 8) { Text(w.hz).hanziFont(20); Text(w.py).foregroundStyle(Color.ink3) }
                     Text(store.tr(w)).font(.footnote).foregroundStyle(Color.ink2)
                 }
             }

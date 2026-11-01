@@ -14,6 +14,8 @@ struct SessionResult {
 /// "Again" means a word comes back at the end of the session
 struct Flashcards: View {
     @Environment(Store.self) var store
+    @Environment(\.accessibilityReduceMotion) var reduceMotion
+    @Environment(\.dynamicTypeSize) var dynamicType
     @State var queue: [Word]
     let done: (SessionResult) -> Void
     @State private var i = 0
@@ -28,10 +30,16 @@ struct Flashcards: View {
         Page {
             ProgressHeader(i: i, n: queue.count)
             Button { if !flipped { flip(w) } else { store.speaker.say(w.ex ?? w.hz) } } label: {
-                VStack(spacing: 10) {
-                    WordFace(word: w, size: 56)
-                    if flipped {
-                        if store.pyFirst { Text(w.hz).font(.hanzi(22)).foregroundStyle(Color.ink2) } else { Pron(py: w.py, size: 20) }
+                ZStack {
+                    // Front and back as two faces of one card; the card turns over around its vertical axis
+                    VStack(spacing: 10) {
+                        WordFace(word: w, size: 56)
+                        Text(store.t("tapToFlip")).font(.footnote).foregroundStyle(Color.ink3)
+                    }
+                    .opacity(flipped ? 0 : 1)
+                    VStack(spacing: 10) {
+                        WordFace(word: w, size: 56)
+                        if store.pyFirst { Text(w.hz).hanziFont(22).foregroundStyle(Color.ink2) } else { Pron(py: w.py, size: 20) }
                         Text(store.tr(w)).font(.title3).multilineTextAlignment(.center)
                         if let t2 = store.tr2(w) { Text(t2).font(.subheadline).foregroundStyle(Color.ink3) }
                         if let ex = w.ex {
@@ -41,16 +49,21 @@ struct Flashcards: View {
                                 Text(store.exTr(w)).font(.footnote).foregroundStyle(Color.ink3)
                             }.padding(.top, 6).multilineTextAlignment(.center)
                         }
-                    } else {
-                        Text(store.t("tapToFlip")).font(.footnote).foregroundStyle(Color.ink3)
                     }
+                    .opacity(flipped ? 1 : 0)
+                    .rotation3DEffect(.degrees(reduceMotion ? 0 : 180), axis: (x: 0, y: 1, z: 0))
                 }
                 .frame(maxWidth: .infinity, minHeight: 260).padding(20)
                 .background(Color.elevated, in: RoundedRectangle(cornerRadius: 20))
                 .foregroundStyle(Color.ink)
-            }.buttonStyle(.plain)
+                .rotation3DEffect(.degrees(flipped && !reduceMotion ? 180 : 0), axis: (x: 0, y: 1, z: 0), perspective: 0.4)
+            }
+            .buttonStyle(.plain)
+            .id(i) // a new card arrives face up instead of turning back
+            .accessibilityHint(flipped ? "" : store.t("tapToFlip"))
             if flipped {
-                HStack(spacing: 8) {
+                // Four in a row, two by two at the largest text sizes
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: dynamicType.isAccessibilitySize ? 2 : 4), spacing: 8) {
                     rate(0, store.t("rateAgain"), "< 10 min", .bad)
                     rate(1, store.t("rateHard"), store.state.nextInterval(w.id, 1), .gold)
                     rate(2, store.t("rateGood"), store.state.nextInterval(w.id, 2), .good)
@@ -62,7 +75,10 @@ struct Flashcards: View {
             }
         }
     }
-    func flip(_ w: Word) { flipped = true; if store.state.settings.autoSpeak { store.speaker.say(w.hz) } }
+    func flip(_ w: Word) {
+        withAnimation(reduceMotion ? .easeInOut(duration: 0.2) : .spring(duration: 0.45, bounce: 0)) { flipped = true }
+        if store.state.settings.autoSpeak { store.speaker.say(w.hz) }
+    }
     func rate(_ q: Int, _ label: String, _ sub: String, _ c: Color) -> some View {
         Button {
             let w = queue[i]
@@ -178,6 +194,7 @@ struct ChoiceQuiz: View {
         guard picked == nil else { return }
         let w = list[i], ok = x.id == w.id
         picked = x.id
+        Haptic.answer(ok)
         store.answer(w, ok: ok)
         if ok { correct += 1 } else { mistakes.append(w) }
         if store.state.settings.autoSpeak && direction != .listen { store.speaker.say(w.hz) }
@@ -234,7 +251,7 @@ struct TypeWord: View {
                     Text(store.tr(w)).font(.title2.weight(.semibold)).multilineTextAlignment(.center)
                     if store.pyFirst { SpeakButton(text: w.hz, small: true) }
                 } else {
-                    Text(w.hz).font(.hanzi(52))
+                    Text(w.hz).hanziFont(52)
                     Text(store.tr(w)).foregroundStyle(Color.ink2)
                 }
             }.frame(maxWidth: .infinity).padding(.vertical, 20)
@@ -259,6 +276,7 @@ struct TypeWord: View {
     func reveal(_ ok: Bool) {
         let w = list[i]
         result = ok
+        Haptic.answer(ok)
         store.answer(w, ok: ok)
         if ok { correct += 1 } else { mistakes.append(w) }
         if store.state.settings.autoSpeak { store.speaker.say(w.hz) }
@@ -284,7 +302,7 @@ struct Meet: View {
             CardBox(padding: 24) {
                 VStack(spacing: 10) {
                     WordFace(word: w, size: 60)
-                    if store.pyFirst { Text(w.hz).font(.hanzi(24)).foregroundStyle(Color.ink2) } else { Pron(py: w.py, size: 22) }
+                    if store.pyFirst { Text(w.hz).hanziFont(24).foregroundStyle(Color.ink2) } else { Pron(py: w.py, size: 22) }
                     Text(store.tr(w)).font(.title3).multilineTextAlignment(.center)
                     HStack {
                         Button { store.speaker.say(w.hz) } label: { Label(store.t("play"), systemImage: "speaker.wave.2.fill") }.buttonStyle(.secondary)
@@ -339,7 +357,7 @@ struct SayWord: View {
             CardBox(padding: 22) {
                 VStack(spacing: 10) {
                     WordFace(word: w, size: 60)
-                    if store.pyFirst { Text(w.hz).font(.hanzi(24)).foregroundStyle(Color.ink2) } else { Pron(py: w.py, size: 22) }
+                    if store.pyFirst { Text(w.hz).hanziFont(24).foregroundStyle(Color.ink2) } else { Pron(py: w.py, size: 22) }
                     Text(store.tr(w)).font(.title3).multilineTextAlignment(.center)
                     HStack(spacing: 12) {
                         Button { store.speaker.say(w.hz) } label: { Label(store.t("playModel"), systemImage: "speaker.wave.2.fill") }.buttonStyle(.bordered).tint(.ink)
@@ -379,6 +397,7 @@ struct SayWord: View {
 /// Match six words with their meanings against the clock
 struct MatchGame: View {
     @Environment(Store.self) var store
+    @Environment(\.accessibilityReduceMotion) var reduceMotion
     let pairs: [Word]
     let done: (SessionResult) -> Void
     @State private var left: [Word] = []
@@ -409,28 +428,32 @@ struct MatchGame: View {
         let isSel = selected?.side == side && selected?.id == w.id, isDone = matched.contains(w.id)
         return Button { pick(w, side) } label: {
             content().frame(maxWidth: .infinity, minHeight: 64).padding(8)
-                .background(isDone ? Color.good.opacity(0.15) : isSel ? Color.accentRed.opacity(0.14) : Color.elevated, in: RoundedRectangle(cornerRadius: 14))
+                .background(isDone ? Color.good.opacity(0.15) : shake.contains("\(side)\(w.id)") ? Color.bad.opacity(0.15) : isSel ? Color.accentRed.opacity(0.14) : Color.elevated, in: RoundedRectangle(cornerRadius: 14))
                 .overlay(RoundedRectangle(cornerRadius: 14).stroke(isSel ? Color.accentRed : Color.ink.opacity(0.08), lineWidth: 1.5))
                 .foregroundStyle(Color.ink).opacity(isDone ? 0.45 : 1)
-                .offset(x: shake.contains("\(side)\(w.id)") ? 6 : 0)
-        }.buttonStyle(.plain).disabled(isDone)
+                .offset(x: shake.contains("\(side)\(w.id)") && !reduceMotion ? 6 : 0)
+        }
+        .buttonStyle(.plain).disabled(isDone)
+        .accessibilityAddTraits(isSel ? .isSelected : [])
     }
     func pick(_ w: Word, _ side: Int) {
         if side == 0 { store.speaker.say(w.hz) }
         guard let s = selected, s.side != side else { selected = (side, w.id); return }
         selected = nil
         if s.id == w.id {
-            matched.insert(w.id); store.recordAnswer(true)
+            withAnimation(.easeOut(duration: 0.2)) { _ = matched.insert(w.id) }
+            Haptic.success(); store.recordAnswer(true)
             if matched.count == pairs.count {
                 let elapsed = fmtTime(Date().timeIntervalSince(start) * 1000)
                 Task { try? await Task.sleep(for: .milliseconds(400)); done(SessionResult(correct: pairs.count, total: pairs.count, mistakes: wrong, extra: "\(store.t("timeTaken")) \(elapsed) · \(mistakes) \(store.t("mistakes"))")) }
             }
         } else {
-            mistakes += 1; store.recordAnswer(false)
+            mistakes += 1; Haptic.error(); store.recordAnswer(false)
             if let a = pairs.first(where: { $0.id == s.id }), !wrong.contains(a) { wrong.append(a) }
             let keys: Set<String> = ["\(s.side)\(s.id)", "\(side)\(w.id)"]
-            withAnimation(.spring(response: 0.15, dampingFraction: 0.2)) { shake = keys }
-            Task { try? await Task.sleep(for: .milliseconds(300)); withAnimation { shake = [] } }
+            // A short nudge for a wrong pair; with Reduce Motion the red tint alone says it
+            withAnimation(reduceMotion ? nil : .spring(duration: 0.12, bounce: 0.5)) { shake = keys }
+            Task { try? await Task.sleep(for: .milliseconds(reduceMotion ? 500 : 250)); withAnimation(.spring(duration: 0.3, bounce: 0)) { shake = [] } }
         }
     }
 }
@@ -475,6 +498,7 @@ struct PickRound: View {
     func pick(_ k: Int) {
         let q = questions[i]
         picked = k
+        Haptic.answer(k == q.answer)
         store.recordAnswer(k == q.answer)
         if k == q.answer { correct += 1 } else if let m = q.mistake { mistakes.append(m) }
     }

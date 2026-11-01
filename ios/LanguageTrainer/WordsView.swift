@@ -5,6 +5,7 @@ import LanguageCore
 
 struct WordsView: View {
     @Environment(Store.self) var store
+    @ScaledMetric private var tileWidth: CGFloat = 104 // tiles get wider (fewer columns) with larger text
     @State private var q = ""
     @State private var statusFilter = "all"
     @State private var cat = "all"
@@ -46,7 +47,7 @@ struct WordsView: View {
             }
             Text(store.t("wordsCount", list.count, store.words.selected.count)).font(.footnote).foregroundStyle(Color.ink3)
             if list.isEmpty { Text("🔍  " + store.t("noResults")).foregroundStyle(Color.ink2).frame(maxWidth: .infinity).padding(.top, 30) }
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 104), spacing: 10)], spacing: 10) {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: min(tileWidth, 320)), spacing: 10)], spacing: 10) {
                 ForEach(list.prefix(limit)) { w in
                     Button { open = w } label: { Tile(w: w) }.buttonStyle(.plain)
                 }
@@ -63,12 +64,15 @@ struct WordsView: View {
 
 struct Tile: View {
     @Environment(Store.self) var store
+    @Environment(\.dynamicTypeSize) var dynamicType
     let w: Word
     var body: some View {
         let st = store.status(w.id)
         VStack(spacing: 4) {
             HStack {
-                Circle().fill(st == .known ? Color.good : st == .learning ? Color.gold : Color.ink.opacity(0.12)).frame(width: 7, height: 7)
+                // Status by shape as well as colour: ✓ known, half-filled learning, empty new
+                Image(systemName: st == .known ? "checkmark.circle.fill" : st == .learning ? "circle.lefthalf.filled" : "circle")
+                    .font(.caption2).foregroundStyle(st == .known ? Color.good : st == .learning ? Color.gold : Color.ink3)
                 Spacer()
                 if store.state.favs.contains(WordRef(w.id)) { Text("★").font(.caption2).foregroundStyle(Color.gold) }
             }
@@ -76,15 +80,18 @@ struct Tile: View {
                 PinyinText(py: w.py, size: w.py.count > 10 ? 15 : 19, weight: .semibold).lineLimit(1).minimumScaleFactor(0.6)
                 Text(w.hz).font(.caption).foregroundStyle(Color.ink3)
             } else {
-                Text(w.hz).font(.hanzi(w.hz.count >= 3 ? 20 : 28)).lineLimit(1).minimumScaleFactor(0.5)
+                Text(w.hz).hanziFont(w.hz.count >= 3 ? 20 : 28).lineLimit(1).minimumScaleFactor(0.5)
                 if store.state.settings.tilePinyin { Pron(py: w.py, size: 12).lineLimit(1) }
             }
-            Text(store.tr(w)).font(.caption2).foregroundStyle(Color.ink2).lineLimit(2).multilineTextAlignment(.center)
+            Text(store.tr(w)).font(.caption2).foregroundStyle(Color.ink2).lineLimit(dynamicType.isAccessibilitySize ? 5 : 2).multilineTextAlignment(.center)
             Spacer(minLength: 0)
         }
         .padding(10).frame(maxWidth: .infinity, minHeight: 112)
         .background(Color.elevated, in: RoundedRectangle(cornerRadius: 14))
         .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.ink.opacity(0.06)))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel([w.hz, w.py, store.tr(w), store.t(st.rawValue), store.state.favs.contains(WordRef(w.id)) ? store.t("favorites") : ""].filter { !$0.isEmpty }.joined(separator: ", "))
+        .accessibilityAddTraits(.isButton)
     }
 }
 
@@ -97,8 +104,8 @@ struct WordDetail: View {
         let lessons = store.state.lessons(course: store.course.id)
         ScrollView {
             VStack(spacing: 12) {
-                if store.pyFirst { PinyinText(py: w.py, size: 44, weight: .semibold); Text(w.hz).font(.hanzi(26)).foregroundStyle(Color.ink2) }
-                else { Text(w.hz).font(.hanzi(64)); Pron(py: w.py, size: 22) }
+                if store.pyFirst { PinyinText(py: w.py, size: 44, weight: .semibold); Text(w.hz).hanziFont(26).foregroundStyle(Color.ink2) }
+                else { Text(w.hz).hanziFont(64); Pron(py: w.py, size: 22) }
                 Text(store.tr(w)).font(.title3).multilineTextAlignment(.center)
                 if let t2 = store.tr2(w) { Text(t2).foregroundStyle(Color.ink3) }
                 HStack(spacing: 6) {

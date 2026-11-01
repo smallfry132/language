@@ -5,6 +5,7 @@ import LanguageCore
 
 struct MicButton: View {
     @Environment(Store.self) var store
+    @Environment(\.accessibilityReduceMotion) var reduceMotion
     let key: String
     let target: String
     let py: String
@@ -25,7 +26,7 @@ struct MicButton: View {
             } label: {
                 HStack(spacing: 8) {
                     Image(systemName: live ? "waveform" : "mic.fill")
-                        .symbolEffect(.variableColor.iterative, isActive: live)
+                        .symbolEffect(.variableColor.iterative, isActive: live && !reduceMotion)
                     Text(live ? store.t("listening") : store.t("speakBtn"))
                 }
                 .font(.headline)
@@ -148,7 +149,7 @@ struct PitchChart: View {
                 ctx.fill(Path(ellipseIn: CGRect(x: x(0, 1) - 3, y: y(v) - 3, width: 6, height: 6)), with: .color(.ink))
             }
             let mark = s.ok == nil ? "" : s.ok! ? " ✓" : " ✗"
-            ctx.draw(Text(s.text + mark).font(.system(size: 15, weight: .semibold)).foregroundColor(Color.tone(s.want)),
+            ctx.draw(Text(s.text + mark).font(.subheadline.weight(.semibold)).foregroundColor(Color.tone(s.want)),
                      at: CGPoint(x: (x0 + x1) / 2, y: size.height - 10))
         }
     }

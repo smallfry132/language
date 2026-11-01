@@ -9,7 +9,7 @@
   --bg-sunken: #ece8e1;
   --text: #1c1b1f;
   --text-2: #5f5b66;
-  --text-3: #8d8994;
+  --text-3: #6b6772;
   --line: rgba(28, 27, 31, 0.10);
   --accent: #c8372d;
   --accent-soft: rgba(200, 55, 45, 0.10);
@@ -43,7 +43,7 @@
     --bg-sunken: #0f0e11;
     --text: #f3f1ee;
     --text-2: #b3afb8;
-    --text-3: #7f7b86;
+    --text-3: #9a96a1;
     --line: rgba(255, 255, 255, 0.10);
     --accent: #ef6a5e;
     --accent-soft: rgba(239, 106, 94, 0.16);
@@ -64,7 +64,7 @@
   --bg-sunken: #0f0e11;
   --text: #f3f1ee;
   --text-2: #b3afb8;
-  --text-3: #7f7b86;
+  --text-3: #9a96a1;
   --line: rgba(255, 255, 255, 0.10);
   --accent: #ef6a5e;
   --accent-soft: rgba(239, 106, 94, 0.16);
@@ -688,11 +688,11 @@ html.latin .sex-hz { font-size: 16px; font-weight: 600; min-width: 80px; }
 /* ============================================================
    Calmer look: one accent for the main action, tone colours carry meaning
    ============================================================ */
-:root { --tone1: #c8372d; --tone2: #b8730c; --tone3: #2e8b57; --tone4: #2f6fd6; --tone5: #8d8994; }
+:root { --tone1: #b3245e; --tone2: #985a07; --tone3: #237548; --tone4: #2a62c4; --tone5: #6b6772; }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) { --tone1: #f0776c; --tone2: #e3a447; --tone3: #5fca8a; --tone4: #7ea7f2; --tone5: #8f8b96; }
+  :root:not([data-theme="light"]) { --tone1: #f2729f; --tone2: #e3a447; --tone3: #5fca8a; --tone4: #7ea7f2; --tone5: #9a96a1; }
 }
-:root[data-theme="dark"] { --tone1: #f0776c; --tone2: #e3a447; --tone3: #5fca8a; --tone4: #7ea7f2; --tone5: #8f8b96; }
+:root[data-theme="dark"] { --tone1: #f2729f; --tone2: #e3a447; --tone3: #5fca8a; --tone4: #7ea7f2; --tone5: #9a96a1; }
 .tn1 { color: var(--tone1); } .tn2 { color: var(--tone2); } .tn3 { color: var(--tone3); } .tn4 { color: var(--tone4); } .tn5 { color: var(--tone5); }
 .py-face { color: var(--text); }
 

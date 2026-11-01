@@ -35,7 +35,7 @@ struct SoundChart: View {
                                 if let t = c.t {
                                     Button { picked = (ri, ci); speakSound(store, c.say, slow: slow) } label: {
                                         VStack(spacing: 1) {
-                                            Text(t).font(.system(size: 17, weight: .semibold)).lineLimit(1).minimumScaleFactor(0.6)
+                                            Text(t).scaledFont(17, .semibold).lineLimit(1).minimumScaleFactor(0.6)
                                             if let s = c.s, s != t { Text(s).font(.caption2).foregroundStyle(Color.ink3) }
                                         }
                                         .frame(maxWidth: .infinity, minHeight: 52)
@@ -63,7 +63,7 @@ struct SoundChart: View {
                 if ex.isEmpty { Text(store.t("noExamples")).font(.footnote).foregroundStyle(Color.ink2) }
                 ForEach(ex) { w in
                     HStack {
-                        Text(w.hz).font(.hanzi(18))
+                        Text(w.hz).hanziFont(18)
                         Text(w.py).font(.footnote).foregroundStyle(Color.ink2)
                         Text(store.tr(w)).font(.footnote).foregroundStyle(Color.ink3).lineLimit(1)
                         Spacer()

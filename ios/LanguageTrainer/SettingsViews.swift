@@ -135,9 +135,6 @@ struct SettingsView: View {
                 Picker(store.t("language"), selection: Binding(get: { store.state.lang }, set: { v in store.update { $0.lang = v } })) {
                     Text("English").tag("en"); Text("Deutsch").tag("de")
                 }
-                Picker(store.t("theme"), selection: Binding(get: { s.theme }, set: { v in store.update { $0.settings.theme = v } })) {
-                    Text(store.t("themeAuto")).tag("auto"); Text(store.t("themeLight")).tag("light"); Text(store.t("themeDark")).tag("dark")
-                }
                 Toggle(store.t("autoSpeak"), isOn: Binding(get: { s.autoSpeak }, set: { v in store.update { $0.settings.autoSpeak = v } }))
                 if store.course.id == "zh" {
                     Toggle(isOn: Binding(get: { store.pyFirst }, set: { v in store.update { $0.courses["zh", default: CourseState()].pinyinFirst = v } })) {
@@ -258,7 +255,7 @@ struct ToneGuide: View {
             CardBox {
                 ForEach(Array(ex.enumerated()), id: \.offset) { k, e in
                     HStack(spacing: 12) {
-                        Text(e.0).font(.system(size: 30, weight: .semibold)).foregroundStyle(zh ? Color.tone(k + 1) : Color.ink).frame(width: 64)
+                        Text(e.0).scaledFont(30, .semibold).foregroundStyle(zh ? Color.tone(k + 1) : Color.ink).frame(width: 64)
                         VStack(alignment: .leading, spacing: 2) {
                             HStack { ToneIcon(n: k + 1, course: store.course.id).scaleEffect(0.6).frame(width: 30, height: 22); Text(store.t("tone\(k + 1)")).font(.subheadline.weight(.semibold)) }
                             Text("\(store.t("tone\(k + 1)d"))  ·  \(words[k].0) \(words[k].1)").font(.footnote).foregroundStyle(Color.ink2)

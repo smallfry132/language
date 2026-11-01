@@ -10,7 +10,6 @@ struct LanguageTrainerApp: App {
         WindowGroup {
             RootView()
                 .environment(store)
-                .preferredColorScheme(store.state.settings.theme == "dark" ? .dark : store.state.settings.theme == "light" ? .light : nil)
                 .tint(.accentRed)
         }
         .onChange(of: phase) { _, p in
@@ -30,10 +29,10 @@ struct RootView: View {
 
     var body: some View {
         TabView(selection: $tab) {
-            stack(.today, title: store.t("tabToday"), icon: "sun.max") { TodayView(path: path(.today)) }
-            stack(.lessons, title: store.t("lessons"), icon: "book.closed") { LessonsView(path: path(.lessons)) }
-            stack(.practice, title: store.t("train"), icon: "scope") { PracticeHome() }
-            stack(.words, title: store.t("words"), icon: "list.bullet") { WordsView() }
+            stack(.today, title: store.t("tabToday"), icon: "sun.max.fill") { TodayView(path: path(.today)) }
+            stack(.lessons, title: store.t("lessons"), icon: "book.closed.fill") { LessonsView(path: path(.lessons)) }
+            stack(.practice, title: store.t("train"), icon: "dumbbell.fill") { PracticeHome() }
+            stack(.words, title: store.t("words"), icon: "square.grid.2x2.fill") { WordsView() }
         }
         .overlay(alignment: .bottom) {
             if let msg = store.toastText {

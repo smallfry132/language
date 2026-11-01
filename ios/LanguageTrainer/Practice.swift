@@ -261,7 +261,7 @@ struct ResultView: View {
         Page {
             CardBox(padding: 24) {
                 VStack(spacing: 6) {
-                    Text("\(result.total > 0 ? Int((Double(result.correct) / Double(result.total) * 100).rounded()) : 100)%").font(.system(size: 56, weight: .heavy))
+                    Text("\(result.total > 0 ? Int((Double(result.correct) / Double(result.total) * 100).rounded()) : 100)%").scaledFont(56, .heavy)
                     Text(store.t("resultScore", result.correct, result.total) + (result.extra.map { " · " + $0 } ?? "")).foregroundStyle(Color.ink2).multilineTextAlignment(.center)
                     if result.mistakes.isEmpty { Text("🎉 " + store.t("perfect")).padding(.top, 8) }
                 }.frame(maxWidth: .infinity)
@@ -284,7 +284,7 @@ struct MistakeList: View {
                 if store.pyFirst {
                     VStack(alignment: .leading) { PinyinText(py: w.py, size: 20, weight: .semibold); Text(store.tr(w)).font(.footnote).foregroundStyle(Color.ink2) }
                 } else {
-                    Text(w.hz).font(.hanzi(24))
+                    Text(w.hz).hanziFont(24)
                     VStack(alignment: .leading) { Text(w.py).font(.subheadline); Text(store.tr(w)).font(.footnote).foregroundStyle(Color.ink2) }
                 }
                 Spacer()
@@ -330,7 +330,7 @@ struct ToneDrill: View {
             return .init(
                 play: { store.speaker.say(w.hz, rate: 0.7) },
                 prompt: AnyView(VStack(spacing: 8) {
-                    Text(w.hz).font(.hanzi(52))
+                    Text(w.hz).hanziFont(52)
                     Text(store.tr(w)).foregroundStyle(Color.ink2)
                     Text(store.t("toneQ")).foregroundStyle(Color.ink2)
                     Button { store.speaker.say(w.hz, rate: 0.7) } label: { Label(store.t("play"), systemImage: "play.fill") }.buttonStyle(.borderedProminent).tint(.accentRed)
@@ -356,7 +356,7 @@ struct NumberDrill: View {
             return .init(
                 play: { store.speaker.say(written) },
                 prompt: AnyView(VStack(spacing: 8) {
-                    Text(written).font(.hanzi(c == "vi" ? 34 : 52)).multilineTextAlignment(.center)
+                    Text(written).hanziFont(c == "vi" ? 34 : 52).multilineTextAlignment(.center)
                     Text(store.t("numPrompt")).foregroundStyle(Color.ink2)
                     SpeakButton(text: written, small: true)
                 }),

@@ -41,6 +41,14 @@ struct WordsView: View {
             return gs.isEmpty ? nil : (t, gs)
         }
     }
+    /// The sections flattened into groups; the first group of a topic carries the topic's title
+    func groupSections(_ list: [Word]) -> [(id: String, topic: String?, name: String, words: [Word])] {
+        sections(list).flatMap { sec in
+            sec.groups.enumerated().map { k, g in
+                ("\(sec.theme.id)-\(k)", k == 0 ? "\(sec.theme.icon)  \(sec.theme.name.get(store.state.lang))" : nil, g.name, g.words)
+            }
+        }
+    }
     func grid(_ words: [Word]) -> some View {
         LazyVGrid(columns: [GridItem(.adaptive(minimum: min(tileWidth, 320)), spacing: 10)], spacing: 10) {
             ForEach(words) { w in Button { open = w } label: { Tile(w: w) }.buttonStyle(.plain) }
@@ -60,13 +68,19 @@ struct WordsView: View {
             Text(store.t("wordsCount", list.count, store.words.selected.count)).font(.footnote).foregroundStyle(Color.ink3)
             if list.isEmpty { Text("🔍  " + store.t("noResults")).foregroundStyle(Color.ink2).frame(maxWidth: .infinity).padding(.top, 30) }
             if themed {
-                LazyVStack(alignment: .leading, spacing: 10) {
-                    ForEach(sections(list), id: \.theme.id) { sec in
-                        Text("\(sec.theme.icon)  \(sec.theme.name.get(store.state.lang))").font(.title3.weight(.bold)).padding(.top, 14)
-                            .accessibilityAddTraits(.isHeader)
-                        ForEach(Array(sec.groups.enumerated()), id: \.offset) { _, g in
-                            SectionTitle(text: g.name)
-                            grid(g.words)
+                // One lazy grid with a section per group. A lazy grid inside a lazy stack leaves tiles blank
+                // until they have been scrolled past (a SwiftUI bug), so nothing here is nested.
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: min(tileWidth, 320)), spacing: 10)], alignment: .leading, spacing: 10) {
+                    ForEach(groupSections(list), id: \.id) { g in
+                        Section {
+                            ForEach(g.words) { w in Button { open = w } label: { Tile(w: w) }.buttonStyle(.plain) }
+                        } header: {
+                            VStack(alignment: .leading, spacing: 0) {
+                                if let topic = g.topic {
+                                    Text(topic).font(.title3.weight(.bold)).padding(.top, 14).accessibilityAddTraits(.isHeader)
+                                }
+                                SectionTitle(text: g.name)
+                            }
                         }
                     }
                 }

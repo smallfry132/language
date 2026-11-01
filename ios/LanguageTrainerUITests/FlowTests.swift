@@ -85,6 +85,20 @@ final class FlowTests: XCTestCase {
         XCTAssertTrue(text("Next time add the tones too").waitForExistence(timeout: 3))
     }
 
+    /// Tiles must be drawn as they scroll into view, not only after scrolling past them
+    func testWordTilesAppearWhileScrolling() {
+        launch(["-route", "words"])
+        let list = app.scrollViews.firstMatch
+        XCTAssertTrue(list.waitForExistence(timeout: 5))
+        for _ in 0..<8 {
+            list.swipeUp(velocity: .slow)
+            // Every tile on screen has its content
+            let onScreen = app.buttons.allElementsBoundByIndex.filter { $0.frame.height > 90 && $0.frame.height < 200 && $0.isHittable && list.frame.contains($0.frame) }
+            XCTAssertFalse(onScreen.isEmpty, "some tiles are on screen")
+            for t in onScreen.prefix(12) { XCTAssertFalse(t.label.isEmpty, "a tile without content at \(t.frame)") }
+        }
+    }
+
     func testGermanAndCourseSwitch() {
         launch()
         app.buttons["Settings"].tap()

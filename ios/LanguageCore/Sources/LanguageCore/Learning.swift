@@ -155,7 +155,7 @@ public struct CourseWords {
     /// Due reviews (most overdue first) plus a few new words, from the lessons when there are any
     public func planToday(_ state: AppState, extraNew: Int) -> (due: [Word], fresh: [Word], unseen: Int) {
         let now = nowMs()
-        let due = all.filter { state.isDue($0.id, now: now) }.sorted { state.card($0.id)!.due < state.card($1.id)!.due }.prefix(Self.reviewCap)
+        let due = all.filter { state.isDue($0.id, now: now) }.sorted { state.card($0.id)!.due < state.card($1.id)!.due }.prefix(state.settings.maxReviews ?? Self.reviewCap)
         let lw = lessonWords(state, newestFirst: true)
         let unseen = (lw.isEmpty ? selected : lw).filter { state.status($0.id) == .new }
         let room = max(0, state.settings.newPerDay + extraNew - introducedToday(state))

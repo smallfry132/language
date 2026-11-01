@@ -82,7 +82,16 @@ public struct Texts: Sendable {
             "notNow": "Not now",
             "readingLayer": "Reading help",
             "readingLayerDesc": "Pinyin, romanization or kana with each word.",
-            "readingAlways": "Always", "readingNew": "New words", "readingOff": "Off"
+            "readingAlways": "Always", "readingNew": "New words", "readingOff": "Off",
+            "learn": "Learn", "me": "Me", "continue": "Continue", "wordOfDay": "Word of the day",
+            "dueCount": "{0} due", "minutes": "{0} min", "learningCourse": "Learning {0} · {1}",
+            "dailyPlan": "Daily plan", "maxReviews": "Max reviews per day", "whileStudying": "While studying",
+            "voiceMic": "Voice & microphone", "colorTones": "Colour by tone", "autoPlay": "Auto-play audio",
+            "reminder": "Daily reminder", "reminderBody": "A few minutes of {0} keep your streak going.",
+            "tipTitle": "Tip", "allTips": "All tips", "allDialogues": "All dialogues", "testMic": "Test microphone",
+            "words3": "{0} words", "goalToday": "Today’s goal",
+            "lessonEmpty": "No lessons yet. Add the words from each class with your tutor, and Learn will train exactly those.",
+            "backToday": "Back to Learn"
         ],
         "de": [
             "micPermission": "Erlaube Mikrofon und Spracherkennung in den Einstellungen, um das Sprechen zu üben.",
@@ -107,7 +116,16 @@ public struct Texts: Sendable {
             "notNow": "Später",
             "readingLayer": "Lesehilfe",
             "readingLayerDesc": "Pinyin, Umschrift oder Kana zu jedem Wort.",
-            "readingAlways": "Immer", "readingNew": "Neue Wörter", "readingOff": "Aus"
+            "readingAlways": "Immer", "readingNew": "Neue Wörter", "readingOff": "Aus",
+            "learn": "Lernen", "me": "Ich", "continue": "Weiter", "wordOfDay": "Wort des Tages",
+            "dueCount": "{0} fällig", "minutes": "{0} Min.", "learningCourse": "Lernt {0} · {1}",
+            "dailyPlan": "Tagesplan", "maxReviews": "Höchstens Wiederholungen pro Tag", "whileStudying": "Beim Lernen",
+            "voiceMic": "Stimme & Mikrofon", "colorTones": "Nach Ton einfärben", "autoPlay": "Audio automatisch abspielen",
+            "reminder": "Tägliche Erinnerung", "reminderBody": "Ein paar Minuten {0} halten deine Serie am Leben.",
+            "tipTitle": "Tipp", "allTips": "Alle Tipps", "allDialogues": "Alle Dialoge", "testMic": "Mikrofon testen",
+            "words3": "{0} Wörter", "goalToday": "Tagesziel",
+            "lessonEmpty": "Noch keine Lektionen. Füge nach jeder Stunde die Wörter deiner Lehrerin oder deines Lehrers hinzu, dann übt „Lernen“ genau diese.",
+            "backToday": "Zurück zu Lernen"
         ]
     ]
 }

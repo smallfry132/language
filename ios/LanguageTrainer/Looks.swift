@@ -4,7 +4,7 @@ import LanguageCore
 
 /* What gives each language its own look: the big word with its reading layer, the 田字格 grid for Chinese,
  * furigana for Japanese, the letters of each block for Korean, tone colours and contours for Vietnamese,
- * and tab labels written in the language. */
+ * and the dock's labels written in the language (Look.tabs, drawn by Dock). */
 
 enum Fonts {
     /// Fonts shipped with the app (Be Vietnam Pro); the Chinese and Japanese serifs are built into iOS
@@ -13,16 +13,6 @@ enum Fonts {
             CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil)
         }
     }
-}
-
-/// A tab label written in the course's own script, drawn as a template image so the tab bar can tint it
-@MainActor func tabGlyph(_ text: String) -> Image {
-    let font = Look.current.wordFont(20, .semibold).flatMap { UIFont(name: $0, size: 20) } ?? .systemFont(ofSize: 20, weight: .semibold)
-    let size = (text as NSString).size(withAttributes: [.font: font])
-    let img = UIGraphicsImageRenderer(size: CGSize(width: ceil(size.width), height: ceil(size.height))).image { _ in
-        (text as NSString).draw(at: .zero, withAttributes: [.font: font, .foregroundColor: UIColor.black])
-    }
-    return Image(uiImage: img.withRenderingMode(.alwaysTemplate))
 }
 
 /// The word large, with the reading layer the language needs

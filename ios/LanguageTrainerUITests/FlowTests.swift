@@ -17,7 +17,7 @@ final class FlowTests: XCTestCase {
 
     func testTodaySessionRunsToTheEnd() {
         launch()
-        button("Start").tap()
+        app.buttons["Continue"].tap()
         var steps: [String] = []
         for _ in 0..<200 {
             if text("Session complete").exists { break }
@@ -44,13 +44,16 @@ final class FlowTests: XCTestCase {
         }
         XCTAssertTrue(text("Session complete").exists)
         XCTAssertEqual(steps.count, 5, "review, new words, listen, speak, write: \(steps)")
-        app.buttons["Back to Today"].tap()
+        app.buttons["Back to Learn"].tap()
         XCTAssertTrue(text("Done for today").waitForExistence(timeout: 3))
     }
 
     func testLessonWithOwnWord() {
         launch(["-route", "lessons"])
-        button("New lesson").tap()
+        let newLesson = button("New lesson")
+        // Lessons are further down on Learn: scroll until the button is clear of the dock
+        for _ in 0..<6 where !newLesson.isHittable || newLesson.frame.maxY > app.frame.height - 140 { app.swipeUp(velocity: .slow) }
+        newLesson.tap()
         let search = app.textFields["Search pinyin, meaning or characters…"]
         if !search.waitForExistence(timeout: 3) { print("TREE", app.debugDescription) }
         XCTAssertTrue(search.exists)
@@ -101,11 +104,12 @@ final class FlowTests: XCTestCase {
 
     func testGermanAndCourseSwitch() {
         launch()
-        app.buttons["Settings"].tap()
-        app.buttons["Language, English"].firstMatch.tap()
-        app.buttons["Deutsch"].firstMatch.tap()
-        app.buttons["Fertig"].firstMatch.tap()
-        XCTAssertTrue(app.tabBars.buttons["Heute"].waitForExistence(timeout: 3) || app.buttons["Heute"].exists)
+        app.buttons["Me"].tap()
+        let deutsch = app.buttons["Deutsch"].firstMatch
+        for _ in 0..<6 where !deutsch.isHittable { app.swipeUp() }
+        deutsch.tap()
+        XCTAssertTrue(app.buttons["Lernen"].waitForExistence(timeout: 3))
+        app.buttons["Lernen"].tap()
         app.buttons["Sprache wechseln"].tap()
         app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Tiếng Việt")).firstMatch.tap()
         app.buttons["Wörter"].firstMatch.tap()

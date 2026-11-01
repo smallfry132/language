@@ -1,19 +1,15 @@
 import SwiftUI
 import LanguageCore
 
-/* Lessons: the built-in dialogues and your own lessons (the words from each class with your tutor). */
+/* Lessons: your own lessons (the words from each class with your tutor), shown on Learn; the dialogues list. */
 
-struct LessonsView: View {
+struct MyLessons: View {
     @Environment(Store.self) var store
     @Binding var path: NavigationPath
 
     var body: some View {
         let lessons = store.state.lessons(course: store.course.id)
-        Page {
-            if !store.dialogues.isEmpty {
-                SectionTitle(text: store.t("dialogues"))
-                DialogueList()
-            }
+        Group {
             HStack {
                 SectionTitle(text: store.t("myLessons"))
                 Button {

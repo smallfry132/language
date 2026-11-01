@@ -20,22 +20,26 @@ struct LanguageTrainerApp: App {
     }
 }
 
-enum Tab: String { case today, lessons, practice, words }
+enum Tab: String, CaseIterable { case learn, practice, words, me }
 
+/* The app's frame: four sections in a flat dock (from the style canvas) — Learn, Practice, Words, Me —
+ * labelled in the language being learnt. The dock shows on the four main screens and steps aside
+ * inside exercises and while typing. */
 struct RootView: View {
     @Environment(Store.self) var store
-    @State private var tab = Tab.today
+    @State private var tab = Tab.learn
     @State private var paths: [Tab: NavigationPath] = [:]
-    @State private var showSettings = false
-    @State private var showCourses = false
+    @State private var keyboard = false
 
     var body: some View {
-        TabView(selection: $tab) {
-            let g = Look.current.tabs // tab labels written in the language itself
-            stack(.today, title: store.t("tabToday"), glyph: g[0]) { TodayView(path: path(.today)) }
-            stack(.lessons, title: store.t("lessons"), glyph: g[1]) { LessonsView(path: path(.lessons)) }
-            stack(.practice, title: store.t("train"), glyph: g[2]) { PracticeHome() }
-            stack(.words, title: store.t("words"), glyph: g[3]) { WordsView() }
+        ZStack {
+            // All four stay alive, so each keeps its place when you switch
+            ForEach(Tab.allCases, id: \.self) { t in
+                stack(t).opacity(tab == t ? 1 : 0).allowsHitTesting(tab == t).accessibilityHidden(tab != t)
+            }
+        }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if (paths[tab] ?? NavigationPath()).isEmpty && !keyboard { Dock(tab: $tab, paths: $paths) }
         }
         .id(store.course.id) // a new look: everything is drawn afresh
         .overlay(alignment: .bottom) {
@@ -46,8 +50,8 @@ struct RootView: View {
             }
         }
         .animation(.easeInOut(duration: 0.2), value: store.toastText)
-        .sheet(isPresented: $showSettings) { NavigationStack { SettingsView() }.environment(store) }
-        .sheet(isPresented: $showCourses) { CoursePicker().presentationDetents([.medium, .large]) }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in keyboard = true }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in keyboard = false }
         .onAppear { openLaunchRoute() }
     }
 
@@ -55,24 +59,19 @@ struct RootView: View {
         Binding(get: { paths[t] ?? NavigationPath() }, set: { paths[t] = $0 })
     }
 
-    func stack<V: View>(_ t: Tab, title: String, glyph: String, @ViewBuilder root: () -> V) -> some View {
+    func stack(_ t: Tab) -> some View {
         NavigationStack(path: path(t)) {
-            root()
-                .navigationTitle(t == .words ? title + " · " + store.levelLabel : title)
-                .toolbar {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Button { showCourses = true } label: { Text(store.course.glyph).font(.headline).foregroundStyle(Color.accent) }
-                            .accessibilityLabel(store.t("switchCourse"))
-                    }
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button { showSettings = true } label: { Image(systemName: "gearshape") }.accessibilityLabel(store.t("settings"))
-                    }
+            Group {
+                switch t {
+                case .learn: LearnView(path: path(.learn))
+                case .practice: PracticeHome().navigationTitle(store.t("train"))
+                case .words: WordsView().navigationTitle(store.t("words") + " · " + store.levelLabel)
+                case .me: MeView()
                 }
-                .navigationDestination(for: Route.self) { r in destination(r) }
-                .background(Color.paper)
+            }
+            .navigationDestination(for: Route.self) { r in destination(r) }
+            .background(Color.paper)
         }
-        .tabItem { Label { Text(title) } icon: { tabGlyph(glyph) } }
-        .tag(t)
     }
 
     @ViewBuilder func destination(_ r: Route) -> some View {
@@ -94,7 +93,8 @@ struct RootView: View {
         let args = ProcessInfo.processInfo.arguments
         guard let k = args.firstIndex(of: "-route"), k + 1 < args.count else { return }
         let parts = args[k + 1].split(separator: "/").map(String.init)
-        guard let t = Tab(rawValue: parts[0]) else { if parts[0] == "settings" { showSettings = true }; return }
+        let alias = ["today": "learn", "lessons": "learn", "settings": "me"]
+        guard let t = Tab(rawValue: alias[parts[0]] ?? parts[0]) else { return }
         tab = t
         var p = NavigationPath()
         switch parts.dropFirst().first {
@@ -108,5 +108,36 @@ struct RootView: View {
         default: break
         }
         paths[t] = p
+    }
+}
+
+/// The flat dock: the section's word in the language, its name below; tapping the current one goes back to its start
+struct Dock: View {
+    @Environment(Store.self) var store
+    @Binding var tab: Tab
+    @Binding var paths: [Tab: NavigationPath]
+    var body: some View {
+        let names = [store.t("learn"), store.t("train"), store.t("words"), store.t("me")]
+        HStack(spacing: 0) {
+            ForEach(Array(Tab.allCases.enumerated()), id: \.offset) { k, t in
+                let on = tab == t
+                Button {
+                    if on { paths[t] = NavigationPath() }
+                    tab = t
+                } label: {
+                    VStack(spacing: 2) {
+                        Text(Look.current.tabs[k]).hanziFont(20, on ? .semibold : .regular).foregroundStyle(on ? Color.accent : Color.ink2)
+                        Text(names[k]).font(.caption2.weight(on ? .bold : .regular)).foregroundStyle(on ? Color.ink : Color.ink2)
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 50).contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(names[k])
+                .accessibilityAddTraits(on ? [.isSelected, .isButton] : .isButton)
+            }
+        }
+        .padding(.horizontal, 12).padding(.top, 6)
+        .background(Color.paper.ignoresSafeArea(edges: .bottom))
+        .overlay(alignment: .top) { Rectangle().fill(Color.line).frame(height: 1) }
     }
 }

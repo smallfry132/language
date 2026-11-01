@@ -16,32 +16,34 @@ struct Look {
     let accent: Pair                   // progress, selection, the live microphone
     let radius: CGFloat
     let wordFont: (CGFloat, Font.Weight) -> String? // PostScript name of the font for words in the target script; nil = system
-    let tabs: [String]                 // Today, Lessons, Practice, Words in the language's own script
+    let tabs: [String]                 // Learn, Practice, Words, Me in the language's own script
 
     static let inkGrid = Look(id: "zh",
         paper: (0xFAF8F3, 0x161514), elevated: (0xFFFFFF, 0x211F1D), sunken: (0xEFEBE2, 0x0F0E0D), line: (0xDDD5C6, 0x3A3632),
         ink: (0x1C1C1C, 0xF2EEE6), ink2: (0x5F5A55, 0xB9B2A8), ink3: (0x6B655F, 0x9A938A),
         action: (0x1C1C1C, 0xF2EEE6), onAction: (0xFAF8F3, 0x161514), accent: (0xB8322A, 0xE2766B), radius: 2,
-        wordFont: { _, w in w.isBold ? "STSongti-SC-Bold" : "STSongti-SC-Regular" }, tabs: ["今", "课", "练", "字"])
+        wordFont: { _, w in w.isBold ? "STSongti-SC-Bold" : "STSongti-SC-Regular" }, tabs: ["学", "练", "词", "我"])
     static let quietRuby = Look(id: "ja",
         paper: (0xF7F7F4, 0x171716), elevated: (0xFFFFFF, 0x222220), sunken: (0xECECE7, 0x101010), line: (0xE2E2DC, 0x3A3A36),
         ink: (0x1E1E1E, 0xEEEEEA), ink2: (0x4E4E4A, 0xB5B5AE), ink3: (0x66665F, 0x97978F),
         action: (0x24365C, 0xA9BBE0), onAction: (0xFFFFFF, 0x171716), accent: (0x24365C, 0xA9BBE0), radius: 8,
-        wordFont: { _, w in w.isBold ? "HiraMinProN-W6" : "HiraMinProN-W3" }, tabs: ["今", "課", "練", "あ"])
+        wordFont: { _, w in w.isBold ? "HiraMinProN-W6" : "HiraMinProN-W3" }, tabs: ["学", "練", "語", "私"])
     static let blockBuilder = Look(id: "ko",
         paper: (0xF6F8FD, 0x10141F), elevated: (0xFFFFFF, 0x1A2030), sunken: (0xE3E8F4, 0x0B0E16), line: (0xD7DDEC, 0x2E3750),
         ink: (0x16213E, 0xEDF1FA), ink2: (0x4A5578, 0xAEB8D3), ink3: (0x5A6488, 0x8F9AB8),
         action: (0x1D4E9E, 0x8DB0F0), onAction: (0xFFFFFF, 0x10141F), accent: (0x1D4E9E, 0x8DB0F0), radius: 16,
-        wordFont: { _, _ in nil }, tabs: ["오", "학", "연", "한"])
+        wordFont: { _, _ in nil }, tabs: ["학", "연", "단", "나"])
     static let toneColor = Look(id: "vi",
         paper: (0xFAFAF7, 0x0F1A17), elevated: (0xFFFFFF, 0x172420), sunken: (0xDDE6E1, 0x0A1210), line: (0xDDE6E1, 0x2A3B36),
         ink: (0x0F2A24, 0xE6F0EC), ink2: (0x3F5A53, 0xA9C2BA), ink3: (0x4F6B63, 0x87A39A),
         action: (0x0F2A24, 0xC5F27A), onAction: (0xC5F27A, 0x0F2A24), accent: (0x0F2A24, 0xC5F27A), radius: 14,
         wordFont: { _, w in w == .heavy || w == .black ? "BeVietnamPro-ExtraBold" : w.isBold ? "BeVietnamPro-SemiBold" : "BeVietnamPro-Regular" },
-        tabs: ["Nay", "Học", "Tập", "Từ"])
+        tabs: ["Học", "Tập", "Từ", "Tôi"])
     static func of(_ course: String) -> Look { ["zh": inkGrid, "ja": quietRuby, "ko": blockBuilder, "vi": toneColor][course] ?? inkGrid }
     /// The look of the course on screen. Set by the Store when the course changes; read when colours are drawn.
     static var current = inkGrid
+    /// Tone colours on pinyin and Vietnamese (Me → Colour by tone)
+    static var toneColors = true
 }
 
 extension Font.Weight {
@@ -162,7 +164,7 @@ struct PinyinText: View {
             var a = AttributedString(p.text)
             if !p.sep {
                 if let missed, k < missed.count, missed[k] { a.foregroundColor = .ink3; a.strikethroughStyle = .single }
-                else { a.foregroundColor = Color.tone(p.tone) }
+                else { a.foregroundColor = Look.toneColors ? Color.tone(p.tone) : Color.ink }
                 k += 1
             }
             out += a
@@ -181,7 +183,7 @@ struct VietText: View {
         var out = AttributedString(), word = ""
         func flush() {
             guard !word.isEmpty else { return }
-            var a = AttributedString(word); a.foregroundColor = Color.viTone(Lingo.firstTone(word, course: "vi")); out += a; word = ""
+            var a = AttributedString(word); a.foregroundColor = Look.toneColors ? Color.viTone(Lingo.firstTone(word, course: "vi")) : Color.ink; out += a; word = ""
         }
         for c in s { if c.isLetter { word.append(c) } else { flush(); out += AttributedString(String(c)) } }
         flush()

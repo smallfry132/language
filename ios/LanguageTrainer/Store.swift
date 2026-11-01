@@ -101,6 +101,7 @@ final class Store {
         let key = "\(state.course)|\(levels)|\(state.custom.count)|\(state.custom.values.map { $0.t ?? 0 }.max() ?? 0)"
         if key != wordsKey { wordsKey = key; words = CourseWords(state: state) }
         Look.current = Look.of(state.course)
+        Look.toneColors = state.settings.toneColors != false
     }
     private func saveDevice() { if let d = try? JSONEncoder().encode(device) { UserDefaults.standard.set(d, forKey: Self.deviceKey) } }
 

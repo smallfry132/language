@@ -151,9 +151,13 @@ public struct Settings: Codable, Equatable {
     public var dlgHz: Bool?, dlgTr: Bool?, dlgSlow: Bool?
     /// Pinyin, romanization or kana shown with words: "always", "new" (words not yet known) or "off"
     public var readingLayer: String?
+    /// Most reviews in one day's session (Me → Daily plan); nil = 20
+    public var maxReviews: Int?
+    /// Pinyin and Vietnamese coloured by tone; nil = on
+    public var toneColors: Bool?
     /// Chosen voice per course. Voices differ per device, so this is never synced.
     public var voices: [String: String]?
-    enum K: String, CodingKey { case rate, autoSpeak, tilePinyin, quizSize, dailyGoal, theme, newPerDay, f0base, dlgHz, dlgTr, dlgSlow, voices, readingLayer }
+    enum K: String, CodingKey { case rate, autoSpeak, tilePinyin, quizSize, dailyGoal, theme, newPerDay, f0base, dlgHz, dlgTr, dlgSlow, voices, readingLayer, maxReviews, toneColors }
     public init() {}
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: K.self)
@@ -162,6 +166,7 @@ public struct Settings: Codable, Equatable {
         f0base = c.get(.f0base, nil as Double?); dlgHz = c.get(.dlgHz, nil as Bool?); dlgTr = c.get(.dlgTr, nil as Bool?); dlgSlow = c.get(.dlgSlow, nil as Bool?)
         voices = c.get(.voices, nil as [String: String]?)
         readingLayer = c.get(.readingLayer, nil as String?)
+        maxReviews = c.get(.maxReviews, nil as Int?); toneColors = c.get(.toneColors, nil as Bool?)
     }
     /// The settings that sync (without the device's voices)
     public var synced: Settings { var s = self; s.voices = nil; return s }

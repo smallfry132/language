@@ -1,78 +1,7 @@
 import SwiftUI
 import LanguageCore
 
-/* Today: one guided session (review, new words, listen, speak, write), the next dialogue and a few numbers. */
-
-struct TodayView: View {
-    @Environment(Store.self) var store
-    @Environment(\.dynamicTypeSize) var dynamicType
-    @State private var showVoiceGuide = Launch.has("-voiceguide")
-    @Binding var path: NavigationPath
-
-    var body: some View {
-        let p = store.words.planToday(store.state, extraNew: store.extraNew)
-        let today = todayKey(), n = store.state.dayCount(today), goal = store.state.settings.dailyGoal
-        let introduced = store.words.introducedToday(store.state)
-        let met = store.words.all.filter { store.status($0.id) != .new }.count
-        let known = store.words.all.filter { store.status($0.id) == .known }.count
-        let next = store.dialogues.first { !store.state.dialogueDone($0.id) }
-        Page {
-            CardBox(padding: 20) {
-                if !p.due.isEmpty || !p.fresh.isEmpty {
-                    Text(store.t("sessionTitle")).font(.title2.weight(.bold))
-                    Text(store.t("sessionDesc", p.due.count, p.fresh.count)).foregroundStyle(Color.ink2)
-                    Button { path.append(Route.today) } label: { Label(store.t("start"), systemImage: "play.fill") }.buttonStyle(.primary)
-                } else {
-                    Text(n > 0 || introduced > 0 ? store.t("sessionDone") : store.t("sessionTitle")).font(.title2.weight(.bold))
-                    Text(n > 0 || introduced > 0 ? store.t("sessionDoneSub") : store.t("sessionEmpty")).foregroundStyle(Color.ink2)
-                    if p.unseen > 0 {
-                        Button(store.t("moreNew", min(5, p.unseen))) { store.extraNew += 5; path.append(Route.today) }.buttonStyle(.secondary)
-                    }
-                }
-            }
-            // Once per language: the iPhone only has a basic voice, here is how to get a natural one
-            let _ = store.voiceCheck
-            if store.speaker.level() != .natural && !store.voiceGuideDismissed.contains(store.course.id) && !store.speaker.muted || Launch.has("-voicebanner") {
-                CardBox {
-                    Label(store.t("voiceGuideTitle"), systemImage: "waveform").font(.headline)
-                    Text(store.t("voiceGuideBanner", store.t("langName"))).font(.subheadline).foregroundStyle(Color.ink2)
-                    HStack {
-                        Button(store.t("notNow")) { store.dismissVoiceGuide() }.buttonStyle(.secondary)
-                        Button(store.t("voiceShowMe")) { showVoiceGuide = true }.buttonStyle(.primary)
-                    }
-                }
-            }
-            if let next {
-                SectionTitle(text: store.t("dialogues"))
-                NavigationLink(value: Route.dialogue(next.id)) { DialogueRow(d: next) }.buttonStyle(.plain)
-                    .background(Color.elevated, in: RoundedRectangle(cornerRadius: 16))
-            }
-            if met > 0 || n > 0 {
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: dynamicType.isAccessibilitySize ? 2 : 4), spacing: 8) {
-                    stat("\(store.state.streak())", store.t("statsStreak"))
-                    stat("\(n)", store.t("statsToday"), sub: "/\(goal)")
-                    stat("\(met)", store.t("wordsMet"))
-                    stat("\(known)", store.t("statsWords"))
-                }.padding(.top, 8)
-            }
-            NavigationLink(value: Route.progress) { ListRow(title: store.t("fullStats"), icon: "chart.bar") }.buttonStyle(.plain)
-                .background(Color.elevated, in: RoundedRectangle(cornerRadius: 16)).padding(.top, 8)
-            if store.device.code != nil {
-                Text("☁️ " + store.syncStatusText).font(.footnote).foregroundStyle(Color.ink3).frame(maxWidth: .infinity)
-            }
-        }
-        .sheet(isPresented: $showVoiceGuide) { NavigationStack { VoiceGuide() }.environment(store) }
-    }
-
-    func stat(_ v: String, _ label: String, sub: String? = nil) -> some View {
-        VStack(spacing: 2) {
-            (Text(v).font(.title2.weight(.bold)) + Text(sub ?? "").font(.footnote).foregroundColor(Color.ink3))
-            Text(label).font(.caption2).foregroundStyle(Color.ink2).multilineTextAlignment(.center).lineLimit(2)
-        }
-        .frame(maxWidth: .infinity, minHeight: 64).padding(.vertical, 6)
-        .background(Color.elevated, in: RoundedRectangle(cornerRadius: 14))
-    }
-}
+/* The guided daily session (review, new words, listen, speak, write), started from Learn. */
 
 /// A guided session: a chain of steps, each an exercise; a summary at the end
 struct FlowStep: Identifiable {

@@ -10,6 +10,8 @@ struct MicButton: View {
     let target: String
     let py: String
     var pitch = false
+    /// The large round button of the chat composer
+    var big = false
     let done: (Spoken) -> Void
     @State private var denied = false
 
@@ -24,6 +26,13 @@ struct MicButton: View {
                     done(r)
                 }
             } label: {
+                if big {
+                    Image(systemName: live ? "waveform" : "mic.fill").font(.system(size: 28, weight: .semibold))
+                        .symbolEffect(.variableColor.iterative, isActive: live && !reduceMotion)
+                        .frame(width: 76, height: 76).background(live ? Color.action : Color.accent, in: Circle())
+                        .foregroundStyle(live ? Color.onAction : Color.white)
+                        .padding(6).background(Color.accent.opacity(0.15), in: Circle())
+                } else {
                 HStack(spacing: 8) {
                     Image(systemName: live ? "waveform" : "mic.fill")
                         .symbolEffect(.variableColor.iterative, isActive: live && !reduceMotion)
@@ -33,6 +42,7 @@ struct MicButton: View {
                 .padding(.horizontal, 18).padding(.vertical, 12)
                 .background(live ? Color.action : Color.accent.opacity(0.12), in: Capsule())
                 .foregroundStyle(live ? Color.onAction : Color.accent)
+                }
             }
             .buttonStyle(.plain)
             .accessibilityLabel(store.t("speakBtn"))

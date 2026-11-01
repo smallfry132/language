@@ -5,12 +5,12 @@ import LanguageCore
  * is folded into "Adjust". Results lead back here; in a guided session they lead to the next step. */
 
 enum Mode: String, CaseIterable, Hashable {
-    case flash, quiz, type, typer, listen, match, tones, numbers, say, picture, listenPic
+    case flash, quiz, type, typer, listen, match, tones, numbers, say, picture, listenPic, choose
     var key: String {
         switch self {
         case .flash: "modeFlash"; case .quiz: "modeQuiz"; case .type: "modeType"; case .typer: "modeTyper"; case .listen: "modeListen"
         case .match: "modeMatch"; case .tones: "modeTones"; case .numbers: "modeNumbers"; case .say: "modeSay"
-        case .picture: "modePicture"; case .listenPic: "modeListenPic"
+        case .picture: "modePicture"; case .listenPic: "modeListenPic"; case .choose: "modeChoose"
         }
     }
 }
@@ -35,7 +35,7 @@ struct PracticeHome: View {
         return [
             ("listen", "ear", [Row(route: .mode(.listen), key: "modeListen")] + (pics ? [Row(route: .mode(.listenPic), key: "modeListenPic")] : []) + (c.toneOptions != nil ? [Row(route: .mode(.tones), key: "modeTones")] : []) + [Row(route: .soundDrill, key: "soundDrill")]),
             ("speak", "mic", [Row(route: .mode(.say), key: "modeSay")] + (store.dialogues.isEmpty ? [] : [Row(route: .dialogues, key: "dialoguesRead")]) + [Row(route: .sounds, key: "soundChart")]),
-            ("read", "book", (pics ? [Row(route: .mode(.picture), key: "modePicture")] : []) + [Row(route: .mode(.flash), key: "modeFlash"), Row(route: .mode(.quiz), key: "modeQuiz"), Row(route: .mode(.match), key: "modeMatch")]),
+            ("read", "book", [Row(route: .mode(.choose), key: "modeChoose")] + (pics ? [Row(route: .mode(.picture), key: "modePicture")] : []) + [Row(route: .mode(.flash), key: "modeFlash"), Row(route: .mode(.quiz), key: "modeQuiz"), Row(route: .mode(.match), key: "modeMatch")]),
             ("write", "pencil", [Row(route: .mode(.type), key: "modeType")] + (c.id == "ja" ? [] : [Row(route: .mode(.typer), key: "modeTyper")]) + [Row(route: .mode(.numbers), key: "modeNumbers")])
         ]
     }
@@ -109,6 +109,7 @@ func exercise(_ mode: Mode, _ list: [Word], direction: QuizDirection = .hzTr, do
     case .tones: ToneDrill(list: list, done: done)
     case .numbers: NumberDrill(done: done)
     case .typer: TyperRun(list: list, done: done)
+    case .choose: ChooseWord(list: list, done: done)
     }
 }
 

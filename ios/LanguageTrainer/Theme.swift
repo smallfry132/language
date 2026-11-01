@@ -303,7 +303,16 @@ struct ProgressHeader: View {
     var extra: String?
     var body: some View {
         HStack(spacing: 12) {
-            ProgressView(value: Double(i), total: Double(max(n, 1))).tint(.accent)
+            if n <= 24 {
+                // One segment per question, as on the style canvas
+                HStack(spacing: 3) {
+                    ForEach(0..<max(n, 1), id: \.self) { k in
+                        RoundedRectangle(cornerRadius: Look.current.radius > 8 ? 2 : 0).fill(k < i ? Color.accent : Color.line).frame(height: 4)
+                    }
+                }.accessibilityElement().accessibilityLabel("\(i) / \(n)")
+            } else {
+                ProgressView(value: Double(i), total: Double(max(n, 1))).tint(.accent)
+            }
             SwiftUI.Text("\(i)/\(n)" + (extra.map { " · " + $0 } ?? "")).font(.footnote.monospacedDigit()).foregroundStyle(Color.ink2)
         }
     }

@@ -47,12 +47,25 @@ struct MeView: View {
                 Divider()
                 VStack(alignment: .leading, spacing: 6) {
                     HStack { Text(store.t("ttsRate")); Spacer(); Text(String(format: "%.2f×", s.rate)).fontWeight(.bold).monospacedDigit() }
-                    Slider(value: Binding(get: { s.rate }, set: { v in store.update { $0.settings.rate = (v * 20).rounded() / 20 } }), in: 0.5...1.25).tint(.accent)
+                    // Presets, as on the style canvas: slow, learner, native, fast
+                    HStack(spacing: 6) {
+                        ForEach([0.5, 0.75, 1.0, 1.25], id: \.self) { v in
+                            let on = abs(s.rate - v) < 0.13
+                            Button { store.update { $0.settings.rate = v }; store.speaker.say(store.course.testPhrase, rate: v) } label: {
+                                Text(v == 1 ? "1×" : String(format: "%g×", v)).font(.subheadline.weight(on ? .bold : .regular)).frame(maxWidth: .infinity, minHeight: 36)
+                                    .background(on ? Color.action : Color.paper, in: RoundedRectangle(cornerRadius: max(2, Look.current.radius - 4)))
+                                    .overlay(RoundedRectangle(cornerRadius: max(2, Look.current.radius - 4)).stroke(on ? Color.clear : Color.line))
+                                    .foregroundStyle(on ? Color.onAction : Color.ink)
+                            }.buttonStyle(.plain).accessibilityAddTraits(on ? .isSelected : [])
+                        }
+                    }
                 }.padding(14)
                 HStack(spacing: 8) {
                     Button { store.speaker.say(store.course.testPhrase) } label: { Label(store.t("ttsTest"), systemImage: "play.fill") }.buttonStyle(.primary)
                     MicButton(key: "me-test", target: store.course.testPhrase, py: "") { micResult = $0 }
                 }.padding([.horizontal, .bottom], 14)
+                (Text(store.course.testPhrase).font(.subheadline) + Text(" · " + store.t("sampleLine")).font(.caption).foregroundColor(Color.ink2))
+                    .padding([.horizontal, .bottom], 14)
                 if let r = micResult, let h = r.heard {
                     Text(store.t("heardAs", h.text.isEmpty ? "–" : h.text)).font(.footnote).foregroundStyle(Color.ink2).padding([.horizontal, .bottom], 14)
                 }

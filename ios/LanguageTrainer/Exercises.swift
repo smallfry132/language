@@ -11,7 +11,8 @@ struct SessionResult {
     var extra: String?
 }
 
-/// "Again" means a word comes back at the end of the session
+/// "Again" means a word comes back at the end of the session. The card as on the style canvas: the word large
+/// (in its 田字格 for Chinese), its sound with the tone, the meaning, an example; Vietnamese starts from the sound.
 struct Flashcards: View {
     @Environment(Store.self) var store
     @Environment(\.accessibilityReduceMotion) var reduceMotion
@@ -25,61 +26,122 @@ struct Flashcards: View {
 
     init(words: [Word], done: @escaping (SessionResult) -> Void) { _queue = State(initialValue: words); count = words.count; self.done = done }
 
+    var listenFirst: Bool { store.course.id == "vi" }
+    var radius: CGFloat { Look.current.radius }
+
     var body: some View {
         let w = queue[min(i, queue.count - 1)]
         Page {
             ProgressHeader(i: i, n: queue.count)
-            Button { if !flipped { flip(w) } else { store.speaker.say(w.ex ?? w.hz) } } label: {
-                ZStack {
-                    // Front and back as two faces of one card; the card turns over around its vertical axis
-                    VStack(spacing: 10) {
-                        WordFace(word: w, size: 56)
-                        Text(store.t("tapToFlip")).font(.footnote).foregroundStyle(Color.ink3)
-                    }
-                    .opacity(flipped ? 0 : 1)
-                    VStack(spacing: 10) {
-                        WordPicture(word: w, size: 64)
-                        WordHero(word: w, size: 56)
-                        Text(store.tr(w)).font(.title3).multilineTextAlignment(.center)
-                        if let t2 = store.tr2(w) { Text(t2).font(.subheadline).foregroundStyle(Color.ink3) }
-                        if let ex = w.ex {
-                            VStack(spacing: 2) {
-                                if store.pyFirst, let p = w.exPy { PinyinText(py: p, size: 16); Text(ex).font(.footnote).foregroundStyle(Color.ink2) }
-                                else { Text(ex).font(.body); if let p = w.exPy { Text(p).font(.footnote).foregroundStyle(Color.ink2) } }
-                                Text(store.exTr(w)).font(.footnote).foregroundStyle(Color.ink3)
-                            }.padding(.top, 6).multilineTextAlignment(.center)
-                        }
-                    }
-                    .opacity(flipped ? 1 : 0)
+            ZStack {
+                front(w).opacity(flipped ? 0 : 1)
+                back(w).opacity(flipped ? 1 : 0)
                     .rotation3DEffect(.degrees(reduceMotion ? 0 : 180), axis: (x: 0, y: 1, z: 0))
-                }
-                .frame(maxWidth: .infinity, minHeight: 260).padding(20)
-                .background(Color.elevated, in: RoundedRectangle(cornerRadius: 20))
-                .foregroundStyle(Color.ink)
-                .rotation3DEffect(.degrees(flipped && !reduceMotion ? 180 : 0), axis: (x: 0, y: 1, z: 0), perspective: 0.4)
             }
-            .buttonStyle(.plain)
+            .frame(maxWidth: .infinity, minHeight: 360, alignment: .top).padding(18)
+            .background(Color.elevated, in: RoundedRectangle(cornerRadius: radius + 2))
+            .overlay(RoundedRectangle(cornerRadius: radius + 2).stroke(Color.line))
+            .overlay(alignment: .top) {
+                HStack { Text(store.t(listenFirst ? "cardListen" : "cardFront")); Spacer(); Text(flipped ? "2 / 2" : "1 / 2") }
+                    .font(.caption2).foregroundStyle(Color.ink2).padding(.horizontal, 18).padding(.top, 12)
+            }
+            .foregroundStyle(Color.ink)
+            .rotation3DEffect(.degrees(flipped && !reduceMotion ? 180 : 0), axis: (x: 0, y: 1, z: 0), perspective: 0.4)
+            .contentShape(Rectangle())
+            .onTapGesture { if !flipped { flip(w) } }
             .id(i) // a new card arrives face up instead of turning back
             .accessibilityHint(flipped ? "" : store.t("tapToFlip"))
             if flipped {
                 // Four in a row, two by two at the largest text sizes
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: dynamicType.isAccessibilitySize ? 2 : 4), spacing: 8) {
-                    rate(0, store.t("rateAgain"), "< 10 min", .bad)
-                    rate(1, store.t("rateHard"), store.state.nextInterval(w.id, 1), .gold)
-                    rate(2, store.t("rateGood"), store.state.nextInterval(w.id, 2), .good)
-                    rate(3, store.t("rateEasy"), store.state.nextInterval(w.id, 3), .info)
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: dynamicType.isAccessibilitySize ? 2 : 4), spacing: 6) {
+                    rate(0, store.t("rateAgain"), "< 10 min")
+                    rate(1, store.t("rateHard"), store.state.nextInterval(w.id, 1))
+                    rate(2, store.t("rateGood"), store.state.nextInterval(w.id, 2))
+                    rate(3, store.t("rateEasy"), store.state.nextInterval(w.id, 3))
                 }
-                SpeakButton(text: w.hz).frame(maxWidth: .infinity)
             } else {
                 Button(store.t("showAnswer")) { flip(w) }.buttonStyle(.primary)
             }
         }
+        .onAppear { if listenFirst { store.speaker.say(w.hz) } }
+        .onChange(of: i) { if listenFirst { store.speaker.say(queue[i].hz) } }
     }
+
+    @ViewBuilder func front(_ w: Word) -> some View {
+        VStack(spacing: 14) {
+            Spacer(minLength: 30)
+            if listenFirst {
+                Button { store.speaker.say(w.hz) } label: {
+                    Image(systemName: "speaker.wave.2.fill").font(.largeTitle).frame(width: 96, height: 96)
+                        .background(Color.action, in: RoundedRectangle(cornerRadius: 24)).foregroundStyle(Color.onAction)
+                }.buttonStyle(.plain).accessibilityLabel(store.t("play"))
+                Text(store.t("listenHint")).font(.footnote).foregroundStyle(Color.ink2)
+            } else if store.course.id == "zh" && !store.pyFirst {
+                GridChars(text: w.hz, cell: w.hz.count > 2 ? 72 : w.hz.count == 2 ? 104 : 140)
+            } else {
+                WordFace(word: w, size: 64)
+            }
+            Text(store.t("tapToFlip")).font(.footnote).foregroundStyle(Color.ink3)
+            Spacer(minLength: 0)
+        }.frame(maxWidth: .infinity)
+    }
+
+    @ViewBuilder func back(_ w: Word) -> some View {
+        VStack(spacing: 10) {
+            Spacer(minLength: 22)
+            if store.course.id == "zh" { GridChars(text: w.hz, cell: w.hz.count > 2 ? 64 : w.hz.count == 2 ? 92 : 120) }
+            else if store.course.id == "vi" {
+                let n = Lingo.firstTone(w.hz, course: "vi")
+                HStack(spacing: 6) { ToneIcon(n: n, course: "vi").scaleEffect(0.6).frame(width: 30, height: 22); Text(ViTone.name(n)).font(.caption.weight(.bold)) }
+                    .foregroundStyle(Look.toneColors ? Color.viTone(n) : Color.ink2)
+                VietText(text: w.hz, size: 52, weight: .heavy).lineLimit(1).minimumScaleFactor(0.5)
+            } else { WordHero(word: w, size: 52) }
+            HStack(spacing: 10) {
+                if store.course.id == "zh" {
+                    PinyinText(py: w.py, size: 30, weight: .bold)
+                    let n = Lingo.firstTone(w.py, course: "zh")
+                    if n >= 1 && n <= 4 {
+                        Text(store.t("toneN", n)).font(.caption.weight(.medium)).padding(.horizontal, 8).padding(.vertical, 4)
+                            .foregroundStyle(Look.toneColors ? Color.tone(n) : Color.ink2)
+                            .overlay(Rectangle().stroke(Look.toneColors ? Color.tone(n) : Color.line))
+                    }
+                } else if store.course.id == "vi" { Text(w.py).font(.subheadline).foregroundStyle(Color.ink3) }
+                Button { store.speaker.say(w.hz) } label: {
+                    Image(systemName: "speaker.wave.2").frame(width: 40, height: 40)
+                        .background(Color.paper, in: RoundedRectangle(cornerRadius: radius)).overlay(RoundedRectangle(cornerRadius: radius).stroke(Color.line))
+                }.buttonStyle(.plain).accessibilityLabel(store.t("play"))
+            }
+            Text(store.tr(w)).font(.title3.weight(.medium)).multilineTextAlignment(.center)
+            if let p = store.words.picture(w.id) { Text(p).font(.title).accessibilityHidden(true) }
+            if store.course.id == "vi" { ToneFamily(word: w) }
+            Spacer(minLength: 0)
+            if let ex = w.ex {
+                Divider()
+                HStack(alignment: .center) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(highlight(ex, w.hz)).hanziFont(store.course.script == .cjk ? 18 : 16)
+                        if let p = w.exPy, store.course.id != "vi" { (store.course.id == "zh" ? Text(PinyinText.attributed(p)) : Text(p)).font(.caption) }
+                        Text(store.exTr(w)).font(.caption).foregroundStyle(Color.ink2)
+                    }
+                    Spacer(minLength: 8)
+                    Button { store.speaker.say(ex) } label: { Image(systemName: "speaker.wave.2").frame(width: 40, height: 40) }
+                        .buttonStyle(.plain).accessibilityLabel(store.t("play"))
+                }
+            }
+        }.frame(maxWidth: .infinity)
+    }
+    func highlight(_ s: String, _ part: String) -> AttributedString {
+        var a = AttributedString(s)
+        if let r = a.range(of: part, options: .caseInsensitive) { a[r].foregroundColor = .accent }
+        return a
+    }
+
     func flip(_ w: Word) {
         withAnimation(reduceMotion ? .easeInOut(duration: 0.2) : .spring(duration: 0.45, bounce: 0)) { flipped = true }
-        if store.state.settings.autoSpeak { store.speaker.say(w.hz) }
+        if store.state.settings.autoSpeak && !listenFirst { store.speaker.say(w.hz) }
     }
-    func rate(_ q: Int, _ label: String, _ sub: String, _ c: Color) -> some View {
+    /// Again in the accent, Good filled (the usual answer), Hard and Easy outlined
+    func rate(_ q: Int, _ label: String, _ sub: String) -> some View {
         Button {
             let w = queue[i]
             store.grade(w.id, q); store.recordAnswer(q >= 2)
@@ -88,10 +150,36 @@ struct Flashcards: View {
             flipped = false
             if i + 1 >= queue.count { done(SessionResult(correct: count - mistakes.count, total: count, mistakes: mistakes)) } else { i += 1 }
         } label: {
-            VStack(spacing: 2) { Text(label).font(.subheadline.weight(.semibold)); Text(sub).font(.caption2) }
-                .frame(maxWidth: .infinity).padding(.vertical, 10)
-                .background(c.opacity(0.14), in: RoundedRectangle(cornerRadius: 12)).foregroundStyle(c)
+            VStack(spacing: 2) { Text(label).font(.subheadline.weight(.bold)); Text(sub).font(.caption2).opacity(0.8) }
+                .frame(maxWidth: .infinity, minHeight: 56)
+                .background(q == 2 ? Color.action : Color.elevated, in: RoundedRectangle(cornerRadius: radius))
+                .overlay(RoundedRectangle(cornerRadius: radius).stroke(q == 0 ? Color.accent : q == 2 ? Color.clear : Color.line, lineWidth: q == 0 ? 1.5 : 1))
+                .foregroundStyle(q == 2 ? Color.onAction : q == 0 ? Color.accent : Color.ink)
         }.buttonStyle(.plain)
+    }
+}
+
+/// Vietnamese: the words that differ from this one only by tone (tra · trà · trả · trại), tap to hear the contrast
+struct ToneFamily: View {
+    @Environment(Store.self) var store
+    let word: Word
+    var body: some View {
+        let key = Lingo.stripVi(word.hz)
+        let family = store.words.all.filter { Lingo.stripVi($0.hz) == key }.reduce(into: [Word]()) { l, x in if !l.contains(where: { $0.hz == x.hz }) { l.append(x) } }
+        if family.count > 1 {
+            VStack(spacing: 6) {
+                HStack(spacing: 6) {
+                    ForEach(family.prefix(5)) { x in
+                        Button { store.speaker.say(x.hz); store.toast("\(x.hz) · \(store.tr(x))") } label: {
+                            VietText(text: x.hz, size: 17, weight: .bold).padding(.horizontal, 12).frame(minHeight: 40)
+                                .background(x.id == word.id ? Color.sunken : Color.paper, in: RoundedRectangle(cornerRadius: 12))
+                                .overlay(RoundedRectangle(cornerRadius: 12).stroke(x.id == word.id ? Color.ink : Color.line))
+                        }.buttonStyle(.plain)
+                    }
+                }
+                Text(store.t("toneFamily")).font(.caption2).foregroundStyle(Color.ink2)
+            }
+        }
     }
 }
 

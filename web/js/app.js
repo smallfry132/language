@@ -292,6 +292,11 @@
       course: "Course", switchCourse: "Switch language", courseHint: "Each language keeps its own words, levels and progress.", knownOf: (k, n) => `${k} of ${n} known`,
       tabToday: "Today", sessionTitle: "Today's session", sessionDesc: (r, n) => `${r} to review · ${n} new`, sessionDone: "Done for today 🎉", sessionDoneSub: "Come back tomorrow for your reviews, or practise freely in Train.",
       sessionEmpty: "Nothing due and no new words left. Add a lesson below, or learn more words.", moreNew: (n) => (n === 1 ? "Learn 1 more new word" : `Learn ${n} more new words`), fullStats: "All statistics", backToday: "Back to Learn",
+      modeChoose: "Choose the word", modeChooseDesc: "Fill the gap in a sentence. The options sound alike, so pick by meaning.", chooseTitle: "Choose the right word",
+      chooseSub: "They sound alike — pick by meaning.", chooseSubTone: "Same letters, different tone — different word.", chooseNoEx: "Which word means this?",
+      soundsLike: (a, b) => `${a} sounds like it but means “${b}”.`, rolePlay: "Role play", youAre: (r) => `you’re ${r}`, pickReply: "Your turn — pick a reply, then say it",
+      typeIt: "Type", retry: "Retry", cardFront: "Word → sound & meaning", cardListen: "Listen → word & tone", toneFamily: "Tone family — tap to compare",
+      dueNow: "Due today", reviewCards: (n) => (n === 1 ? "Review 1 card" : `Review ${n} cards`), sampleLine: "sample line",
       stepOf: (i, n) => `Step ${i} of ${n}`, stepCount: (n) => (n === 1 ? "1 word" : `${n} words`),
       stepReview: "Review", stepReviewDesc: "Words due today. Say each one out loud before you flip the card.",
       stepMeet: "New words", stepMeetDesc: "Listen, then say each word out loud three times. Copy the melody of the tones.",
@@ -411,6 +416,11 @@
       course: "Kurs", switchCourse: "Sprache wechseln", courseHint: "Jede Sprache hat eigene Wörter, Stufen und eigenen Fortschritt.", knownOf: (k, n) => `${k} von ${n} gelernt`,
       tabToday: "Heute", sessionTitle: "Heutige Einheit", sessionDesc: (r, n) => `${r} wiederholen · ${n} neu`, sessionDone: "Für heute geschafft 🎉", sessionDoneSub: "Morgen warten neue Wiederholungen. Oder übe frei unter „Üben“.",
       sessionEmpty: "Nichts fällig und keine neuen Wörter übrig. Leg unten eine Lektion an oder lerne weitere Wörter.", moreNew: (n) => (n === 1 ? "1 weiteres neues Wort lernen" : `${n} weitere neue Wörter lernen`), fullStats: "Alle Statistiken", backToday: "Zurück zu Lernen",
+      modeChoose: "Wähle das Wort", modeChooseDesc: "Fülle die Lücke im Satz. Die Optionen klingen ähnlich, also wähle nach Bedeutung.", chooseTitle: "Wähle das richtige Wort",
+      chooseSub: "Sie klingen ähnlich – wähle nach Bedeutung.", chooseSubTone: "Gleiche Buchstaben, anderer Ton – anderes Wort.", chooseNoEx: "Welches Wort bedeutet das?",
+      soundsLike: (a, b) => `${a} klingt ähnlich, bedeutet aber „${b}“.`, rolePlay: "Rollenspiel", youAre: (r) => `du bist ${r}`, pickReply: "Du bist dran – wähle eine Antwort und sprich sie",
+      typeIt: "Tippen", retry: "Nochmal", cardFront: "Wort → Klang & Bedeutung", cardListen: "Hören → Wort & Ton", toneFamily: "Tonfamilie – tippe zum Vergleichen",
+      dueNow: "Heute fällig", reviewCards: (n) => (n === 1 ? "1 Karte wiederholen" : `${n} Karten wiederholen`), sampleLine: "Beispielsatz",
       stepOf: (i, n) => `Schritt ${i} von ${n}`, stepCount: (n) => (n === 1 ? "1 Wort" : `${n} Wörter`),
       stepReview: "Wiederholen", stepReviewDesc: "Heute fällige Wörter. Sprich jedes Wort laut, bevor du die Karte umdrehst.",
       stepMeet: "Neue Wörter", stepMeetDesc: "Hör zu und sprich jedes Wort dreimal laut nach. Ahme die Tonmelodie nach.",
@@ -925,6 +935,8 @@
     setTopbar(t("words") + " · " + levelLabel(), null);
     const statusFilters = [["all", t("all")], ["due", t("due")], ["new", t("new")], ["learning", t("learning")], ["known", t("known")], ["favs", "★ " + t("favorites")]];
     view.innerHTML = `
+      <div class="word-stats">${[["new", t("new"), "tn4"], ["learning", t("learning"), "tn2"], ["due", t("dueNow"), "accent"]].map(([k, l, c]) => `<button class="ws ${wf.status === k ? "on" : ""}" data-ws="${k}" type="button"><b class="${c}">${k === "due" ? dueWords().length : WORDS.filter((w) => status(w.id) === k).length}</b>${l}</button>`).join("")}</div>
+      ${dueWords().length ? `<button class="btn primary block" id="review-due" type="button">${t("reviewCards", Math.min(150, dueWords().length))}</button>` : ""}
       <input class="search" id="search" type="search" placeholder="${esc(t("search"))}" value="${esc(wf.q)}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
       ${levelChips("lvl-chips")}
       <div class="chips" id="status-chips">${statusFilters.map(([k, l]) => `<button class="chip ${wf.status === k ? "active" : ""}" data-status="${k}" type="button">${l}</button>`).join("")}</div>
@@ -933,6 +945,8 @@
       <div class="tiles" id="tiles"></div>`;
     const search = $("#search");
     search.oninput = () => { wf.q = search.value; drawTiles(); };
+    $$("[data-ws]").forEach((b) => (b.onclick = () => { wf.status = wf.status === b.dataset.ws ? "all" : b.dataset.ws; render(); }));
+    if ($("#review-due")) $("#review-due").onclick = () => { setupPrefs.pool = "due"; navigate("train/flash"); };
     bindLevelChips("lvl-chips", () => { setTopbar(t("words") + " · " + levelLabel(), null); drawTiles(); });
     $$("#status-chips .chip").forEach((b) => (b.onclick = () => { wf.status = b.dataset.status; $$("#status-chips .chip").forEach((x) => x.classList.toggle("active", x === b)); drawTiles(); }));
     $$("#cat-chips .chip").forEach((b) => (b.onclick = () => { wf.cat = b.dataset.cat; $$("#cat-chips .chip").forEach((x) => x.classList.toggle("active", x === b)); drawTiles(); }));
@@ -1014,13 +1028,14 @@
     { id: "numbers", ico: "🔢", key: "modeNumbers" },
     { id: "say", ico: "🎤", key: "modeSay" },
     { id: "picture", ico: "🖼️", key: "modePicture" },
-    { id: "listenPic", ico: "👂", key: "modeListenPic" }
+    { id: "listenPic", ico: "👂", key: "modeListenPic" },
+    { id: "choose", ico: "🔤", key: "modeChoose" }
   ];
   // Practice is grouped by what the tutors ask for; each row is a mode or a place in the app
   const SKILLS = [
     { id: "listen", rows: [["train/listen", "modeListen"], ["train/listenPic", "modeListenPic"], ["train/tones", "modeTones"], ["sounds/drill", "soundDrill"]] },
     { id: "speak", rows: [["train/say", "modeSay"], ["lessons", "dialoguesRead"], ["sounds", "soundChart"]] },
-    { id: "read", rows: [["train/picture", "modePicture"], ["train/flash", "modeFlash"], ["train/quiz", "modeQuiz"], ["train/match", "modeMatch"]] },
+    { id: "read", rows: [["train/choose", "modeChoose"], ["train/picture", "modePicture"], ["train/flash", "modeFlash"], ["train/quiz", "modeQuiz"], ["train/match", "modeMatch"]] },
     { id: "write", rows: [["train/type", "modeType"], ["train/typer", "modeTyper"], ["train/numbers", "modeNumbers"]] }
   ];
   function renderTrain(view) {
@@ -1038,6 +1053,7 @@
     if (mode === "tones") return C.toneOptions ? startTones(view) : renderTrainHome(view);
     if (mode === "numbers") return startNumbers(view);
     if (mode === "say") return setupSession(view, mode, { pool: true, count: [5, 10, 20] });
+    if (mode === "choose") return setupSession(view, mode, { pool: true, count: [10, 20, 40] });
     if (mode === "picture" || mode === "listenPic") return hasPics() ? setupSession(view, mode, { pool: true, count: [10, 20, 40], pics: true }) : renderTrainHome(view);
   }
   function renderTrainHome(view) {
@@ -1110,10 +1126,13 @@
       else if (mode === "say") runSay(view, list);
       else if (mode === "picture") runQuiz(view, list, "picWord");
       else if (mode === "listenPic") runQuiz(view, list, "listenPic");
+      else if (mode === "choose") runChoose(view, list);
     };
   }
 
   function sessionHead(i, n, extra) {
+    // One segment per question when they fit, as on the style canvas
+    if (n <= 24) return `<div class="session-head"><div class="segments" role="progressbar" aria-valuenow="${i}" aria-valuemax="${n}">${Array.from({ length: n }, (_, k) => `<i class="${k < i ? "on" : ""}"></i>`).join("")}</div><span class="count">${i}/${n}${extra ? " · " + extra : ""}</span></div>`;
     return `<div class="session-head"><div class="progress-bar"><span style="width:${Math.round((i / n) * 100)}%"></span></div><span class="count">${i}/${n}${extra ? " · " + extra : ""}</span></div>`;
   }
   function showResult(view, { correct, total, mistakes, mode, extra, onAgain }) {
@@ -1145,40 +1164,54 @@
     cleanup = () => document.removeEventListener("keydown", fn);
   }
 
-  /* --- Flashcards --- */
+  /* --- Flashcards (style canvas): the word large (in its 田字格 for Chinese), its sound with the tone, the meaning,
+   * an example; Vietnamese starts from the sound and shows the tone family. Again · Hard · Good · Easy. --- */
   function runFlash(view, list) {
     let i = 0, flipped = false; const mistakes = [];
     const queue = list.slice();
+    const listenFirst = C.id === "vi";
+    const hl = (ex, hz) => { const k = ex.toLowerCase().indexOf(hz.toLowerCase()); return k < 0 ? esc(ex) : `${esc(ex.slice(0, k))}<b class="hl">${esc(ex.slice(k, k + hz.length))}</b>${esc(ex.slice(k + hz.length))}`; };
+    const toneFamily = (w) => { const key = stripVi(w.hz), seen = new Set(); return ALL_WORDS.filter((x) => stripVi(x.hz) === key && !seen.has(x.hz) && seen.add(x.hz)).slice(0, 5); };
     function draw() {
       if (i >= queue.length) { if (cleanup) { cleanup(); cleanup = null; } return showResult(view, { correct: list.length - mistakes.length, total: list.length, mistakes, onAgain: () => navigate("train/flash") }); }
-      const w = queue[i];
+      const w = queue[i], n = C.id === "zh" ? (toneSeq(w.py)[0] || 5) : firstToneVi(w.hz.split(/\s+/)[0]);
+      const len = Array.from(w.hz).length;
+      const front = listenFirst ? `<button class="fc-listen" id="fc-play" type="button" aria-label="${t("play")}">🔊</button><div class="fc-hint">${t("listenHint")}</div>`
+        : C.id === "zh" && !pyFirst() ? gridHtml(w.hz, len > 2 ? "md" : len === 2 ? "" : "lg")
+        : pyFirst() ? `<div class="fc-py big">${pyHtml(w.py)}</div>` : `<div class="fc-hz ${isLong(w.hz) ? "long" : ""}">${C.id === "vi" ? viHtml(w.hz) : esc(w.hz)}</div>`;
+      const fam = listenFirst ? toneFamily(w) : [];
+      const back = `
+        ${C.id === "zh" ? gridHtml(w.hz, len > 2 ? "sm" : "md") : C.id === "vi" ? `<div class="fc-tone tc-${VI_TONE_CLASS[n]}">${toneSvg(n)} ${VI_TONE_NAMES[n - 1]}</div><div class="fc-hz">${viHtml(w.hz)}</div>` : heroHtml(w)}
+        <div class="fc-sound">${C.id === "zh" ? `<span class="fc-py">${pyHtml(w.py)}</span>${n >= 1 && n <= 4 ? `<span class="tone-badge tn${n}">${t("toneN", n)}</span>` : ""}` : ""}<button class="speak-btn sm sq" id="fc-speak" type="button" aria-label="${t("play")}">🔊</button></div>
+        <div class="fc-tr">${esc(tr(w))}</div>
+        ${pic(w) ? `<div class="fc-pic" aria-hidden="true">${pic(w)}</div>` : ""}
+        ${fam.length > 1 ? `<div class="tone-family">${fam.map((x) => `<button class="tf ${x.id === w.id ? "on" : ""}" data-fam="${esc(x.hz)}" data-tr="${esc(tr(x))}" type="button">${viHtml(x.hz)}</button>`).join("")}</div><div class="fc-hint">${t("toneFamily")}</div>` : ""}
+        ${w.ex ? `<div class="fc-ex"><div class="grow"><div class="hanzi">${hl(w.ex, w.hz)}</div>${w.exPy && C.id !== "vi" ? `<div class="small">${C.id === "zh" ? pyHtml(w.exPy) : esc(w.exPy)}</div>` : ""}<div class="small muted">${esc(exTr(w))}</div></div><button class="speak-btn sm" id="fc-ex" type="button" aria-label="${t("play")}">🔊</button></div>` : ""}`;
       view.innerHTML = `
         ${sessionHead(i, queue.length)}
-        <div class="flashcard" id="fc">
-          ${flipped ? `
-            ${picHtml(w)}
-            ${heroHtml(w)}
-            <div class="fc-tr">${esc(tr(w))}</div>
-            ${tr2(w) ? `<div class="fc-tr2">${esc(tr2(w))}</div>` : ""}
-            ${w.ex ? `<div class="fc-ex">${pyFirst() && w.exPy ? `${w.exPy}<br><span class="hanzi small">${w.ex}</span>` : `<span class="hanzi">${w.ex}</span>${w.exPy}`}<br>${esc(exTr(w))}</div>` : ""}
-            <button class="speak-btn" id="fc-speak" type="button" style="margin-top:10px">🔊</button>`
-          : `${pyFirst() ? `<div class="fc-py big">${pyHtml(w.py)}</div>` : `<div class="fc-hz ${isLong(w.hz) ? "long" : ""}">${C.id === "vi" ? viHtml(w.hz) : w.hz}</div>`}<div class="fc-hint">${t("tapToFlip")}</div>`}
+        <div class="flashcard canvas-card" id="fc">
+          <div class="fc-top"><span>${t(listenFirst ? "cardListen" : "cardFront")}</span><span>${flipped ? "2 / 2" : "1 / 2"}</span></div>
+          ${flipped ? back : `${front}<div class="fc-hint">${t("tapToFlip")}</div>`}
         </div>
         ${flipped ? `
-          <div class="rate-grid">
-            <button class="btn danger" data-q="0" type="button">${t("rateAgain")}<small>&lt; 10 min</small></button>
-            <button class="btn warn" data-q="1" type="button">${t("rateHard")}<small>${nextInterval(w.id, 1)}</small></button>
-            <button class="btn success" data-q="2" type="button">${t("rateGood")}<small>${nextInterval(w.id, 2)}</small></button>
-            <button class="btn info" data-q="3" type="button">${t("rateEasy")}<small>${nextInterval(w.id, 3)}</small></button>
+          <div class="rate-grid canvas">
+            <button class="btn r-again" data-q="0" type="button">${t("rateAgain")}<small>&lt; 10 min</small></button>
+            <button class="btn" data-q="1" type="button">${t("rateHard")}<small>${nextInterval(w.id, 1)}</small></button>
+            <button class="btn r-good" data-q="2" type="button">${t("rateGood")}<small>${nextInterval(w.id, 2)}</small></button>
+            <button class="btn" data-q="3" type="button">${t("rateEasy")}<small>${nextInterval(w.id, 3)}</small></button>
           </div>` : `<button class="btn primary block" id="fc-flip" type="button" style="margin-top:14px">${t("showAnswer")}</button>`}
         <div class="kbd-hint">${t("keys")}</div>`;
-      const flip = () => { flipped = true; draw(); if (S.settings.autoSpeak) speak(w.hz); };
-      if (!flipped) { $("#fc").onclick = flip; $("#fc-flip").onclick = flip; }
-      else {
+      const flip = () => { flipped = true; draw(); if (S.settings.autoSpeak && !listenFirst) speak(w.hz); };
+      if (!flipped) {
+        $("#fc").onclick = (e) => { if (e.target.closest("#fc-play")) speak(w.hz); else flip(); };
+        $("#fc-flip").onclick = flip;
+      } else {
         $("#fc-speak").onclick = (e) => { e.stopPropagation(); speak(w.hz); };
-        $("#fc").onclick = () => speak(w.ex || w.hz);
+        if ($("#fc-ex")) $("#fc-ex").onclick = (e) => { e.stopPropagation(); speak(w.ex); };
+        $$("[data-fam]").forEach((b) => (b.onclick = (e) => { e.stopPropagation(); speak(b.dataset.fam); toast(`${b.dataset.fam} · ${b.dataset.tr}`); }));
         $$("[data-q]").forEach((b) => (b.onclick = () => rate(+b.dataset.q)));
       }
+      if (!flipped && listenFirst) speak(w.hz);
     }
     function rate(q) {
       const w = queue[i];
@@ -1188,7 +1221,7 @@
       i++; flipped = false; draw();
     }
     bindKeys((e) => {
-      if (e.key === " " || e.key === "Enter") { e.preventDefault(); if (!flipped) { flipped = true; draw(); if (S.settings.autoSpeak) speak(queue[i].hz); } else rate(2); }
+      if (e.key === " " || e.key === "Enter") { e.preventDefault(); if (!flipped) { flipped = true; draw(); if (S.settings.autoSpeak && !listenFirst) speak(queue[i].hz); } else rate(2); }
       else if (flipped && /^[1-4]$/.test(e.key)) rate(+e.key - 1);
     });
     draw();
@@ -1264,6 +1297,88 @@
       else if (e.key === " " && listens) { e.preventDefault(); speak(list[i].hz); }
     });
     draw(false);
+  }
+
+  /* --- Choose the right word (style canvas): a sentence with a gap and four words that sound alike
+   * (茶 chá / 查 chá / 差 chà / 叉 chā, trà / tra / trả / trại). Without an example sentence the meaning is the question. --- */
+  const soundKey = (w) => (C.id === "zh" ? stripTones(w.py) : C.id === "vi" ? stripVi(w.hz).replace(/ /g, "") : C.id === "ja" ? stripJa(w.romaji || w.py) : w.py.toLowerCase().replace(/[\s'’\-.,!?]/g, ""));
+  function editDistance(a, b) {
+    a = Array.from(a); b = Array.from(b);
+    let row = Array.from({ length: b.length + 1 }, (_, j) => j);
+    for (let i = 1; i <= a.length; i++) {
+      let prev = row[0]; row[0] = i;
+      for (let j = 1; j <= b.length; j++) { const cur = row[j]; row[j] = Math.min(row[j] + 1, row[j - 1] + 1, prev + (a[i - 1] === b[j - 1] ? 0 : 1)); prev = cur; }
+    }
+    return row[b.length];
+  }
+  // The same rules as the iPhone app (CourseWords.soundAlikes): one sound apart first, else about half, then any word
+  function soundAlikes(w, count = 3) {
+    const key = soundKey(w), m = tr(w);
+    let limit = Math.max(1, Math.floor(key.length / 3)); const wide = Math.max(2, Math.floor((key.length + 1) / 2));
+    let scored = [];
+    for (const x of ALL_WORDS) {
+      if (x.id === w.id || x.hz === w.hz || tr(x) === m) continue;
+      const k = soundKey(x); if (Math.abs(k.length - key.length) > wide) continue;
+      const d = editDistance(k, key);
+      if (d <= wide) scored.push([x, d * 10 + Math.abs(Array.from(x.hz).length - Array.from(w.hz).length)]);
+    }
+    if (scored.filter((e) => e[1] < (limit + 1) * 10).length < count) limit = wide;
+    scored = shuffle(scored.filter((e) => e[1] < (limit + 1) * 10)).sort((a, b) => a[1] - b[1]);
+    const out = [], seen = new Set([w.hz, m]);
+    for (const [x] of scored) { if (out.length >= count) break; if (seen.has(x.hz) || seen.has(tr(x))) continue; out.push(x); seen.add(x.hz); seen.add(tr(x)); }
+    for (const x of shuffle(WORDS)) { if (out.length >= count) break; if (x.id === w.id || seen.has(x.hz) || seen.has(tr(x))) continue; out.push(x); seen.add(x.hz); seen.add(tr(x)); }
+    return out;
+  }
+  function runChoose(view, list) {
+    let i = 0, correct = 0, answered = false; const mistakes = [];
+    const split = (s, part) => { if (!s || !part) return null; const k = s.toLowerCase().indexOf(part.toLowerCase()); return k < 0 ? null : [s.slice(0, k), s.slice(k + part.length)]; };
+    const gapOf = (w) => {
+      const sentence = split(w.ex, w.hz);
+      const main = (tr(w).split(/[,;/(]/)[0] || "").trim().replace(/^to /, "");
+      return { sentence, reading: sentence && split(w.exPy, w.py), tr: split(exTr(w), main) };
+    };
+    const cjk = (s) => /[\u2E80-\uFFEF]/.test(s);
+    const fill = (parts, filled, word, kind) => {
+      const piece = (x) => (kind === "py" ? pyHtml(x) : kind === "vi" ? viHtml(x) : esc(x));
+      const mid = filled ? `<u class="gap on">${kind === "py" ? pyHtml(word) : esc(word)}</u>` : `<span class="gap">${kind === "py" || !cjk(word) ? "____" : "＿＿"}</span>`;
+      return piece(parts[0]) + mid + piece(parts[1]);
+    };
+    const sound = (x) => (C.id === "zh" ? (pyFirst() ? `<span class="hanzi">${esc(x.hz)}</span>` : pyHtml(x.py)) : C.id === "vi" ? (() => { const n = firstToneVi(x.hz); return `<span class="tc-${VI_TONE_CLASS[n]}">${VI_TONE_NAMES[n - 1]}</span>`; })() : C.id === "ja" ? esc(x.kana && x.kana !== x.hz ? x.kana : x.romaji || x.py) : esc(x.py));
+    function draw() {
+      if (i >= list.length) { if (cleanup) { cleanup(); cleanup = null; } return showResult(view, { correct, total: list.length, mistakes, onAgain: () => navigate("train/choose") }); }
+      const w = list[i], g = gapOf(w), opts = shuffle([w].concat(soundAlikes(w))); answered = false;
+      const q = (filled) => g.sentence ? `
+          ${g.reading && !pyFirst() && (C.id === "zh" || readingLayer() !== "off" || filled) ? `<div class="ch-reading">${fill(g.reading, filled, w.py, C.id === "zh" ? "py" : "")}</div>` : ""}
+          <div class="ch-line"><div class="grow ${pyFirst() ? "ch-py" : "hanzi ch-sent"}">${pyFirst() && g.reading ? fill(g.reading, filled, w.py, "py") : fill(g.sentence, filled, w.hz, C.id === "vi" ? "vi" : "")}</div><button class="speak-btn sm sq" id="ch-play" type="button" aria-label="${t("play")}">🔊</button></div>
+          ${exTr(w) && (filled || g.tr) ? `<div class="ch-tr">${filled ? esc(exTr(w)) : esc(g.tr[0]) + "___" + esc(g.tr[1])}</div>` : ""}`
+        : `<div class="ch-meaning">${esc(tr(w))}</div>${pic(w) ? `<div class="pic big" aria-hidden="true">${pic(w)}</div>` : ""}`;
+      view.innerHTML = `${sessionHead(i, list.length)}
+        <div class="ch-head"><div class="caps">${t("chooseTitle")}</div><div class="muted">${g.sentence ? t(C.id === "vi" ? "chooseSubTone" : "chooseSub") : t("chooseNoEx")}</div></div>
+        <div class="ch-q" id="ch-q">${q(false)}</div>
+        <div class="ch-grid">${opts.map((x) => `<button class="ch-opt" data-id="${x.id}" type="button"><span class="ch-word ${C.id === "vi" || pyFirst() ? "py" : "hanzi"}">${pyFirst() ? pyHtml(x.py) : C.id === "vi" ? viHtml(x.hz) : esc(x.hz)}</span><span class="ch-sound">${sound(x)}</span>${g.sentence ? `<span class="ch-tr2">${esc(tr(x))}</span>` : `<span class="ch-tr2" hidden>${esc(tr(x))}</span>`}<i class="ch-mark" aria-hidden="true"></i></button>`).join("")}</div>
+        <div id="fb"></div>`;
+      const bindPlay = () => { if ($("#ch-play")) $("#ch-play").onclick = () => speak(w.ex || w.hz); };
+      bindPlay();
+      $$(".ch-opt").forEach((b) => (b.onclick = () => {
+        if (answered) return; answered = true;
+        const x = BY_ID[wid(b.dataset.id)] || opts.find((o) => String(o.id) === b.dataset.id), ok = x.id === w.id;
+        $$(".ch-opt").forEach((o) => { o.disabled = true; o.querySelector(".ch-tr2").hidden = false; const id = wid(o.dataset.id); if (id === w.id) o.classList.add("correct"); else if (id === x.id) o.classList.add("wrong"); });
+        $("#ch-q").innerHTML = q(true); bindPlay();
+        grade(w.id, ok ? 2 : 0); recordAnswer(ok);
+        if (ok) correct++; else mistakes.push(w);
+        const other = ok ? opts.find((o) => o.id !== w.id) : x;
+        const rd = (o) => (C.id === "vi" ? VI_TONE_NAMES[firstToneVi(o.hz) - 1] : o.py);
+        $("#fb").innerHTML = `<div class="ch-panel ${ok ? "ok" : "bad"}"><div class="row"><span class="ch-ico">${ok ? "✓" : "✗"}</span><div class="grow"><b>${(ok ? t("correct") : t("wrong")).replace(/[.!]$/, "")} — <span class="hanzi">${esc(w.hz)}</span> ${esc(rd(w))}, ${esc(tr(w))}</b>${other ? `<div class="muted small">${esc(t("soundsLike", `${other.hz} (${rd(other)})`, tr(other)))}</div>` : ""}</div><button class="speak-btn sm" id="fb-speak" type="button">🔊</button></div><button class="btn primary block" id="ch-next" type="button">${t("continue")}</button></div>`;
+        $("#fb-speak").onclick = () => speak(w.hz);
+        $("#ch-next").onclick = () => { i++; draw(); };
+        if (S.settings.autoSpeak) speak(w.hz);
+      }));
+    }
+    bindKeys((e) => {
+      if (/^[1-4]$/.test(e.key) && !answered) { const b = $$(".ch-opt")[+e.key - 1]; if (b) b.click(); }
+      else if ((e.key === "Enter" || e.key === " ") && answered) { e.preventDefault(); i++; draw(); }
+    });
+    draw();
   }
 
   /* --- Type pinyin --- */
@@ -2063,39 +2178,43 @@
     setTopbar(L(d.topic), "lessons");
     const st = dlgState(id);
     const zhPf = pyFirst();
-    const opt = () => ({ hz: zhPf ? !!S.settings.dlgHz : true, tr: S.settings.dlgTr !== false, slow: !!S.settings.dlgSlow });
+    const opt = () => ({ hz: zhPf ? !!S.settings.dlgHz : true, tr: S.settings.dlgTr !== false, slow: !!S.settings.dlgSlow, py: S.settings.dlgPy !== false && C.id !== "vi" });
     const nameOf = (who) => (zhPf ? esc(d.people[who].py) : d.people[who].hz);
     const say = (text, onend) => speak(text, { rate: opt().slow ? 0.55 : S.settings.rate, onend });
-    function bubble(l, k, extra) {
-      const o = opt();
-      const main = C.id === "zh" ? (zhPf ? pyTapWords(l.py) : `<span class="hanzi">${l.hz}</span>`) : C.id === "vi" ? viHtml(l.hz) : `<span class="hanzi">${esc(l.hz)}</span>`;
-      const reading = readingLayer() !== "off";
-      const sub = C.id === "zh" ? (zhPf ? (o.hz ? `<div class="b-sub hanzi">${l.hz}</div>` : "") : reading ? `<div class="b-sub">${pyTapWords(l.py)}</div>` : "") : C.id === "ko" && reading ? `<div class="b-sub">${esc(l.py)}</div>` : "";
-      return `<div class="bubble ${l.who ? "right" : "left"} ${extra && extra.cls ? extra.cls : ""}" data-line="${k}">
-        <div class="b-who">${nameOf(l.who)}</div>
-        <div class="b-main">${main}</div>${sub}
+    // A chat bubble (style canvas): the other person on the left with an avatar, you on the right in the dark bubble;
+    // the reading line above, the translation under it, Play and 0.75×
+    function bubble(l, k, extra, mine) {
+      const o = opt(), right = mine === undefined ? !!l.who : mine;
+      const main = C.id === "zh" ? (zhPf ? (right ? esc(l.py) : pyTapWords(l.py)) : `<span class="hanzi">${l.hz}</span>`) : C.id === "vi" ? (right ? esc(l.hz) : viHtml(l.hz)) : `<span class="hanzi">${esc(l.hz)}</span>`;
+      const above = C.id === "zh" && !zhPf && o.py ? `<div class="b-sub">${right ? esc(l.py) : pyTapWords(l.py)}</div>` : "";
+      const below = C.id === "zh" ? (zhPf && o.hz ? `<div class="b-sub hanzi">${l.hz}</div>` : "") : (C.id === "ko" || C.id === "ja") && o.py ? `<div class="b-sub">${esc(l.py)}</div>` : "";
+      return `<div class="b-row ${right ? "right" : "left"}">${right ? "" : `<span class="avatar hanzi" aria-hidden="true">${esc(Array.from(d.people[l.who].hz)[0])}</span>`}
+        <div class="bubble ${right ? "right" : "left"} ${extra && extra.cls ? extra.cls : ""}" data-line="${k}">
+        ${above}<div class="b-main">${main}</div>${below}
         ${o.tr ? `<div class="b-tr">${esc(L(l))}</div>` : ""}
+        <div class="b-btns"><button class="b-btn" data-play="${k}" type="button">▶ ${t("play")}</button><button class="b-btn" data-slow="${k}" type="button">0.75×</button></div>
         ${extra && extra.html ? extra.html : ""}
-      </div>`;
+      </div></div>`;
     }
+    const toggles = `${zhPf ? `<button class="tg ${opt().hz ? "on" : ""}" data-opt="dlgHz" type="button" aria-label="${t("showHz")}">汉</button>`
+      : C.id !== "vi" ? `<button class="tg ${opt().py ? "on" : ""}" data-opt="dlgPy" type="button" aria-label="${t("readingLayer")}">${({ zh: "拼", ja: "あ", ko: "Aa" })[C.id] || "Aa"}</button>` : ""}
+      <button class="tg ${opt().tr ? "on" : ""}" data-opt="dlgTr" type="button" aria-label="${t("showTr")}">${S.lang.toUpperCase()}</button>`;
     view.innerHTML = `
-      <div class="seg dlg-modes">${DLG_MODES.map((m) => `<button data-mode="${m}" class="${m === mode ? "active" : ""}" type="button">${st[m] ? "✓ " : ""}${t("dlg_" + m)}</button>`).join("")}</div>
-      <p class="list-hint">${t("dlg_" + mode + "Hint")}</p>
-      <div class="chips dlg-tools">
-        ${zhPf ? `<button class="chip ${opt().hz ? "active" : ""}" data-opt="dlgHz" type="button">${t("showHz")}</button>` : ""}
-        <button class="chip ${opt().tr ? "active" : ""}" data-opt="dlgTr" type="button">${t("showTr")}</button>
-        <button class="chip ${opt().slow ? "active" : ""}" data-opt="dlgSlow" type="button">🐢 ${t("slowly")}</button>
-      </div>
+      <div class="dlg-bar"><div class="dlg-tabs">${DLG_MODES.map((m) => `<button data-mode="${m}" class="${m === mode ? "active" : ""}" type="button">${st[m] ? "✓ " : ""}${m === "turn" ? t("rolePlay") : t("dlg_" + m)}</button>`).join("")}</div><div class="dlg-toggles">${toggles}</div></div>
+      <p class="list-hint">${mode === "turn" ? "" : t("dlg_" + mode + "Hint")}</p>
       <div class="chat" id="chat"></div>
       <div id="dlg-foot" class="dlg-foot"></div>`;
     $$("[data-mode]").forEach((b) => (b.onclick = () => navigate(`lessons/d/${id}/${b.dataset.mode}`)));
     $$("[data-opt]").forEach((b) => (b.onclick = () => {
-      const k = b.dataset.opt; S.settings[k] = !(k === "dlgTr" ? S.settings.dlgTr !== false : !!S.settings[k]); save(); redraw();
+      const k = b.dataset.opt; S.settings[k] = !(k === "dlgTr" || k === "dlgPy" ? S.settings[k] !== false : !!S.settings[k]); save();
+      b.classList.toggle("on", k === "dlgTr" || k === "dlgPy" ? S.settings[k] !== false : !!S.settings[k]); redraw();
     }));
     // Tapping a word shows its meaning; tapping elsewhere on a bubble plays the line
     $("#chat").onclick = (e) => {
       const w = e.target.closest(".w");
       if (w) { const hit = lookupPy(w.dataset.w); if (hit) { toast(`${hit.py} · ${hit.hz} · ${tr(hit)}`); speak(hit.hz); } return; }
+      const pb = e.target.closest("[data-play],[data-slow]");
+      if (pb) { const l = d.lines[+(pb.dataset.play ?? pb.dataset.slow)]; speak(l.hz, { rate: pb.dataset.slow !== undefined ? 0.6 : S.settings.rate }); return; }
       const b = e.target.closest(".bubble"); if (b && !e.target.closest("button")) say(d.lines[+b.dataset.line].hz);
     };
     let redraw;
@@ -2107,9 +2226,10 @@
         if (!alive()) return;
         $("#chat").innerHTML = d.lines.map((l, k) => bubble(l, k, { cls: k === playing ? "playing" : "" })).join("");
         $("#dlg-foot").innerHTML = playing < 0
-          ? `<button class="btn primary block" id="d-play" type="button">${icon("play")} ${t("playAll")}</button>`
+          ? `<div class="row"><button class="btn primary grow" id="d-play" type="button">${icon("play")} ${t("playAll")}</button><button class="chip ${opt().slow ? "active" : ""}" id="d-slow" type="button">🐢 ${t("slowly")}</button></div>`
           : `<button class="btn block" id="d-stop" type="button">${icon("stop")} ${t("stop")}</button>`;
         if ($("#d-play")) $("#d-play").onclick = () => { const my = ++token; step(0, my); };
+        if ($("#d-slow")) $("#d-slow").onclick = () => { S.settings.dlgSlow = !S.settings.dlgSlow; save(); redraw(); };
         if ($("#d-stop")) $("#d-stop").onclick = () => { token++; playing = -1; speechSynthesis.cancel(); redraw(); };
       };
       function step(k, my) {
@@ -2131,7 +2251,7 @@
       const res = d.lines.map(() => null); // { score, hit, text, ms, url }
       redraw = () => {
         if (!alive()) return;
-        $("#chat").innerHTML = d.lines.map((l, k) => bubble(l, k, { cls: res[k] ? (res[k].score >= 0.8 ? "good" : "weak") : "", html: `<div class="b-act">${micButton(k)}${res[k] ? resultHtml(l, res[k]) : ""}</div>` })).join("");
+        $("#chat").innerHTML = d.lines.map((l, k) => bubble(l, k, { cls: res[k] ? (res[k].score >= 0.8 ? "good" : "weak") : "", html: `<div class="b-act">${micButton(k)}${res[k] ? resultHtml(l, res[k]) : ""}</div>` }, false)).join("");
         const doneN = res.filter(Boolean).length;
         const total = res.reduce((a, r) => a + (r ? r.ms : 0), 0);
         const acc = doneN ? res.reduce((a, r) => a + (r ? r.score : 0), 0) / doneN : 0;
@@ -2149,52 +2269,74 @@
       redraw();
     }
 
+    // Role play: a random role; pick your reply from two, then say it (or type it). A good recording moves on,
+    // otherwise Retry or Next.
     function runDlgTurn() {
-      let me = null, i = 0, right = 0, hint = 0; const shown = []; // shown: { k, res }
+      let me = Math.floor(Math.random() * d.people.length), i = 0, right = 0, hint = 0, chosen = false, wrongPick = null, typing = false, attempt = null, replies = [];
+      const shown = []; // { k, res }
+      const myLines = () => d.lines.map((l, k) => (l.who === me ? k : -1)).filter((k) => k >= 0);
+      const makeReplies = () => {
+        const l = d.lines[i], others = d.lines.filter((x, k) => k !== i && x.hz !== l.hz);
+        const other = shuffle(others.filter((x) => x.who === l.who))[0] || shuffle(others)[0];
+        replies = shuffle([l].concat(other ? [other] : []));
+      };
+      const resetTurn = () => { hint = 0; chosen = false; wrongPick = null; typing = false; attempt = null; replies = []; };
       redraw = () => {
         if (!alive()) return;
-        $("#chat").innerHTML = shown.map((x) => bubble(d.lines[x.k], x.k, x.res ? { cls: x.res.ok ? "good" : "weak", html: `<div class="b-act">${x.res.html}</div>` } : null)).join("");
+        $("#chat").innerHTML = `<div class="list-hint">${t("rolePlay")} · ${t("youAre", nameOf(me))}</div>` + shown.map((x) => bubble(d.lines[x.k], x.k, x.res ? { cls: x.res.ok === false ? "weak" : "", html: x.res.html ? `<div class="b-act">${x.res.html}</div>` : "" } : null, d.lines[x.k].who === me)).join("");
         const foot = $("#dlg-foot");
-        if (me === null) {
-          foot.innerHTML = `<div class="section-title">${t("chooseRole")}</div><div class="row">${d.people.map((p, k) => `<button class="btn grow" data-role="${k}" type="button">${t("iAm", zhPf ? p.py : p.hz)}</button>`).join("")}</div>`;
-          $$("[data-role]").forEach((b) => (b.onclick = () => { me = +b.dataset.role; advance(); }));
-          return;
-        }
+        foot.classList.toggle("composer", i < d.lines.length && d.lines[i].who === me);
         if (i >= d.lines.length) {
-          foot.innerHTML = `<div class="card center"><div class="hero-title">${t("dlgTurnDone", right, d.lines.filter((l) => l.who === me).length)}</div>
-            <div class="row" style="margin-top:12px"><button class="btn grow" id="t-swap" type="button">${t("switchRole")}</button><button class="btn primary grow" id="t-back" type="button">${t("dialogues")}</button></div></div>`;
-          $("#t-swap").onclick = () => { me = 1 - me; i = 0; right = 0; shown.length = 0; advance(); };
-          $("#t-back").onclick = () => navigate("lessons");
+          foot.innerHTML = `<div class="card center"><div class="hero-title">${t("dlgTurnDone", right, myLines().length)}</div>
+            <div class="row" style="margin-top:12px"><button class="btn grow" id="t-swap" type="button">${t("switchRole")}</button><button class="btn primary grow" id="t-again" type="button">${t("again")}</button></div></div>`;
+          $("#t-swap").onclick = () => { me = (me + 1) % d.people.length; i = 0; right = 0; shown.length = 0; resetTurn(); advance(); };
+          $("#t-again").onclick = () => { i = 0; right = 0; shown.length = 0; resetTurn(); advance(); };
           return;
         }
         const l = d.lines[i];
-        const hintTxt = hint === 0 ? "" : hint === 1 ? l.py.split(/\s+/).map((w) => w.replace(/^([^a-zA-Zāáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜü]*)(.)(.*)$/, (_, a, b, c) => a + b + c.replace(/[\p{L}]/gu, "·"))).join(" ") : (C.id === "zh" ? l.py : l.hz);
+        if (l.who !== me) { foot.innerHTML = ""; return; }
+        if (!replies.length) makeReplies();
+        const n = myLines().indexOf(i) + 1;
+        const line = (x) => (C.id === "vi" ? viHtml(x.hz) : zhPf ? pyHtml(x.py) : `<span class="hanzi">${esc(x.hz)}</span>`);
+        const hintTxt = hint === 0 ? "" : C.id === "zh" ? l.py : l.py || l.hz;
         foot.innerHTML = `
-          <div class="card turn-card">
-            <div class="turn-ask">${t("sayIn", t("langName"))}</div>
-            <div class="turn-tr">${esc(L(l))}</div>
-            ${hintTxt ? `<div class="turn-hint">${C.id === "zh" ? pyHtml(hintTxt) : esc(hintTxt)}</div>` : ""}
-            <div class="turn-mic">${micButton("turn")}</div>
-            <form class="row turn-type" id="turn-form">
-              <input class="type-input" name="a" type="text" placeholder="${esc(t("typeOr"))}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" lang="${C.tts}">
-              <button class="btn" type="submit">${t("check")}</button>
-            </form>
-            <div class="row turn-more">${hint < 2 ? `<button class="btn ghost sm" id="t-hint" type="button">💡 ${t("hint")}</button>` : ""}<button class="btn ghost sm" id="t-skip" type="button">${t("skip")}</button></div>
+          <div class="cp-head"><b>${t("pickReply")}</b><span>${n} / ${myLines().length}</span></div>
+          ${!chosen ? `<div class="cp-replies">${replies.map((x, k) => `<button class="cp-reply ${wrongPick === k ? "wrong" : ""}" data-reply="${k}" type="button"><span>${line(x)}</span>${opt().tr ? `<small>${esc(L(x))}</small>` : ""}</button>`).join("")}</div>`
+            : `<div class="cp-line">${C.id === "zh" && !zhPf && opt().py ? `<div>${pyHtml(hint ? l.py : l.py.split(/\s+/).map((w) => w.replace(/^([^a-zA-Zāáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜü]*)(.)(.*)$/, (_, a, b, c) => a + b + c.replace(/[\p{L}]/gu, "·"))).join(" "))}</div>` : ""}<div class="cp-main">${line(l)}</div>${hintTxt && C.id !== "zh" ? `<div class="small muted">${esc(hintTxt)}</div>` : ""}</div>
+              ${attempt ? `<div class="cp-attempt">${attempt.html}<button class="btn sm" id="t-next" type="button">${t("next")}</button></div>` : ""}
+              ${typing ? `<form class="row turn-type" id="turn-form"><input class="type-input" name="a" type="text" placeholder="${esc(t("typeOr"))}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" lang="${C.tts}"><button class="btn" type="submit">${t("check")}</button></form>` : ""}`}
+          <div class="cp-actions">
+            <button class="cp-side" id="t-hint" type="button">💡<span>${t("hint")}</span></button>
+            <div class="turn-mic big">${micButton("turn")}</div>
+            ${attempt ? `<button class="cp-side" id="t-retry" type="button">↺<span>${t("retry")}</span></button>` : `<button class="cp-side" id="t-type" type="button">⌨️<span>${t("typeIt")}</span></button>`}
           </div>`;
-        const input = $("#turn-form").a;
-        if (C.id === "zh") input.addEventListener("input", (e) => liveToneMarks(e, input));
-        $("#turn-form").onsubmit = (e) => { e.preventDefault(); if (input.value.trim()) answer(checkTyped(l, input.value)); };
-        if ($("#t-hint")) $("#t-hint").onclick = () => { hint++; redraw(); };
-        $("#t-skip").onclick = () => answer({ ok: false, skipped: true });
-        bindMics(foot, () => l, (_, r) => answer(r.mode === "rec" ? { ok: r.self, rec: r } : { ok: r.score >= 0.8, heard: r }));
+        $$("[data-reply]").forEach((b) => (b.onclick = () => {
+          const x = replies[+b.dataset.reply];
+          if (x.hz === l.hz) { chosen = true; wrongPick = null; speak(l.hz, { rate: 0.75 }); } else wrongPick = +b.dataset.reply;
+          redraw();
+        }));
+        $("#t-hint").onclick = () => { if (chosen) hint++; else wrongPick = replies.findIndex((x) => x.hz !== l.hz); redraw(); };
+        if ($("#t-type")) $("#t-type").onclick = () => { chosen = true; typing = !typing; redraw(); if ($("#turn-form")) $("#turn-form").a.focus(); };
+        if ($("#t-retry")) $("#t-retry").onclick = () => { attempt = null; redraw(); };
+        if ($("#t-next")) $("#t-next").onclick = () => answer(attempt.r);
+        if ($("#turn-form")) {
+          const input = $("#turn-form").a;
+          if (C.id === "zh") input.addEventListener("input", (e) => liveToneMarks(e, input));
+          $("#turn-form").onsubmit = (e) => { e.preventDefault(); if (input.value.trim()) answer(checkTyped(l, input.value)); };
+        }
+        bindMics(foot, () => l, (_, r) => {
+          chosen = true;
+          const res = r.mode === "rec" ? { ok: r.self, rec: r } : { ok: r.score >= 0.8, heard: r };
+          if (res.ok) answer(res); else { attempt = { r: res, html: resultHtml(l, r) }; redraw(); }
+        });
       };
       function answer(r) {
         const l = d.lines[i];
         if (r.ok) right++;
-        const msg = r.skipped ? "" : r.heard ? resultHtml(l, r.heard) : r.rec ? resultHtml(l, r.rec) : `<div class="heard ${r.ok ? "ok" : "bad"}">${r.ok ? (r.tones === false ? t("tonesMissing") : "✓ " + t("correct")) : r.tonesWrong ? t("tonesWrong") : "✗ " + t("wrong")}</div>`;
+        const msg = r.skipped ? "" : r.heard ? `<div class="heard ${r.ok ? "ok" : "bad"}">${Math.round(r.heard.score * 100)}%${r.heard.text ? " · " + esc(t("heardAs", r.heard.text)) : ""}</div>` : r.rec ? "" : `<div class="heard ${r.ok ? "ok" : "bad"}">${r.ok ? (r.tones === false ? t("tonesMissing") : "✓ " + t("correct")) : r.tonesWrong ? t("tonesWrong") : "✗ " + t("wrong")}</div>`;
         shown.push({ k: i, res: { ok: r.ok, html: msg } });
         say(l.hz);
-        i++; hint = 0; advance(true);
+        i++; resetTurn(); advance(true);
       }
       // Play the other person's lines until it is my turn again
       function advance(afterMine) {
@@ -2206,12 +2348,12 @@
           if (!alive()) return;
           shown.push({ k: i, res: null }); i++;
           redraw();
-          const el = $("#chat .bubble:last-child"); if (el) el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+          const el = $("#chat .b-row:last-child"); if (el) el.scrollIntoView({ block: "nearest", behavior: "smooth" });
           let moved = false; const go = () => { if (moved) return; moved = true; setTimeout(() => advance(), 300); };
           say(l.hz, go); setTimeout(go, 1500 + Array.from(l.hz).length * 420);
         }, afterMine ? 1400 : 200);
       }
-      redraw();
+      advance();
     }
   }
   // Typed answer in a dialogue: pinyin (tones optional, but if typed they must match) or the characters
@@ -2796,7 +2938,7 @@
         <div class="list-item static"><span class="li-ico">🌐</span><span class="grow li-title">${t("language")}</span><div class="seg"><button data-lang="en" class="${S.lang === "en" ? "active" : ""}" type="button">English</button><button data-lang="de" class="${S.lang === "de" ? "active" : ""}" type="button">Deutsch</button></div></div>
         <div class="list-item static"><span class="li-ico">🎨</span><span class="grow li-title">${t("theme")}</span><div class="seg">${["auto", "light", "dark"].map((th) => `<button data-th="${th}" class="${S.settings.theme === th ? "active" : ""}" type="button">${t("theme" + th[0].toUpperCase() + th.slice(1))}</button>`).join("")}</div></div>
         <div class="list-item static"><span class="li-ico">🔊</span><span class="grow li-title">${t("autoSpeak")}</span><button class="switch ${S.settings.autoSpeak ? "on" : ""}" id="sw-speak" type="button" aria-label="${t("autoSpeak")}"></button></div>
-        <div class="list-item static"><span class="li-ico">🐢</span><span class="grow li-title">${t("ttsRate")}<div class="li-sub" id="rate-val">${S.settings.rate.toFixed(2)}×</div></span><input type="range" id="rate" min="0.5" max="1.2" step="0.05" value="${S.settings.rate}"></div>
+        <div class="list-item static"><span class="li-ico">🐢</span><span class="grow li-title">${t("ttsRate")}<div class="li-sub" id="rate-val">${S.settings.rate.toFixed(2)}× · ${esc(C.testPhrase)} · ${t("sampleLine")}</div></span><div class="seg" id="rate-seg">${[0.5, 0.75, 1, 1.25].map((v) => `<button data-rate="${v}" class="${Math.abs(S.settings.rate - v) < 0.13 ? "active" : ""}" type="button">${v}×</button>`).join("")}</div></div>
         ${C.id === "zh" ? `<div class="list-item static"><span class="li-ico">🔤</span><span class="grow li-title">${t("pinyinFirst")}<div class="li-sub">${t("pinyinFirstDesc")}</div></span><button class="switch ${pyFirst() ? "on" : ""}" id="sw-pf" type="button" aria-label="${t("pinyinFirst")}"></button></div>` : ""}
         <div class="list-item static"><span class="li-ico">🀄</span><span class="grow li-title">${t("readingLayer")}<div class="li-sub">${t("readingLayerDesc")}</div></span><div class="seg" id="reading-seg">${["always", "new", "off"].map((k) => `<button data-reading="${k}" class="${readingLayer() === k ? "active" : ""}" type="button">${t("reading" + k[0].toUpperCase() + k.slice(1))}</button>`).join("")}</div></div>
         <div class="list-item static"><span class="li-ico">🎙️</span><span class="grow li-title">${t("voice")}<div class="li-sub">${TTS.voice ? esc(TTS.voice.name) + " (" + esc(TTS.voice.lang) + ")" : (TTS.available ? t("noZhVoice") : t("noTts"))}</div></span>
@@ -2814,7 +2956,7 @@
     $("#sw-speak").onclick = () => { S.settings.autoSpeak = !S.settings.autoSpeak; save(); $("#sw-speak").classList.toggle("on", S.settings.autoSpeak); };
     if ($("#sw-pf")) $("#sw-pf").onclick = () => { S.courses.zh.pinyinFirst = !pyFirst(); save(); render(); };
     $$("[data-reading]").forEach((b) => (b.onclick = () => { S.settings.readingLayer = b.dataset.reading; S.settings.tilePinyin = b.dataset.reading !== "off"; save(); render(); }));
-    $("#rate").oninput = (e) => { S.settings.rate = +e.target.value; $("#rate-val").textContent = S.settings.rate.toFixed(2) + "×"; save(); };
+    $$("[data-rate]").forEach((b) => (b.onclick = () => { S.settings.rate = +b.dataset.rate; save(); speak(C.testPhrase); render(); }));
     $("#tts-test").onclick = () => speak(C.testPhrase);
     $("#me-course").onclick = openCourseSheet;
     const STEPS = { newPerDay: [1, 30, 1], maxReviews: [10, 200, 10], dailyGoal: [10, 100, 10] };

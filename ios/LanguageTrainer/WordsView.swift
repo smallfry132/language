@@ -55,9 +55,38 @@ struct WordsView: View {
         }
     }
 
+    /// As on the style canvas: what you are looking at, then New · Learning · Due today (tap to filter)
+    @ViewBuilder var header: some View {
+        let ws = store.words.selected, now = nowMs()
+        let counts = (new: ws.filter { store.status($0.id) == .new }.count, learning: ws.filter { store.status($0.id) == .learning }.count,
+                      due: ws.filter { store.state.isDue($0.id, now: now) }.count)
+        HStack(spacing: 8) {
+            stat(counts.new, store.t("new"), "new", Color.tone(4))
+            stat(counts.learning, store.t("learning"), "learning", Color.tone(2))
+            stat(counts.due, store.t("dueNow"), "due", Color.accent)
+        }
+        if counts.due > 0 {
+            NavigationLink(value: Route.mode(.flash)) { Text(store.t("reviewCards", min(counts.due, 150))) }
+                .buttonStyle(.primary).simultaneousGesture(TapGesture().onEnded { SetupPrefs.shared.pool = "due" })
+        }
+    }
+    func stat(_ n: Int, _ label: String, _ key: String, _ c: Color) -> some View {
+        let on = statusFilter == key, r = Look.current.radius
+        return Button { statusFilter = on ? "all" : key; limit = 240 } label: {
+            VStack(alignment: .leading, spacing: 0) {
+                Text("\(n)").font(.title3.weight(.bold)).monospacedDigit().foregroundStyle(Look.toneColors || key == "due" ? c : Color.ink)
+                Text(label).font(.caption).foregroundStyle(Color.ink).lineLimit(1)
+            }
+            .padding(.horizontal, 10).padding(.vertical, 8).frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color.elevated, in: RoundedRectangle(cornerRadius: r))
+            .overlay(RoundedRectangle(cornerRadius: r).stroke(on ? Color.accent : Color.line, lineWidth: on ? 1.5 : 1))
+        }.buttonStyle(.plain).accessibilityAddTraits(on ? .isSelected : [])
+    }
+
     var body: some View {
         let list = filtered
         Page {
+            header
             LevelChips()
             ChipRow {
                 ForEach([("all", "all"), ("due", "due"), ("new", "new"), ("learning", "learning"), ("known", "known"), ("favs", "favorites")], id: \.0) { k, l in

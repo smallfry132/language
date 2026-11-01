@@ -234,6 +234,21 @@ final class ThemeTests: XCTestCase {
         let vi = CourseWords(state: s)
         XCTAssertEqual(vi.groups(of: vi.themes.first { $0.id == "numbers" }!)[0].words.prefix(3).map(\.hz), ["một", "hai", "ba"])
     }
+    func testSoundAlikes() {
+        var s = AppState()
+        s.courses["zh"]?.levels = [1, 2, 3]
+        let zh = CourseWords(state: s)
+        let cha = zh.all.first { $0.hz == "茶" }!
+        let alike = zh.soundAlikes(cha, meaning: { $0.en }, fill: false)
+        XCTAssertFalse(alike.isEmpty)
+        XCTAssertTrue(alike.allSatisfy { CourseWords.distance(CourseWords.soundKey($0, course: "zh"), "cha") <= 1 }, alike.map(\.py).joined(separator: " "))
+        s.course = "vi"
+        let vi = CourseWords(state: s)
+        let ma = vi.all.first { $0.hz == "mẹ" } ?? vi.all[0]
+        let viAlike = vi.soundAlikes(ma, meaning: { $0.en })
+        XCTAssertEqual(viAlike.count, 3)
+        print("zh 茶:", alike.map { "\($0.hz) \($0.py)" }, "vi \(ma.hz):", viAlike.map(\.hz))
+    }
 }
 
 final class KoreanTests: XCTestCase {

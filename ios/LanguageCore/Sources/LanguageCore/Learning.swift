@@ -162,3 +162,58 @@ public struct CourseWords {
         return (Array(due), Array(unseen.prefix(room)), unseen.count)
     }
 }
+
+// MARK: Words that sound alike (choose the word)
+
+extension CourseWords {
+    /// How a word sounds without its tones: 茶 chá → cha, trà → tra, 차 cha → cha
+    public static func soundKey(_ w: Word, course: String) -> String {
+        switch course {
+        case "zh": return Lingo.stripTones(w.py)
+        case "vi": return Lingo.stripVi(w.hz).replacingOccurrences(of: " ", with: "")
+        case "ja": return Lingo.stripJa(w.romaji ?? w.py)
+        default: return Lingo.stripKo(w.py)
+        }
+    }
+    static func distance(_ a: String, _ b: String) -> Int {
+        let a = Array(a), b = Array(b)
+        if a.isEmpty || b.isEmpty { return max(a.count, b.count) }
+        var row = Array(0...b.count)
+        for i in 1...a.count {
+            var prev = row[0]; row[0] = i
+            for j in 1...b.count {
+                let cur = row[j]
+                row[j] = min(row[j] + 1, row[j - 1] + 1, prev + (a[i - 1] == b[j - 1] ? 0 : 1))
+                prev = cur
+            }
+        }
+        return row[b.count]
+    }
+    /// Up to `count` other words that sound most like `w` (same sound with another tone first), each with a
+    /// different meaning and spelling. Words that sound nothing alike are left out; `fill` tops up from `selected`.
+    public func soundAlikes(_ w: Word, count: Int = 3, meaning: (Word) -> String, fill: Bool = true) -> [Word] {
+        let key = Self.soundKey(w, course: course.id), m = meaning(w)
+        // Close (one sound apart) first; if that finds too few, words that share about half their sound
+        var limit = max(1, key.count / 3)
+        let wide = max(2, (key.count + 1) / 2)
+        var scored: [(Word, Int)] = []
+        for x in all where x.id != w.id && x.hz != w.hz && meaning(x) != m {
+            let k = Self.soundKey(x, course: course.id)
+            guard abs(k.count - key.count) <= wide else { continue }
+            let d = Self.distance(k, key)
+            if d <= wide { scored.append((x, d * 10 + abs(x.hz.count - w.hz.count))) }
+        }
+        if scored.filter({ $0.1 < (limit + 1) * 10 }).count < count { limit = wide }
+        scored = scored.filter { $0.1 < (limit + 1) * 10 }
+        var out: [Word] = [], seen: Set<String> = [w.hz, m]
+        for (x, _) in scored.shuffled().sorted(by: { $0.1 < $1.1 }) where out.count < count && !seen.contains(x.hz) && !seen.contains(meaning(x)) {
+            out.append(x); seen.insert(x.hz); seen.insert(meaning(x))
+        }
+        if fill {
+            for x in selected.shuffled() where out.count < count && x.id != w.id && !seen.contains(x.hz) && !seen.contains(meaning(x)) {
+                out.append(x); seen.insert(x.hz); seen.insert(meaning(x))
+            }
+        }
+        return out
+    }
+}

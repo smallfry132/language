@@ -149,6 +149,8 @@ public struct Settings: Codable, Equatable {
     public var rate = 0.85, autoSpeak = true, tilePinyin = true, quizSize = 10, dailyGoal = 20, theme = "auto", newPerDay = 5
     public var f0base: Double?
     public var dlgHz: Bool?, dlgTr: Bool?, dlgSlow: Bool?
+    /// Dialogues: the reading line (pinyin, romanization) with each line; nil = on
+    public var dlgPy: Bool?
     /// Pinyin, romanization or kana shown with words: "always", "new" (words not yet known) or "off"
     public var readingLayer: String?
     /// Most reviews in one day's session (Me → Daily plan); nil = 20
@@ -157,13 +159,13 @@ public struct Settings: Codable, Equatable {
     public var toneColors: Bool?
     /// Chosen voice per course. Voices differ per device, so this is never synced.
     public var voices: [String: String]?
-    enum K: String, CodingKey { case rate, autoSpeak, tilePinyin, quizSize, dailyGoal, theme, newPerDay, f0base, dlgHz, dlgTr, dlgSlow, voices, readingLayer, maxReviews, toneColors }
+    enum K: String, CodingKey { case rate, autoSpeak, tilePinyin, quizSize, dailyGoal, theme, newPerDay, f0base, dlgHz, dlgTr, dlgSlow, dlgPy, voices, readingLayer, maxReviews, toneColors }
     public init() {}
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: K.self)
         rate = c.get(.rate, 0.85); autoSpeak = c.get(.autoSpeak, true); tilePinyin = c.get(.tilePinyin, true); quizSize = c.get(.quizSize, 10)
         dailyGoal = c.get(.dailyGoal, 20); theme = c.get(.theme, "auto"); newPerDay = c.get(.newPerDay, 5)
-        f0base = c.get(.f0base, nil as Double?); dlgHz = c.get(.dlgHz, nil as Bool?); dlgTr = c.get(.dlgTr, nil as Bool?); dlgSlow = c.get(.dlgSlow, nil as Bool?)
+        f0base = c.get(.f0base, nil as Double?); dlgHz = c.get(.dlgHz, nil as Bool?); dlgTr = c.get(.dlgTr, nil as Bool?); dlgSlow = c.get(.dlgSlow, nil as Bool?); dlgPy = c.get(.dlgPy, nil as Bool?)
         voices = c.get(.voices, nil as [String: String]?)
         readingLayer = c.get(.readingLayer, nil as String?)
         maxReviews = c.get(.maxReviews, nil as Int?); toneColors = c.get(.toneColors, nil as Bool?)

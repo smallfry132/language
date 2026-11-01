@@ -74,16 +74,19 @@ final class FlowTests: XCTestCase {
     }
 
     func testDialogueTypedAnswer() {
-        launch(["-route", "lessons/dialogue/zh-greet", "-dlgmode", "turn"])
-        button("I'm Ānnà").tap()
+        launch(["-route", "lessons/dialogue/zh-greet", "-dlgmode", "turn", "-dlgrole", "1"])
+        let type = button("Type")
+        XCTAssertTrue(type.waitForExistence(timeout: 8), "my turn comes after Wáng Míng's first line")
+        type.tap()
         let field = app.textFields["…or type the pinyin"]
-        XCTAssertTrue(field.waitForExistence(timeout: 8), "my turn comes after Wáng Míng's first line")
+        XCTAssertTrue(field.waitForExistence(timeout: 3))
         field.tap(); field.typeText("ni3 hao3\n")
-        XCTAssertTrue(text("Correct").waitForExistence(timeout: 3))
+        XCTAssertTrue(text("✓ Correct").waitForExistence(timeout: 3))
         // Second turn: answer without tones
-        XCTAssertTrue(field.waitForExistence(timeout: 8))
-        let next = app.staticTexts["I'm fine, thanks. And you?"]
-        XCTAssertTrue(next.waitForExistence(timeout: 8))
+        XCTAssertTrue(app.staticTexts["I'm fine, thanks. And you?"].waitForExistence(timeout: 8))
+        XCTAssertTrue(type.waitForExistence(timeout: 8))
+        type.tap()
+        XCTAssertTrue(field.waitForExistence(timeout: 3))
         field.tap(); field.typeText("wo hen hao xiexie ni ne\n")
         XCTAssertTrue(text("Next time add the tones too").waitForExistence(timeout: 3))
     }

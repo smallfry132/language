@@ -26,7 +26,7 @@ struct CoursePicker: View {
                     .padding(12).background(Color.elevated, in: RoundedRectangle(cornerRadius: 14))
                     .overlay(RoundedRectangle(cornerRadius: 14).stroke(c.id == store.course.id ? Color.accent : Color.clear, lineWidth: 1.5))
                     .foregroundStyle(Color.ink)
-                }.buttonStyle(.plain)
+                }.buttonStyle(.card)
             }
         }.padding(20) }.scrollIndicators(.hidden).background(Color.paper)
     }

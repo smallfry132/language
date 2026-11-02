@@ -57,7 +57,7 @@ struct WordsView: View {
                     Text(store.t("review")).font(.subheadline.weight(.bold)).padding(.horizontal, 14).frame(maxHeight: .infinity)
                         .background(Color.action, in: RoundedRectangle(cornerRadius: max(2, Look.current.radius - 2))).foregroundStyle(Color.onAction)
                 }
-                .buttonStyle(.plain).simultaneousGesture(TapGesture().onEnded { SetupPrefs.shared.pools = ["due"]; SetupPrefs.shared.mins = 0 })
+                .buttonStyle(.card).simultaneousGesture(TapGesture().onEnded { SetupPrefs.shared.pools = ["due"]; SetupPrefs.shared.mins = 0 })
             }
         }.fixedSize(horizontal: false, vertical: true)
         HStack(spacing: 8) {
@@ -80,7 +80,7 @@ struct WordsView: View {
             .padding(.horizontal, 8).padding(.vertical, 6).frame(maxWidth: .infinity, alignment: .leading)
             .background(Color.elevated, in: RoundedRectangle(cornerRadius: r))
             .overlay(RoundedRectangle(cornerRadius: r).stroke(on || hot ? Color.accent : Color.line, lineWidth: on || hot ? 1.5 : 1))
-        }.buttonStyle(.plain).accessibilityAddTraits(on ? .isSelected : [])
+        }.buttonStyle(.card).accessibilityAddTraits(on ? .isSelected : [])
     }
 
     var body: some View {
@@ -116,7 +116,7 @@ struct WordsView: View {
                 LazyVGrid(columns: columns, alignment: .leading, spacing: 8) {
                     ForEach(topicSections(list), id: \.theme.id) { sec in
                         Section {
-                            ForEach(sec.words) { w in Button { open = w } label: { Tile(w: w) }.buttonStyle(.plain) }
+                            ForEach(sec.words) { w in Button { open = w } label: { Tile(w: w) }.buttonStyle(.card) }
                         } header: {
                             VStack(spacing: 6) {
                                 HStack(alignment: .firstTextBaseline) {
@@ -131,7 +131,7 @@ struct WordsView: View {
                 }
             } else {
                 LazyVGrid(columns: columns, spacing: 8) {
-                    ForEach(Array(list.prefix(limit))) { w in Button { open = w } label: { Tile(w: w) }.buttonStyle(.plain) }
+                    ForEach(Array(list.prefix(limit))) { w in Button { open = w } label: { Tile(w: w) }.buttonStyle(.card) }
                 }
                 if list.count > limit {
                     Button(store.t("showMore", min(240, list.count - limit), list.count - limit)) { limit += 240 }.buttonStyle(.secondary)

@@ -41,7 +41,7 @@ struct FlowHeader: View {
             HStack(spacing: 8) {
                 Button { flow.close() } label: {
                     Image(systemName: "xmark").font(.system(size: 18, weight: .semibold)).frame(width: 44, height: 44)
-                }.buttonStyle(.plain).foregroundStyle(Color.ink).padding(.leading, -10).accessibilityLabel(store.t("closeSession"))
+                }.buttonStyle(.card).foregroundStyle(Color.ink).padding(.leading, -10).accessibilityLabel(store.t("closeSession"))
                 VStack(alignment: .leading, spacing: 1) {
                     Text(store.t(title)).font(.subheadline.weight(.bold))
                     Text(store.t(st.kind == "meet" ? "flowSubWord" : "flowSub", flow.step + 1, flow.steps.count, min(i + 1, n), n)).font(.caption).foregroundStyle(Color.ink2)
@@ -227,7 +227,7 @@ struct FlowDone: View {
                                     .padding(.horizontal, 10).padding(.vertical, 6)
                                     .background(Color.elevated, in: RoundedRectangle(cornerRadius: Look.current.radius))
                                     .overlay(RoundedRectangle(cornerRadius: Look.current.radius).stroke(Color.line))
-                                }.buttonStyle(.plain)
+                                }.buttonStyle(.card)
                             }
                         }
                     }.frame(maxWidth: .infinity, alignment: .leading)

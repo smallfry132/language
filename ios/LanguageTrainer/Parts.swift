@@ -48,7 +48,7 @@ struct SegBar: View {
                         .background(on ? Color.ink : Color.clear)
                         .foregroundStyle(on ? Color.paper : Color.ink).contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.card)
                 .accessibilityAddTraits(on ? .isSelected : [])
                 if k < options.count - 1 { Rectangle().fill(Color.line).frame(width: 1) }
             }
@@ -74,7 +74,7 @@ struct SquareButton: View {
                 .overlay(RoundedRectangle(cornerRadius: r).stroke(Color.line))
                 .foregroundStyle(on ? Color.paper : Color.ink)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.card)
         .accessibilityLabel(label)
         .accessibilityAddTraits(on ? .isSelected : [])
     }

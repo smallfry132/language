@@ -31,7 +31,7 @@ struct SoundChart: View {
                                 picked = (ri, nil)
                                 store.speaker.say(r.cells.compactMap { $0.t == nil ? nil : $0.say }.joined(separator: sep), rate: slow ? 0.5 : 0.7)
                             } label: { Text(r.base).font(.headline).frame(width: 50, height: 52).background(Color.sunken, in: RoundedRectangle(cornerRadius: 10)) }
-                                .buttonStyle(.plain).accessibilityLabel(store.t("playRow"))
+                                .buttonStyle(.card).accessibilityLabel(store.t("playRow"))
                             ForEach(Array(r.cells.enumerated()), id: \.offset) { ci, c in
                                 if let t = c.t {
                                     Button { picked = (ri, ci); speakSound(store, c.say, slow: slow) } label: {
@@ -43,7 +43,7 @@ struct SoundChart: View {
                                         .frame(maxWidth: .infinity, minHeight: 52)
                                         .background(picked?.row == ri && picked?.cell == ci ? Color.accent.opacity(0.14) : Color.elevated, in: RoundedRectangle(cornerRadius: 10))
                                         .foregroundStyle(Color.ink)
-                                    }.buttonStyle(.plain)
+                                    }.buttonStyle(.card)
                                 } else { Color.clear.frame(maxWidth: .infinity, minHeight: 52) }
                             }
                         }
@@ -81,7 +81,7 @@ struct SoundChart: View {
                     .overlay(RoundedRectangle(cornerRadius: rad).stroke(ns ? Color.ink : Color.line, lineWidth: ns ? 1.5 : 1))
                     .foregroundStyle(Color.ink)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.card)
                 .accessibilityLabel("\(r.base), \(w), \(r.gloss?.get(store.state.lang) ?? "")")
             }
         }

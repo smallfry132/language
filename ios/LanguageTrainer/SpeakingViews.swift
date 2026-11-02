@@ -44,7 +44,7 @@ struct MicButton: View {
                 .foregroundStyle(live ? Color.onAction : Color.accent)
                 }
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.card)
             .accessibilityLabel(store.t("speakBtn"))
             // The microphone is off for this app: what to do instead, in a sheet so it gets the full width
             .sheet(isPresented: $denied) {

@@ -84,20 +84,29 @@ final class Store {
     // MARK: Changing the state
 
     /// Every change goes through here: apply, stamp for sync, save
+    /// The screen reflects the change at once; stamping for sync and writing to disk wait until the taps settle
+    /// (both grow with the learner's progress and used to run on every answer, which made typing and tapping lag)
     func update(_ change: (inout AppState) -> Void) {
         change(&state)
-        save()
-    }
-    private func save() {
-        if state.stamp(&snap) { device.dirty = true; saveDevice(); scheduleSync() }
-        persist()
         refreshWords()
         speaker.course = course
         speaker.voices = state.settings.voices ?? [:]
         speaker.rate = state.settings.rate
+        saveWork?.cancel()
+        let w = DispatchWorkItem { [weak self] in self?.flushSave() }
+        saveWork = w
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6, execute: w)
+    }
+    @ObservationIgnored private var saveWork: DispatchWorkItem?
+    /// Stamp and save now: after a burst of changes, before syncing, when the app goes to the background
+    func flushSave() {
+        saveWork?.cancel(); saveWork = nil
+        if state.stamp(&snap) { device.dirty = true; saveDevice(); scheduleSync() }
+        persist()
     }
     private func persist() {
-        if let data = try? JSONEncoder().encode(state) { try? data.write(to: Self.fileURL, options: .atomic) }
+        let s = state
+        Self.diskQueue.async { if let data = try? JSONEncoder().encode(s) { try? data.write(to: Self.fileURL, options: .atomic) } }
     }
     private func refreshWords() {
         let key = "\(state.course)|\(levels)|\(state.custom.count)|\(state.custom.values.map { $0.t ?? 0 }.max() ?? 0)"
@@ -139,7 +148,9 @@ final class Store {
         syncTimer = Task { try? await Task.sleep(for: .seconds(4)); if !Task.isCancelled { await syncNow() } }
     }
 
+    static let diskQueue = DispatchQueue(label: "state.save", qos: .utility)
     func syncNow() async {
+        if saveWork != nil { flushSave() }
         guard let code = device.code else { return }
         if let running = syncTask { syncAgain = true; await running.value; return }
         let task = Task { await runSync(code: code) }

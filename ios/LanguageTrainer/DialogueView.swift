@@ -49,7 +49,7 @@ struct DialogueScreen: View {
                 .foregroundStyle(mode == key ? Color.ink : Color.ink2)
                 .frame(maxWidth: .infinity, minHeight: 44)
                 .overlay(alignment: .bottom) { Rectangle().fill(mode == key ? Color.accent : .clear).frame(height: 2) }
-        }.buttonStyle(.plain).accessibilityAddTraits(mode == key ? .isSelected : [])
+        }.buttonStyle(.card).accessibilityAddTraits(mode == key ? .isSelected : [])
     }
 }
 
@@ -75,7 +75,7 @@ struct DialogueToggles: View {
                 .foregroundStyle(on ? Color.accent : Color.ink2)
                 .background(Color.elevated, in: RoundedRectangle(cornerRadius: r))
                 .overlay(RoundedRectangle(cornerRadius: r).stroke(on ? Color.accent : Color.line, lineWidth: on ? 1.5 : 1))
-        }.buttonStyle(.plain).accessibilityLabel(label).accessibilityAddTraits(on ? .isSelected : [])
+        }.buttonStyle(.card).accessibilityLabel(label).accessibilityAddTraits(on ? .isSelected : [])
     }
 }
 
@@ -157,7 +157,7 @@ struct Bubble<Extra: View>: View {
             label.font(.caption).padding(.horizontal, 10).frame(height: 32)
                 .background(dark ? Color.onAction.opacity(0.12) : Color.paper, in: RoundedRectangle(cornerRadius: r))
                 .overlay(RoundedRectangle(cornerRadius: r).stroke(dark ? Color.onAction.opacity(0.3) : Color.line))
-        }.buttonStyle(.plain)
+        }.buttonStyle(.card)
     }
 }
 
@@ -339,7 +339,7 @@ struct DialogueTurn: View {
                 if !h.text.isEmpty { Text("· " + store.t("heardAs", h.text)).lineLimit(2) }
             } else if let note = s.note { Text(note).foregroundStyle(s.ok == true ? Color.good : Color.bad) }
             else if s.spoken != nil { Text("✓").foregroundStyle(Color.good) }
-            if let sp = s.spoken { Button { store.speaker.play(sp.wav) } label: { Image(systemName: "play.circle") }.buttonStyle(.plain).accessibilityLabel(store.t("playMine")) }
+            if let sp = s.spoken { Button { store.speaker.play(sp.wav) } label: { Image(systemName: "play.circle") }.buttonStyle(.card).accessibilityLabel(store.t("playMine")) }
         }
         .font(.caption).foregroundStyle(Color.ink2).frame(maxWidth: 300, alignment: .trailing)
     }
@@ -380,7 +380,7 @@ struct DialogueTurn: View {
                             .background(wrongPick == x.hz ? Color.bad.opacity(0.1) : Color.paper, in: RoundedRectangle(cornerRadius: r))
                             .overlay(RoundedRectangle(cornerRadius: r).stroke(wrongPick == x.hz ? Color.bad : Color.line))
                             .foregroundStyle(Color.ink)
-                        }.buttonStyle(.plain)
+                        }.buttonStyle(.card)
                     }
                 }
             } else {
@@ -429,7 +429,7 @@ struct DialogueTurn: View {
         Button(action: action) {
             VStack(spacing: 2) { Image(systemName: icon).font(.title3); Text(label).font(.caption2) }
                 .frame(width: 64, height: 48).foregroundStyle(Color.ink2)
-        }.buttonStyle(.plain).accessibilityLabel(label)
+        }.buttonStyle(.card).accessibilityLabel(label)
     }
     /// Your line and another line of the dialogue, in random order
     func makeReplies() {

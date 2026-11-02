@@ -58,7 +58,7 @@ struct LessonsScreen: View {
                             }
                             Text("\(st.pct)%").font(.footnote.weight(.bold)).foregroundStyle(Color.ink)
                         }.contentShape(Rectangle())
-                    }.buttonStyle(.plain)
+                    }.buttonStyle(.card)
                     if !st.words.isEmpty {
                         SquareButton(icon: "play.fill", label: store.t("practiseLessonN", n)) { path.append(Route.lessonPractice(l.id)) }
                     }
@@ -111,7 +111,7 @@ struct DialoguesScreen: View {
                 VStack(spacing: 0) {
                     Divider()
                     ForEach(Array(dl.enumerated()), id: \.element.id) { k, d in
-                        NavigationLink(value: Route.dialogue(d.id)) { DialogueRow(d: d, n: k + 1) }.buttonStyle(.plain)
+                        NavigationLink(value: Route.dialogue(d.id)) { DialogueRow(d: d, n: k + 1) }.buttonStyle(.card)
                         Divider()
                     }
                 }
@@ -121,7 +121,7 @@ struct DialoguesScreen: View {
                         Text(store.t("freeSub")).font(.footnote).foregroundStyle(Color.ink2)
                     }
                     Spacer()
-                    NavigationLink(value: Route.dialogueTurn(dl.randomElement()!.id)) { Text(store.t("start")).font(.headline).padding(.horizontal, 18).padding(.vertical, 12).background(Color.action, in: RoundedRectangle(cornerRadius: max(2, Look.current.radius))).foregroundStyle(Color.onAction) }.buttonStyle(.plain)
+                    NavigationLink(value: Route.dialogueTurn(dl.randomElement()!.id)) { Text(store.t("start")).font(.headline).padding(.horizontal, 18).padding(.vertical, 12).background(Color.action, in: RoundedRectangle(cornerRadius: max(2, Look.current.radius))).foregroundStyle(Color.onAction) }.buttonStyle(.card)
                 }
                 .padding(14)
                 .overlay(RoundedRectangle(cornerRadius: Look.current.radius + 2).strokeBorder(style: StrokeStyle(lineWidth: 1.5, dash: [5, 4])).foregroundStyle(Color.ink2))

@@ -240,7 +240,7 @@ struct ChipButton: View {
                 .overlay(RoundedRectangle(cornerRadius: min(Look.current.radius, 18), style: .continuous).stroke(active ? Color.clear : Color.line))
                 .padding(.vertical, 5).contentShape(Rectangle()) // a 44 pt tall target around the smaller chip
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.card)
         .accessibilityAddTraits(active ? .isSelected : [])
     }
 }
@@ -273,6 +273,14 @@ struct SecondaryButtonStyle: ButtonStyle {
 }
 extension ButtonStyle where Self == PrimaryButtonStyle { static var primary: PrimaryButtonStyle { .init() } }
 extension ButtonStyle where Self == SecondaryButtonStyle { static var secondary: SecondaryButtonStyle { .init() } }
+/// A card or row that is a button: like .plain, but the whole frame takes the tap, also where the background is
+/// see-through (with .plain only the text and other opaque parts react), and it dims a little while pressed
+struct CardButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.contentShape(Rectangle()).opacity(configuration.isPressed ? 0.7 : 1)
+    }
+}
+extension ButtonStyle where Self == CardButtonStyle { static var card: CardButtonStyle { .init() } }
 
 struct SpeakButton: View {
     @Environment(Store.self) var store
@@ -285,7 +293,7 @@ struct SpeakButton: View {
                 .frame(width: small ? 44 : 56, height: small ? 44 : 56)
                 .background(Color.sunken, in: Circle())
                 .foregroundStyle(Color.ink)
-        }.buttonStyle(.plain).accessibilityLabel(store.t("speak"))
+        }.buttonStyle(.card).accessibilityLabel(store.t("speak"))
     }
 }
 

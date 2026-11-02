@@ -84,7 +84,7 @@ struct Onboarding: View {
             Button { store.switchCourse(c.id) } label: {
                 head.padding(14).background(Color.elevated, in: RoundedRectangle(cornerRadius: Look.current.radius + 2))
                     .overlay(RoundedRectangle(cornerRadius: Look.current.radius + 2).stroke(Color.line))
-            }.buttonStyle(.plain)
+            }.buttonStyle(.card)
         }
     }
 
@@ -98,7 +98,7 @@ struct Onboarding: View {
             Page {
                 HStack {
                     Button { step = 1 } label: { Image(systemName: "chevron.left").font(.headline).frame(width: 44, height: 44) }
-                        .buttonStyle(.plain).foregroundStyle(Color.ink).accessibilityLabel(store.t("back"))
+                        .buttonStyle(.card).foregroundStyle(Color.ink).accessibilityLabel(store.t("back"))
                     Spacer()
                     Text(store.t("obStep", 2, 2)).font(.caption).foregroundStyle(Color.ink2)
                 }

@@ -31,7 +31,7 @@ struct MeView: View {
                     Spacer()
                     Image(systemName: "chevron.right").foregroundStyle(Color.ink3)
                 }.foregroundStyle(Color.ink)
-            }.buttonStyle(.plain).accessibilityHint(store.t("switchCourse"))
+            }.buttonStyle(.card).accessibilityHint(store.t("switchCourse"))
             HStack(spacing: 0) {
                 number("\(store.state.streak())", store.t("statsStreak"), accent: true)
                 Divider()
@@ -40,7 +40,7 @@ struct MeView: View {
                 number("\(acc)%", store.t("statsAccuracy"))
             }
             .padding(.vertical, 10).overlay(alignment: .top) { Divider() }.overlay(alignment: .bottom) { Divider() }
-            NavigationLink(value: Route.progress) { ListRow(title: store.t("fullStats"), icon: "chart.bar") }.buttonStyle(.plain)
+            NavigationLink(value: Route.progress) { ListRow(title: store.t("fullStats"), icon: "chart.bar") }.buttonStyle(.card)
                 .background(Color.elevated, in: RoundedRectangle(cornerRadius: Look.current.radius + 2)).overlay(RoundedRectangle(cornerRadius: Look.current.radius + 2).stroke(Color.line))
 
             section(store.t("voiceMic")) {
@@ -57,7 +57,7 @@ struct MeView: View {
                                     .background(on ? Color.action : Color.paper, in: RoundedRectangle(cornerRadius: max(2, Look.current.radius - 4)))
                                     .overlay(RoundedRectangle(cornerRadius: max(2, Look.current.radius - 4)).stroke(on ? Color.clear : Color.line))
                                     .foregroundStyle(on ? Color.onAction : Color.ink)
-                            }.buttonStyle(.plain).accessibilityAddTraits(on ? .isSelected : [])
+                            }.buttonStyle(.card).accessibilityAddTraits(on ? .isSelected : [])
                         }
                     }
                 }.padding(14)

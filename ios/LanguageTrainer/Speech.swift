@@ -39,14 +39,21 @@ final class Speaker: NSObject, AVSpeechSynthesizerDelegate {
     /// Voices for the course language, best first: premium, enhanced, the regular voice, its smallest version,
     /// and last the Eloquence voices (Eddy, Flo, Grandma…), which share the regular voice's quality level
     /// but sound deliberately robotic
+    /// Kept per language: speechVoices() loads every voice on the device and is far too slow to call on each
+    /// redraw. Cleared when the app comes back to the front (a voice may have been downloaded meanwhile).
+    private var voiceCache: [String: [AVSpeechSynthesisVoice]] = [:]
+    func reloadVoices() { voiceCache = [:] }
     func courseVoices(_ c: Course? = nil) -> [AVSpeechSynthesisVoice] {
         let lang = (c ?? course).tts, base = String(lang.prefix(2))
-        return AVSpeechSynthesisVoice.speechVoices().filter { $0.language.hasPrefix(base) }
+        if let v = voiceCache[lang] { return v }
+        let v = AVSpeechSynthesisVoice.speechVoices().filter { $0.language.hasPrefix(base) }
             .sorted { a, b in
                 let ea = a.language == lang, eb = b.language == lang
                 if ea != eb { return ea }
                 return Self.rank(a) > Self.rank(b)
             }
+        voiceCache[lang] = v
+        return v
     }
     enum Level { case none, robotic, basic, natural }
     /// How good the best installed voice for the course is

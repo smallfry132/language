@@ -232,7 +232,7 @@ struct LearnView: View {
                 SpeakButton(text: w.hz, small: true)
             }
             .padding(16).background(Color.elevated).overlay(Rectangle().stroke(Color.line)).foregroundStyle(Color.ink)
-        }.buttonStyle(.plain)
+        }.buttonStyle(.card)
     }
 
     /// Japanese: the word written top to bottom on a mist tile, the reading beside it
@@ -254,7 +254,7 @@ struct LearnView: View {
                 }
                 Spacer(minLength: 0)
             }.foregroundStyle(Color.ink)
-        }.buttonStyle(.plain)
+        }.buttonStyle(.card)
     }
 
     /// Korean: build the word from its letters, syllable by syllable
@@ -309,11 +309,11 @@ struct LearnView: View {
                 Button { store.speaker.say(w.hz) } label: {
                     Image(systemName: "speaker.wave.2.fill").frame(width: 48, height: 48)
                         .background(Color.action, in: RoundedRectangle(cornerRadius: 14)).foregroundStyle(Color.onAction)
-                }.buttonStyle(.plain).accessibilityLabel(store.t("speak"))
+                }.buttonStyle(.card).accessibilityLabel(store.t("speak"))
             }
             .padding(16).background(Color.elevated, in: RoundedRectangle(cornerRadius: 18))
             .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.line)).foregroundStyle(Color.ink)
-        }.buttonStyle(.plain)
+        }.buttonStyle(.card)
     }
 
     // MARK: Review · Listen · Speak
@@ -341,7 +341,7 @@ struct LearnView: View {
                     .background(Color.elevated, in: RoundedRectangle(cornerRadius: r))
                     .overlay(RoundedRectangle(cornerRadius: r).stroke(hot ? Color.accent : Color.line, lineWidth: hot ? 1.5 : 1))
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.card)
             }
         }
     }
@@ -376,7 +376,7 @@ struct LearnView: View {
             .padding(.top, 12).frame(maxWidth: .infinity, alignment: .leading)
             .overlay(alignment: .top) { Rectangle().fill(Color.ink).frame(height: 2) }
             .contentShape(Rectangle())
-        }.buttonStyle(.plain).padding(.top, 18)
+        }.buttonStyle(.card).padding(.top, 18)
     }
     func tick(_ on: Bool, _ label: String) -> some View {
         HStack(spacing: 4) {
@@ -397,7 +397,7 @@ struct LearnView: View {
                     let name = store.t("lessonDefault", lessons.count + 1) // read before changing the state
                     store.update { $0.lessons[id] = Lesson(course: $0.course, name: name, created: nowMs()) }
                     path.append(Route.lesson(id))
-                } label: { Label(store.t("lessonNew"), systemImage: "plus").font(.caption.weight(.semibold)) }.buttonStyle(.plain).foregroundStyle(Color.ink).frame(minHeight: 32)
+                } label: { Label(store.t("lessonNew"), systemImage: "plus").font(.caption.weight(.semibold)) }.buttonStyle(.card).foregroundStyle(Color.ink).frame(minHeight: 32)
             }
             if lessons.isEmpty { Text(store.t("lessonEmpty")).font(.footnote).foregroundStyle(Color.ink2) }
             ForEach(Array(lessons.reversed().prefix(3)), id: \.id) { l in
@@ -415,9 +415,9 @@ struct LearnView: View {
                             ZStack(alignment: .leading) { Rectangle().fill(Color.sunken); Rectangle().fill(Color.ink).frame(width: g.size.width * CGFloat(pct) / 100) }
                         }.frame(height: 4)
                     }.contentShape(Rectangle())
-                }.buttonStyle(.plain)
+                }.buttonStyle(.card)
             }
-            NavigationLink(value: Route.myLessons) { Text(store.t("allLessons") + " →").font(.caption.weight(.semibold)).foregroundStyle(Color.ink).frame(minHeight: 32) }.buttonStyle(.plain)
+            NavigationLink(value: Route.myLessons) { Text(store.t("allLessons") + " →").font(.caption.weight(.semibold)).foregroundStyle(Color.ink).frame(minHeight: 32) }.buttonStyle(.card)
         }
         .padding(.top, 12)
         .overlay(alignment: .top) { Rectangle().fill(Color.ink).frame(height: 2) }
@@ -453,7 +453,7 @@ struct ToneDrillCard: View {
                 Text(store.t("toneQ")).font(.footnote.weight(.bold))
                 Spacer()
                 Button { store.speaker.say(syllables[target - 1] + ".", rate: 0.7) } label: { Label(store.t("play"), systemImage: "play.fill").font(.footnote.weight(.semibold)) }
-                    .buttonStyle(.plain).foregroundStyle(Color.ink)
+                    .buttonStyle(.card).foregroundStyle(Color.ink)
             }
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
                 ForEach(1...6, id: \.self) { n in
@@ -463,7 +463,7 @@ struct ToneDrillCard: View {
                             .frame(maxWidth: .infinity, minHeight: 48).foregroundStyle(Color.viTone(n))
                             .background(state == 1 ? Color.good.opacity(0.12) : state == 2 ? Color.bad.opacity(0.12) : Color.paper, in: RoundedRectangle(cornerRadius: 12))
                             .overlay(RoundedRectangle(cornerRadius: 12).stroke(state == 1 ? Color.good : state == 2 ? Color.bad : Color.line, lineWidth: 1.5))
-                    }.buttonStyle(.plain)
+                    }.buttonStyle(.card)
                 }
             }
         }
@@ -490,7 +490,7 @@ struct CapsLabel: View {
             Text(text.uppercased()).font(.caption.weight(.bold)).tracking(1.4)
             if chevron { Image(systemName: "chevron.down").font(.caption2.weight(.bold)) }
         }.foregroundStyle(Color.ink2)
-        if let action { Button(action: action) { label.frame(minHeight: 32) }.buttonStyle(.plain) } else { label }
+        if let action { Button(action: action) { label.frame(minHeight: 32) }.buttonStyle(.card) } else { label }
     }
 }
 

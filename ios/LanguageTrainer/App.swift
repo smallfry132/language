@@ -18,7 +18,8 @@ struct LanguageTrainerApp: App {
                 }
         }
         .onChange(of: phase) { _, p in
-            if p == .active { store.voiceCheck += 1 }
+            if p == .active { store.speaker.reloadVoices(); store.voiceCheck += 1 }
+            if p == .background { store.flushSave() }
             if p == .active || store.device.dirty { Task { await store.syncNow() } }
         }
     }
@@ -160,7 +161,7 @@ struct Dock: View {
                     }
                     .frame(maxWidth: .infinity, minHeight: 50).contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.card)
                 .accessibilityLabel(names[k])
                 .accessibilityAddTraits(on ? [.isSelected, .isButton] : .isButton)
             }

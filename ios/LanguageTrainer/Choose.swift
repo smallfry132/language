@@ -62,7 +62,7 @@ struct ChooseWord: View {
                     Button { store.speaker.say(w.ex ?? w.hz) } label: {
                         Image(systemName: "speaker.wave.2").frame(width: 44, height: 44)
                             .background(Color.elevated, in: RoundedRectangle(cornerRadius: radius)).overlay(RoundedRectangle(cornerRadius: radius).stroke(Color.line))
-                    }.buttonStyle(.plain).foregroundStyle(Color.ink).accessibilityLabel(store.t("play"))
+                    }.buttonStyle(.card).foregroundStyle(Color.ink).accessibilityLabel(store.t("play"))
                 }
                 if store.pyFirst && (store.state.settings.dlgHz == true || filled) { Text(gap.attributed(s, filled: filled, pinyin: false)).hanziFont(17).foregroundStyle(Color.ink2) }
                 if let tr = gap.translation(filled: filled) { Text(tr).font(.subheadline).foregroundStyle(Color.ink2) }
@@ -107,7 +107,7 @@ struct ChooseWord: View {
             }
             .foregroundStyle(Color.ink).contentShape(Rectangle())
         }
-        .buttonStyle(.plain).disabled(picked != nil)
+        .buttonStyle(.card).disabled(picked != nil)
         .accessibilityLabel("\(x.hz), \(x.py)" + (showMeaning ? ", \(store.tr(x))" : ""))
     }
     @ViewBuilder func sound(_ x: Word) -> some View {

@@ -87,7 +87,7 @@ struct Flashcards: View {
                 Button { store.speaker.say(w.hz) } label: {
                     Image(systemName: "speaker.wave.2.fill").font(.largeTitle).frame(width: 96, height: 96)
                         .background(Color.action, in: RoundedRectangle(cornerRadius: 24)).foregroundStyle(Color.onAction)
-                }.buttonStyle(.plain).accessibilityLabel(store.t("play"))
+                }.buttonStyle(.card).accessibilityLabel(store.t("play"))
                 Text(store.t("listenHint")).font(.footnote).foregroundStyle(Color.ink2)
             } else if store.course.id == "zh" && !store.pyFirst {
                 GridChars(text: w.hz, cell: w.hz.count > 2 ? 72 : w.hz.count == 2 ? 104 : 140)
@@ -134,7 +134,7 @@ struct Flashcards: View {
                 Button { store.speaker.say(w.hz) } label: {
                     Image(systemName: "speaker.wave.2").frame(width: 40, height: 40)
                         .background(Color.paper, in: RoundedRectangle(cornerRadius: radius)).overlay(RoundedRectangle(cornerRadius: radius).stroke(Color.line))
-                }.buttonStyle(.plain).accessibilityLabel(store.t("play"))
+                }.buttonStyle(.card).accessibilityLabel(store.t("play"))
             }
             Text(store.tr(w)).font(.title3.weight(.medium)).multilineTextAlignment(.center)
             if store.course.id == "ja", let k = w.kana {
@@ -161,7 +161,7 @@ struct Flashcards: View {
                     }
                     Spacer(minLength: 8)
                     Button { store.speaker.say(ex) } label: { Image(systemName: "speaker.wave.2").frame(width: 40, height: 40) }
-                        .buttonStyle(.plain).accessibilityLabel(store.t("play"))
+                        .buttonStyle(.card).accessibilityLabel(store.t("play"))
                 }
             }
         }.frame(maxWidth: .infinity)
@@ -191,7 +191,7 @@ struct Flashcards: View {
                 .background(q == 2 ? Color.action : Color.elevated, in: RoundedRectangle(cornerRadius: radius))
                 .overlay(RoundedRectangle(cornerRadius: radius).stroke(q == 0 ? Color.accent : q == 2 ? Color.clear : Color.line, lineWidth: q == 0 ? 1.5 : 1))
                 .foregroundStyle(q == 2 ? Color.onAction : q == 0 ? Color.accent : Color.ink)
-        }.buttonStyle(.plain)
+        }.buttonStyle(.card)
     }
 }
 
@@ -210,7 +210,7 @@ struct ToneFamily: View {
                             VietText(text: x.hz, size: 17, weight: .bold).padding(.horizontal, 12).frame(minHeight: 40)
                                 .background(x.id == word.id ? Color.sunken : Color.paper, in: RoundedRectangle(cornerRadius: 12))
                                 .overlay(RoundedRectangle(cornerRadius: 12).stroke(x.id == word.id ? Color.ink : Color.line))
-                        }.buttonStyle(.plain)
+                        }.buttonStyle(.card)
                     }
                 }
                 Text(store.t("toneFamily")).font(.caption2).foregroundStyle(Color.ink2)
@@ -257,8 +257,9 @@ struct ChoiceQuiz: View {
                             .frame(maxWidth: .infinity, minHeight: 104)
                             .background(bg(x), in: RoundedRectangle(cornerRadius: 16))
                             .overlay(RoundedRectangle(cornerRadius: 16).stroke(border(x), lineWidth: 1.5))
+                            .contentShape(RoundedRectangle(cornerRadius: 16)) // the whole tile is the button, not only the picture
                         }
-                        .buttonStyle(.plain).disabled(picked != nil)
+                        .buttonStyle(.card).disabled(picked != nil)
                         .accessibilityLabel(store.tr(x))
                     }
                 }
@@ -273,7 +274,8 @@ struct ChoiceQuiz: View {
                         .background(bg(x), in: RoundedRectangle(cornerRadius: 14))
                         .overlay(RoundedRectangle(cornerRadius: 14).stroke(border(x), lineWidth: 1.5))
                         .foregroundStyle(Color.ink)
-                    }.buttonStyle(.plain).disabled(picked != nil)
+                        .contentShape(RoundedRectangle(cornerRadius: 14)) // the whole card is the button, not only the word
+                    }.buttonStyle(.card).disabled(picked != nil)
                 }
             }
             if let p = picked {
@@ -477,7 +479,7 @@ struct TypeWord: View {
             Button { store.speaker.say(w.hz) } label: {
                 Image(systemName: "speaker.wave.2").frame(width: 44, height: 44)
                     .background(Color.elevated, in: RoundedRectangle(cornerRadius: r)).overlay(RoundedRectangle(cornerRadius: r).stroke(Color.line))
-            }.buttonStyle(.plain).foregroundStyle(Color.ink).accessibilityLabel(store.t("hearIt"))
+            }.buttonStyle(.card).foregroundStyle(Color.ink).accessibilityLabel(store.t("hearIt"))
         }.padding(.bottom, 8)
         CapsLabel(text: store.t(course == "zh" ? "typeThePinyin" : "typeTheWord"))
         TextField("", text: $input)
@@ -523,7 +525,7 @@ struct TypeWord: View {
                             .background(on ? color(t).opacity(0.12) : Color.paper, in: RoundedRectangle(cornerRadius: max(r - 4, 2)))
                             .overlay(RoundedRectangle(cornerRadius: max(r - 4, 2)).stroke(on ? color(t) : Color.line, lineWidth: on ? 2 : 1))
                     }
-                    .buttonStyle(.plain).disabled(result != nil)
+                    .buttonStyle(.card).disabled(result != nil)
                     .accessibilityLabel(toneName(store, t)).accessibilityAddTraits(on ? .isSelected : [])
                 }
             }
@@ -618,11 +620,11 @@ struct Meet: View {
                     Button { store.speaker.say(w.hz) } label: {
                         Label(store.t("play"), systemImage: "play.fill").font(.footnote.weight(.bold)).padding(.horizontal, 14).frame(height: 40)
                             .background(Color.action, in: RoundedRectangle(cornerRadius: r)).foregroundStyle(Color.onAction)
-                    }.buttonStyle(.plain)
+                    }.buttonStyle(.card)
                     Button { store.speaker.say(w.hz, rate: store.state.settings.rate * 0.75) } label: {
                         Text("0.75×").font(.footnote).padding(.horizontal, 14).frame(height: 40)
                             .background(Color.elevated, in: RoundedRectangle(cornerRadius: r)).overlay(RoundedRectangle(cornerRadius: r).stroke(Color.line))
-                    }.buttonStyle(.plain).foregroundStyle(Color.ink)
+                    }.buttonStyle(.card).foregroundStyle(Color.ink)
                 }.padding(.top, 4)
             }
             .padding(20).frame(maxWidth: .infinity)
@@ -691,7 +693,7 @@ struct Meet: View {
                 Button { store.speaker.say(ex) } label: {
                     Image(systemName: "play.fill").font(.footnote).frame(width: 44, height: 44)
                         .background(Color.elevated, in: RoundedRectangle(cornerRadius: Look.current.radius)).overlay(RoundedRectangle(cornerRadius: Look.current.radius).stroke(Color.line))
-                }.buttonStyle(.plain).foregroundStyle(Color.ink).accessibilityLabel(store.t("playExample"))
+                }.buttonStyle(.card).foregroundStyle(Color.ink).accessibilityLabel(store.t("playExample"))
             }
         }
     }
@@ -899,7 +901,7 @@ struct MatchGame: View {
                 .foregroundStyle(Color.ink).opacity(isDone ? 0.45 : 1)
                 .offset(x: shake.contains("\(side)\(w.id)") && !reduceMotion ? 6 : 0)
         }
-        .buttonStyle(.plain).disabled(isDone)
+        .buttonStyle(.card).disabled(isDone)
         .accessibilityAddTraits(isSel ? .isSelected : [])
     }
     func pick(_ w: Word, _ side: Int) {
@@ -952,7 +954,7 @@ struct PickRound: View {
                     .background(picked == nil ? Color.elevated : k == q.answer ? Color.good.opacity(0.15) : k == picked ? Color.bad.opacity(0.15) : Color.elevated, in: RoundedRectangle(cornerRadius: 14))
                     .overlay(RoundedRectangle(cornerRadius: 14).stroke(picked == nil ? Color.ink.opacity(0.08) : k == q.answer ? Color.good : k == picked ? Color.bad : Color.ink.opacity(0.08), lineWidth: 1.5))
                     .foregroundStyle(Color.ink)
-                }.buttonStyle(.plain).disabled(picked != nil)
+                }.buttonStyle(.card).disabled(picked != nil)
             }
             if let p = picked {
                 FeedbackBar(ok: p == q.answer, text: q.reveal)

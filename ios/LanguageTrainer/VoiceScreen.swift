@@ -44,7 +44,7 @@ struct VoiceScreen: View {
                     } label: {
                         Text("\(store.t(key)) \(r == 1 ? "1" : String(format: "%g", r))×").font(.subheadline.weight(on ? .bold : .regular))
                             .frame(maxWidth: .infinity, minHeight: 40).background(on ? Color.ink : Color.elevated).foregroundStyle(on ? Color.paper : Color.ink)
-                    }.buttonStyle(.plain).accessibilityAddTraits(on ? .isSelected : [])
+                    }.buttonStyle(.card).accessibilityAddTraits(on ? .isSelected : [])
                 }
             }
             .clipShape(RoundedRectangle(cornerRadius: max(2, Look.current.radius - 2)))
@@ -98,6 +98,6 @@ struct VoiceScreen: View {
                 }
             }.padding(14).contentShape(Rectangle())
         }
-        .buttonStyle(.plain).accessibilityAddTraits(on ? .isSelected : [])
+        .buttonStyle(.card).accessibilityAddTraits(on ? .isSelected : [])
     }
 }

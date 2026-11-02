@@ -82,7 +82,7 @@ struct PracticeHome: View {
                         Button { store.update { $0.settings.viAccent = south ? "n" : "s" } } label: {
                             Text("\(store.t("accentLabel")) · \(store.t(south ? "accentS" : "accentN"))").font(.caption.weight(.semibold))
                                 .padding(.horizontal, 12).frame(height: 34).background(Color.elevated, in: Capsule()).overlay(Capsule().stroke(Color.line))
-                        }.buttonStyle(.plain).foregroundStyle(Color.ink)
+                        }.buttonStyle(.card).foregroundStyle(Color.ink)
                     }
                 }
             }
@@ -108,7 +108,7 @@ struct PracticeHome: View {
                                 Text(meta(r.route, due: due)).font(.caption).foregroundStyle(Color.ink2)
                                 Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(Color.ink2)
                             }.padding(.vertical, 9).frame(minHeight: 52).contentShape(Rectangle())
-                        }.buttonStyle(.plain)
+                        }.buttonStyle(.card)
                         Rectangle().fill(Color.line).frame(height: 1)
                     }
                 }.padding(.top, 14)

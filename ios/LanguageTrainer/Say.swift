@@ -286,7 +286,7 @@ struct SayResult: View {
     var wrong: [Pitch.Syllable] { tones?.syllables.filter { $0.ok == false } ?? [] }
     var verdict: (title: String, text: String) {
         let heard = spoken.heard?.score ?? 0
-        if good { return (store.t("verdictGood"), store.t(spoken.curveOverruled ? "sentOverruled" : tones != nil ? "sentAllTones" : "sentHeard")) }
+        if good { return (store.t("verdictGood"), store.t(spoken.curveOverruled || !wrong.isEmpty ? "sentOverruled" : tones != nil ? "sentAllTones" : "sentHeard")) }
         if tones != nil {
             let n = wrong.count
             if heard >= 0.8 { return (store.t("verdictAlmost"), n == 1 ? store.t("sentUnderstoodFix") : store.t("sentUnderstoodFixN", n)) }

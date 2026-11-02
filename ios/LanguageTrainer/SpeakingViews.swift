@@ -56,6 +56,22 @@ struct MicButton: View {
     }
 }
 
+/// Korean: which final consonant was missing or extra; Japanese: hold the long vowels (from the recognised text)
+struct HeardHintText: View {
+    @Environment(Store.self) var store
+    let hz: String
+    let heard: String
+    var body: some View {
+        let w = store.course.id == "ja" ? store.words.all.first { $0.hz == hz } : nil
+        switch Lingo.heardHint(target: hz, kana: w?.kana, heard: heard, course: store.course.id) {
+        case .koFinalMissing(let h, let f): Text(store.t("koFinalMissing", h, f)).font(.footnote.weight(.medium))
+        case .koFinalExtra(let h, let f): Text(store.t("koFinalExtra", h, f)).font(.footnote.weight(.medium))
+        case .jaHold: Text(store.t("jaHold", w?.romaji ?? w?.py ?? hz)).font(.footnote.weight(.medium))
+        case nil: EmptyView()
+        }
+    }
+}
+
 /// Feedback for one spoken attempt: the tone curve, which syllables came through, and playback
 struct SpokenResult: View {
     @Environment(Store.self) var store
@@ -81,6 +97,7 @@ struct SpokenResult: View {
                             }
                         }
                         if !h.text.isEmpty { Text(store.t("heardAs", h.text)).font(.footnote).foregroundStyle(Color.ink3) }
+                        if h.score < 1, !h.text.isEmpty { HeardHintText(hz: hz, heard: h.text) }
                     }
                 }
             } else if spoken.tones == nil {

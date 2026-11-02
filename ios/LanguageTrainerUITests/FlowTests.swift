@@ -35,9 +35,10 @@ final class FlowTests: XCTestCase {
             if app.textFields.firstMatch.exists {                                           // type with the tone tiles
                 if app.buttons["Next"].exists { app.buttons["Next"].tap(); continue }
                 let f = app.textFields.firstMatch
-                // One syllable at a time: the field rewrites itself when a tone number arrives
-                f.tap(); for part in ["ni3", "hao3"] { f.typeText(part); RunLoop.current.run(until: Date().addingTimeInterval(0.4)) }
-                XCTAssertEqual(f.value as? String, "nǐhǎo", "tone numbers become marks while typing")
+                // Typed in one go: tone numbers turn into marks once typing pauses, no letter is lost
+                f.tap(); f.typeText("ni3hao3")
+                let marked = NSPredicate(format: "value == %@", "nǐhǎo")
+                XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: marked, object: f)], timeout: 3), .completed, "got \(f.value as? String ?? "")")
                 app.buttons["Check"].tap(); continue
             }
             RunLoop.current.run(until: Date().addingTimeInterval(0.3))
@@ -64,10 +65,12 @@ final class FlowTests: XCTestCase {
         let own = app.textFields["own-q"]
         XCTAssertTrue(own.waitForExistence(timeout: 3))
         own.tap(); own.typeText("ao4di4li4")
-        XCTAssertEqual(own.value as? String, "àodìlì")
+        // Tone numbers become marks once typing pauses
+        let marked = { (f: XCUIElement) in XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "àodìlì"), object: f)], timeout: 3) }
+        XCTAssertEqual(marked(own), .completed, "got \(own.value as? String ?? "")")
         let py = app.textFields["Pinyin (ni3hao3 → nǐhǎo)"]
         XCTAssertTrue(py.waitForExistence(timeout: 3))
-        XCTAssertEqual(py.value as? String, "àodìlì", "the typed pinyin is filled in")
+        XCTAssertEqual(marked(py), .completed, "the typed pinyin is filled in")
         let hz = app.textFields["Characters (needed for audio)"]
         hz.tap(); hz.typeText("奥地利")
         let en = app.textFields["Meaning"]

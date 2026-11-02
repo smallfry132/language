@@ -45,8 +45,10 @@ struct Flashcards: View {
             .background(Color.elevated, in: RoundedRectangle(cornerRadius: radius + 2))
             .overlay(RoundedRectangle(cornerRadius: radius + 2).stroke(Color.line))
             .overlay(alignment: .top) {
-                HStack { Text(store.t(listenFirst ? "cardListen" : "cardFront")); Spacer(); Text(flipped ? "2 / 2" : "1 / 2") }
+                HStack { Text(store.t(frontLabel(w))); Spacer(); Text(flipped ? "2 / 2" : "1 / 2") }
                     .font(.caption2).foregroundStyle(Color.ink2).padding(.horizontal, 18).padding(.top, 12)
+                    // turns with the card: turned back once more so it reads the right way round
+                    .rotation3DEffect(.degrees(flipped && !reduceMotion ? 180 : 0), axis: (x: 0, y: 1, z: 0))
             }
             .foregroundStyle(Color.ink)
             .rotation3DEffect(.degrees(flipped && !reduceMotion ? 180 : 0), axis: (x: 0, y: 1, z: 0), perspective: 0.4)
@@ -66,14 +68,22 @@ struct Flashcards: View {
                 Button(store.t("showAnswer")) { flip(w) }.buttonStyle(.primary)
             }
         }
-        .onAppear { if listenFirst { store.speaker.say(w.hz) } }
+        .onAppear { if listenFirst { store.speaker.say(w.hz) }; if Launch.has("-flip") && !flipped { flip(w) } } // -flip: for screenshots
         .onChange(of: i) { if listenFirst { store.speaker.say(queue[i].hz) } }
+    }
+
+    /// Korean (round 2): a word with a picture starts from the picture
+    func picFirst(_ w: Word) -> Bool { store.course.id == "ko" && store.words.picture(w.id) != nil }
+    func frontLabel(_ w: Word) -> String {
+        listenFirst ? "cardListen" : picFirst(w) ? "cardPicKo" : store.course.id == "ja" && w.kana != nil && w.kana != w.hz ? "cardKanji" : "cardFront"
     }
 
     @ViewBuilder func front(_ w: Word) -> some View {
         VStack(spacing: 14) {
             Spacer(minLength: 30)
-            if listenFirst {
+            if picFirst(w), let p = store.words.picture(w.id) {
+                Text(p).font(.system(size: 84)).accessibilityLabel(store.t("picture"))
+            } else if listenFirst {
                 Button { store.speaker.say(w.hz) } label: {
                     Image(systemName: "speaker.wave.2.fill").font(.largeTitle).frame(width: 96, height: 96)
                         .background(Color.action, in: RoundedRectangle(cornerRadius: 24)).foregroundStyle(Color.onAction)
@@ -98,6 +108,18 @@ struct Flashcards: View {
                 HStack(spacing: 6) { ToneIcon(n: n, course: "vi").scaleEffect(0.6).frame(width: 30, height: 22); Text(ViTone.name(n)).font(.caption.weight(.bold)) }
                     .foregroundStyle(Look.toneColors ? Color.viTone(n) : Color.ink2)
                 VietText(text: w.hz, size: 52, weight: .heavy).lineLimit(1).minimumScaleFactor(0.5)
+            } else if store.course.id == "ja" {
+                // Kanji with its reading above (ruby), romaji under it
+                VStack(spacing: 0) {
+                    if let k = w.kana, k != w.hz { Text(k).hanziFont(16).foregroundStyle(Color.ink2) }
+                    Text(w.hz).hanziFont(60).lineLimit(1).minimumScaleFactor(0.4)
+                }
+                Text(w.romaji ?? w.py).font(.title3).foregroundStyle(Color.ink2)
+            } else if store.course.id == "ko" {
+                if picFirst(w), let p = store.words.picture(w.id) { Text(p).font(.system(size: 44)).accessibilityHidden(true) }
+                Text(w.hz).hanziFont(52).lineLimit(1).minimumScaleFactor(0.4)
+                Text(w.py + (w.pron.map { " · [\($0)]" } ?? "")).font(.title3.weight(.semibold)).foregroundStyle(Color.ink2)
+                JamoTiles(text: w.hz)
             } else { WordHero(word: w, size: 52) }
             HStack(spacing: 10) {
                 if store.course.id == "zh" {
@@ -115,7 +137,18 @@ struct Flashcards: View {
                 }.buttonStyle(.plain).accessibilityLabel(store.t("play"))
             }
             Text(store.tr(w)).font(.title3.weight(.medium)).multilineTextAlignment(.center)
-            if let p = store.words.picture(w.id) { Text(p).font(.title).accessibilityHidden(true) }
+            if store.course.id == "ja", let k = w.kana {
+                HStack(spacing: 4) {
+                    ForEach(Array(k.enumerated()), id: \.offset) { _, c in
+                        Text(String(c)).hanziFont(18).frame(width: 34, height: 34)
+                            .background(Color.paper, in: RoundedRectangle(cornerRadius: 6)).overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.line))
+                    }
+                }.accessibilityHidden(true)
+            }
+            if store.course.id == "ko", let tip = Library.shared.tips.tip(for: w, lang: store.state.lang), !tip.sound.isEmpty {
+                Text(tip.sound).font(.footnote).foregroundStyle(Color.ink2).multilineTextAlignment(.center)
+            }
+            if let p = store.words.picture(w.id), !picFirst(w) { Text(p).font(.title).accessibilityHidden(true) }
             if store.course.id == "vi" { ToneFamily(word: w) }
             Spacer(minLength: 0)
             if let ex = w.ex {
@@ -361,11 +394,16 @@ struct PinyinField: View {
             .padding(14).background(Color.elevated, in: RoundedRectangle(cornerRadius: 14))
             .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.ink.opacity(0.12)))
             .focused($focused)
-            .onSubmit(submit)
-            .onChange(of: text) { _, v in
-                if store.course.id == "zh", v.contains(where: { ("1"..."5").contains($0) }) { text = Lingo.numToMarks(v) }
+            .onSubmit { settleMarks(); submit() }
+            // Tone numbers become marks once typing pauses: rewriting the field while keys are still arriving loses letters
+            .task(id: text) {
+                try? await Task.sleep(for: .milliseconds(700))
+                if !Task.isCancelled { settleMarks() }
             }
             .onAppear { if autofocus { focused = true } }
+    }
+    func settleMarks() {
+        if store.course.id == "zh", text.contains(where: { ("1"..."5").contains($0) }) { text = Lingo.numToMarks(text) }
     }
 }
 
@@ -452,8 +490,11 @@ struct TypeWord: View {
             .focused($focused)
             .disabled(result != nil)
             .onSubmit { result == nil ? check() : next() }
-            .onChange(of: input) { _, v in
-                if course == "zh", v.contains(where: { ("1"..."5").contains($0) }) { input = Lingo.numToMarks(v) }
+            // Tone numbers become marks once typing pauses (the syllable tiles show them right away);
+            // rewriting the field while keys are still arriving loses letters
+            .task(id: input) {
+                try? await Task.sleep(for: .milliseconds(700))
+                if !Task.isCancelled, result == nil, course == "zh", input.contains(where: { ("1"..."5").contains($0) }) { input = Lingo.numToMarks(input) }
             }
             .onAppear { focused = true }
             .id(i)

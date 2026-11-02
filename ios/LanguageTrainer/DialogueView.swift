@@ -391,7 +391,10 @@ struct DialogueTurn: View {
                 if let a = attempt {
                     HStack(spacing: 8) {
                         if let h = a.heard { Text("\(Int((h.score * 100).rounded()))%").font(.headline).foregroundStyle(h.score >= 0.8 ? Color.good : Color.gold) }
-                        Text(a.heard.map { store.t("heardAs", $0.text.isEmpty ? "–" : $0.text) } ?? store.t("rateSelf")).font(.caption).foregroundStyle(Color.ink2).lineLimit(2)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(a.heard.map { store.t("heardAs", $0.text.isEmpty ? "–" : $0.text) } ?? store.t("rateSelf")).font(.caption).foregroundStyle(Color.ink2).lineLimit(2)
+                            if let h = a.heard, h.score < 1, !h.text.isEmpty { HeardHintText(hz: l.hz, heard: h.text) }
+                        }
                         Spacer()
                         Button(store.t("next")) { answer(ok: a.heard.map { $0.score >= 0.8 }, note: nil, spoken: a) }.buttonStyle(.bordered).tint(.ink)
                     }

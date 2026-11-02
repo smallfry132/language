@@ -156,7 +156,7 @@ struct FamilyCard: View {
     var body: some View {
         let r = max(2, Look.current.radius)
         VStack(spacing: 4) {
-            if let p = store.words.picture(word.id) { Text(p).font(.system(size: 34)) }
+            if store.words.hasPicture(word.id) { WordPic(id: word.id, size: 34) }
             FamilyReading(word: word).lineLimit(1).minimumScaleFactor(0.5)
             if let sub = store.familySub(word) { Text(sub).hanziFont(16).foregroundStyle(Color.ink2).lineLimit(1).minimumScaleFactor(0.6) }
             if family.kind == "tone" { ToneChip(word: word) }

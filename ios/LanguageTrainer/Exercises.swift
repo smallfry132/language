@@ -73,7 +73,7 @@ struct Flashcards: View {
     }
 
     /// Korean (round 2): a word with a picture starts from the picture
-    func picFirst(_ w: Word) -> Bool { store.course.id == "ko" && store.words.picture(w.id) != nil }
+    func picFirst(_ w: Word) -> Bool { store.course.id == "ko" && store.words.hasPicture(w.id) }
     func frontLabel(_ w: Word) -> String {
         listenFirst ? "cardListen" : picFirst(w) ? "cardPicKo" : store.course.id == "ja" && w.kana != nil && w.kana != w.hz ? "cardKanji" : "cardFront"
     }
@@ -81,8 +81,8 @@ struct Flashcards: View {
     @ViewBuilder func front(_ w: Word) -> some View {
         VStack(spacing: 14) {
             Spacer(minLength: 30)
-            if picFirst(w), let p = store.words.picture(w.id) {
-                Text(p).font(.system(size: 84)).accessibilityLabel(store.t("picture"))
+            if picFirst(w) {
+                WordPic(id: w.id, size: 84).accessibilityElement().accessibilityLabel(store.t("picture"))
             } else if listenFirst {
                 Button { store.speaker.say(w.hz) } label: {
                     Image(systemName: "speaker.wave.2.fill").font(.largeTitle).frame(width: 96, height: 96)
@@ -116,7 +116,7 @@ struct Flashcards: View {
                 }
                 Text(w.romaji ?? w.py).font(.title3).foregroundStyle(Color.ink2)
             } else if store.course.id == "ko" {
-                if picFirst(w), let p = store.words.picture(w.id) { Text(p).font(.system(size: 44)).accessibilityHidden(true) }
+                if picFirst(w) { WordPic(id: w.id, size: 44).accessibilityHidden(true) }
                 Text(w.hz).hanziFont(52).lineLimit(1).minimumScaleFactor(0.4)
                 Text(w.py + (w.pron.map { " · [\($0)]" } ?? "")).font(.title3.weight(.semibold)).foregroundStyle(Color.ink2)
                 JamoTiles(text: w.hz)
@@ -148,7 +148,7 @@ struct Flashcards: View {
             if store.course.id == "ko", let tip = Library.shared.tips.tip(for: w, lang: store.state.lang), !tip.sound.isEmpty {
                 Text(tip.sound).font(.footnote).foregroundStyle(Color.ink2).multilineTextAlignment(.center)
             }
-            if let p = store.words.picture(w.id), !picFirst(w) { Text(p).font(.title).accessibilityHidden(true) }
+            if store.words.hasPicture(w.id), !picFirst(w) { WordPic(id: w.id, size: 28).accessibilityHidden(true) }
             if store.course.id == "vi" { ToneFamily(word: w) }
             Spacer(minLength: 0)
             if let ex = w.ex {
@@ -251,7 +251,7 @@ struct ChoiceQuiz: View {
                     ForEach(Array(options.enumerated()), id: \.element.id) { k, x in
                         Button { answer(x) } label: {
                             VStack(spacing: 4) {
-                                Text(store.words.picture(x.id) ?? "").scaledFont(52)
+                                WordPic(id: x.id, size: 52)
                                 if picked != nil { Text(store.tr(x)).font(.caption).foregroundStyle(Color.ink2).lineLimit(1) }
                             }
                             .frame(maxWidth: .infinity, minHeight: 104)
@@ -289,7 +289,7 @@ struct ChoiceQuiz: View {
 
     /// This question works with pictures: the picture modes, and meaning or listening questions about a word that has one
     func usesPictures(_ w: Word) -> Bool {
-        [.picWord, .listenPic].contains(direction) || ([.hzTr, .listen].contains(direction) && store.words.picture(w.id) != nil)
+        [.picWord, .listenPic].contains(direction) || ([.hzTr, .listen].contains(direction) && store.words.hasPicture(w.id))
     }
     /// The options are pictures alone (no words): the meaning is what is asked
     func picturesOnly(_ w: Word) -> Bool { usesPictures(w) && [.hzTr, .listenPic].contains(direction) }
@@ -311,7 +311,7 @@ struct ChoiceQuiz: View {
         case .pyHz:
             Text(w.py).font(.title)
         case .picWord:
-            Text(store.words.picture(w.id) ?? "").scaledFont(88).accessibilityLabel(store.tr(w))
+            WordPic(id: w.id, size: 88).accessibilityElement().accessibilityLabel(store.tr(w))
             Text(store.t("pictureQ")).foregroundStyle(Color.ink2)
         case .listen, .listenPic:
             Text(store.t(direction == .listenPic ? "hearPicQ" : "listenPrompt")).foregroundStyle(Color.ink2)
@@ -324,7 +324,7 @@ struct ChoiceQuiz: View {
         case .hzTr: Text(store.tr(x)).lineLimit(2)
         case .hzPy: Pron(py: x.py, size: 19)
         case .listen where usesPictures(list[i]):
-            HStack(spacing: 12) { Text(store.words.picture(x.id) ?? "").scaledFont(30); WordFace(word: x, size: 26) }
+            HStack(spacing: 12) { WordPic(id: x.id, size: 30); WordFace(word: x, size: 26) }
         default: WordFace(word: x, size: 26)
         }
     }
@@ -348,7 +348,7 @@ struct ChoiceQuiz: View {
         var pool = store.words.selected.count >= 8 ? store.words.selected : store.words.all
         if usesPictures(w) {
             // Only words with pictures, preferably from the selected levels
-            let withPics = { (l: [Word]) in l.filter { store.words.picture($0.id) != nil } }
+            let withPics = { (l: [Word]) in l.filter { store.words.hasPicture($0.id) } }
             pool = withPics(store.words.selected).count >= 8 ? withPics(store.words.selected) : withPics(store.words.all)
         }
         for x in pool.shuffled() {
@@ -435,7 +435,7 @@ struct TypeWord: View {
                 VStack(spacing: 10) {
                     // Only Japanese shows the word (you type its reading); elsewhere the meaning is the prompt, as on the web
                     if store.pyFirst || course != "ja" {
-                        if let p = store.words.picture(w.id), course != "zh" { Text(p).font(.system(size: 48)).accessibilityHidden(true) }
+                        if store.words.hasPicture(w.id), course != "zh" { WordPic(id: w.id, size: 48).accessibilityHidden(true) }
                         Text(store.tr(w)).font(.title2.weight(.semibold)).multilineTextAlignment(.center)
                         SpeakButton(text: w.hz, small: true)
                     } else {
@@ -468,8 +468,8 @@ struct TypeWord: View {
     @ViewBuilder func pickerPrompt(_ w: Word) -> some View {
         let r = Look.current.radius
         HStack(spacing: 14) {
-            if let p = store.words.picture(w.id) {
-                Text(p).font(.system(size: 40)).frame(width: 72, height: 72)
+            if store.words.hasPicture(w.id) {
+                WordPic(id: w.id, size: 40, box: 72).frame(width: 72, height: 72)
                     .background(Color.elevated, in: RoundedRectangle(cornerRadius: r)).overlay(RoundedRectangle(cornerRadius: r).stroke(Color.line))
                     .accessibilityHidden(true)
             }
@@ -613,8 +613,8 @@ struct Meet: View {
             ProgressHeader(i: i, n: list.count)
             VStack(spacing: 8) {
                 HStack { CapsLabel(text: store.t("newWord")); Spacer(); ToneChip(word: w) }
-                if let p = store.words.picture(w.id) {
-                    Text(p).font(.system(size: 46)).frame(width: 84, height: 84)
+                if store.words.hasPicture(w.id) {
+                    WordPic(id: w.id, size: 46, box: 84).frame(width: 84, height: 84)
                         .background(Color.paper, in: RoundedRectangle(cornerRadius: r)).overlay(RoundedRectangle(cornerRadius: r).stroke(Color.line))
                         .accessibilityHidden(true)
                 }

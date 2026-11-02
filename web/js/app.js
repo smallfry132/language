@@ -133,7 +133,12 @@
     themeOrderCache = { course: C.id, order, topic };
     return order;
   }
-  const pic = (w) => (window.PICTURES && window.PICTURES[C.id] && window.PICTURES[C.id][w.id]) || "";
+  // A word's picture: the drawn one (art.js) when there is one, else its emoji; both size with the font
+  const pic = (w) => {
+    const a = window.ART && window.ART[C.id] && window.ART[C.id][w.id];
+    if (a) return `<img class="art" src="art/${a}.webp" alt="" draggable="false" decoding="async">`;
+    return (window.PICTURES && window.PICTURES[C.id] && window.PICTURES[C.id][w.id]) || "";
+  };
   const picHtml = (w, cls) => (pic(w) ? `<div class="pic ${cls || ""}" aria-hidden="true">${pic(w)}</div>` : "");
   const topicOf = (id) => { themeOrder(); return themeOrderCache.topic[id]; }; // a lookup table: Japanese has 8,000 words
   const hasPics = () => WORDS.some((w) => pic(w));

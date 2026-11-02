@@ -580,3 +580,15 @@ final class FamilyTests: XCTestCase {
         XCTAssertFalse(es.contains { $0.hz == "el hermano" && Lingo.elButFeminine($0) })
     }
 }
+
+final class ArtTests: XCTestCase {
+    /// Drawn pictures: every mapped word has its file, and other courses share a picture by meaning
+    func testPicturesResolve() {
+        let lib = Library.shared
+        XCTAssertFalse(lib.art.isEmpty)
+        for id in lib.art.keys { XCTAssertNotNil(lib.artURL(id), "no file for \(id)") }
+        XCTAssertEqual(lib.art["34"], "zh34")                                     // 狗 dog
+        let hund = lib.words["de"]?.first { $0.hz == "der Hund" }
+        XCTAssertEqual(hund.flatMap { lib.art[$0.id] }, "zh34", "der Hund shares the dog")
+    }
+}

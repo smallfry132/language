@@ -4,3 +4,4 @@ xcuserdata/
 ios/LanguageCore/.build/
 ios/LanguageCore/.swiftpm/
 DerivedData/
+art/words/*.jpg

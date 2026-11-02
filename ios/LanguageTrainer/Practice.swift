@@ -45,7 +45,7 @@ struct PracticeHome: View {
         "de": [("Hören", ""), ("Sprechen", ""), ("Lesen", ""), ("Schreiben", "")], "es": [("Escuchar", ""), ("Hablar", ""), ("Leer", ""), ("Escribir", "")]
     ]
     var skills: [(id: String, rows: [Row])] {
-        let c = store.course, pics = store.words.selected.contains { store.words.picture($0.id) != nil }, dl = store.dialogues
+        let c = store.course, pics = store.words.selected.contains { store.words.hasPicture($0.id) }, dl = store.dialogues
         let sounds = Library.shared.sounds[c.id] != nil // German and Spanish have no sound chart
         let free = dl.randomElement().map { Route.dialogueTurn($0.id) }
         let all: [(String, [Row?])] = [
@@ -312,7 +312,7 @@ struct PracticeScreen: View {
             list = Array((lw.isEmpty ? store.words.selected.filter(ok).sorted { (store.status($0.id) == .new ? 1 : 0) < (store.status($1.id) == .new ? 1 : 0) } : lw).prefix(6))
         default:
             var pool = prefs.pool(store)
-            if [.picture, .listenPic].contains(mode) { pool = pool.filter { store.words.picture($0.id) != nil } }
+            if [.picture, .listenPic].contains(mode) { pool = pool.filter { store.words.hasPicture($0.id) } }
             if mode == .gender { pool = pool.filter { $0.g != nil } } // nouns with a gender
             let take = prefs.take(mode, available: pool.count)
             // Japanese and Korean: words that have a minimal pair come first in Choose the word
@@ -388,7 +388,7 @@ struct SetupView: View {
     var counts: [Int] { mode == .flash ? [10, 20, 40] : mode == .say ? [5, 10, 20] : [10, 20, 30] }
     var available: Int {
         let p = prefs.pool(store)
-        return [.picture, .listenPic].contains(mode) ? p.filter { store.words.picture($0.id) != nil }.count : mode == .gender ? p.filter { $0.g != nil }.count : p.count
+        return [.picture, .listenPic].contains(mode) ? p.filter { store.words.hasPicture($0.id) }.count : mode == .gender ? p.filter { $0.g != nil }.count : p.count
     }
     var skill: String? { ["listen": [Mode.listen, .listenPic, .tones], "speak": [.say], "read": [.choose, .picture, .flash, .quiz, .match, .gender], "write": [.type, .typer, .numbers]].first { $0.value.contains(mode) }?.key }
 

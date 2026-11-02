@@ -148,6 +148,8 @@ public struct CourseWords {
     }
     public func word(_ id: String) -> Word? { index[id] ?? Library.shared.word(id) }
     public func picture(_ id: String) -> String? { Library.shared.pictures[id] }
+    /// The word can be shown as a picture: a drawn one or an emoji
+    public func hasPicture(_ id: String) -> Bool { Library.shared.art[id] != nil || Library.shared.pictures[id] != nil }
     /// The topic a word belongs to
     public func theme(of id: String) -> Theme? { topicOf[id].flatMap { t in themes.first { $0.id == t } } }
     public func topicId(of id: String) -> String? { topicOf[id] }

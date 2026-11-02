@@ -66,7 +66,7 @@ struct SayWord: View {
     func wordCard(_ w: Word) -> some View {
         CardBox {
             HStack(spacing: 12) {
-                if let p = store.words.picture(w.id) { Text(p).scaledFont(40).accessibilityHidden(true) }
+                if store.words.hasPicture(w.id) { WordPic(id: w.id, size: 40).accessibilityHidden(true) }
                 VStack(alignment: .leading, spacing: 2) {
                     reading(w)
                     Text(sub(w)).font(.subheadline).foregroundStyle(Color.ink2)

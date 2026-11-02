@@ -21,7 +21,7 @@ struct GenderQuiz: View {
         Page {
             ProgressHeader(i: i + (picked == nil ? 0 : 1), n: list.count, extra: "✓ \(correct)")
             VStack(spacing: 8) {
-                if let p = store.words.picture(w.id) { Text(p).font(.system(size: 64)).accessibilityHidden(true) }
+                if store.words.hasPicture(w.id) { WordPic(id: w.id, size: 64).accessibilityHidden(true) }
                 HStack(spacing: 8) {
                     Text(picked == nil ? "___" : (w.articleSplit?.article ?? "")).hanziFont(36, .bold)
                         .foregroundStyle(picked == nil ? Color.ink3 : Color.gender(w.g ?? "m"))

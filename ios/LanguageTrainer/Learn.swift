@@ -269,7 +269,7 @@ struct LearnView: View {
 
     /// The same word all day: one you have met (or the next to meet) that has a picture
     var wordOfDay: Word? {
-        let pics = store.words.selected.filter { store.words.picture($0.id) != nil }
+        let pics = store.words.selected.filter { store.words.hasPicture($0.id) }
         let met = pics.filter { store.status($0.id) != .new }
         let pool = met.count >= 3 ? met : Array(pics.prefix(30))
         guard !pool.isEmpty else { return nil }
@@ -285,7 +285,7 @@ struct LearnView: View {
                     CapsLabel(text: store.t("wordOfDay"))
                     PinyinText(py: w.py, size: 24, weight: .bold)
                     Text(store.tr(w)).font(.subheadline.weight(.medium)).lineLimit(2)
-                    if let p = store.words.picture(w.id) { Text(p).font(.title2).padding(.top, 4).accessibilityHidden(true) }
+                    if store.words.hasPicture(w.id) { WordPic(id: w.id, size: 22).padding(.top, 4).accessibilityHidden(true) }
                 }
                 Spacer(minLength: 0)
                 SpeakButton(text: w.hz, small: true)
@@ -298,8 +298,8 @@ struct LearnView: View {
     func plainWord(_ w: Word) -> some View {
         Button { openWord = w } label: {
             HStack(alignment: .center, spacing: 16) {
-                if let p = store.words.picture(w.id) {
-                    Text(p).font(.system(size: 40)).frame(width: 72, height: 72)
+                if store.words.hasPicture(w.id) {
+                    WordPic(id: w.id, size: 40, box: 72).frame(width: 72, height: 72)
                         .background(Color.paper, in: RoundedRectangle(cornerRadius: Look.current.radius)).accessibilityHidden(true)
                 }
                 VStack(alignment: .leading, spacing: 3) {

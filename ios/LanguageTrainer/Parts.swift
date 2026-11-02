@@ -210,3 +210,32 @@ struct WordLine: View {
         }
     }
 }
+
+/// A word's picture: the drawn one when there is one, else its emoji. `size` is the emoji's point size (it grows
+/// with Dynamic Type); with `box`, a drawn picture fills that square frame instead.
+struct WordPic: View {
+    let id: String
+    var size: CGFloat
+    var box: CGFloat? = nil
+    @ScaledMetric(relativeTo: .title) private var scale: CGFloat = 1
+    var body: some View {
+        if let img = ArtImages.image(id) {
+            let side = box ?? size * 1.25 * scale
+            Image(uiImage: img).resizable().scaledToFill().frame(width: side, height: side)
+                .clipShape(RoundedRectangle(cornerRadius: box == nil ? side * 0.18 : max(2, Look.current.radius - 2)))
+        } else if let p = Library.shared.pictures[id] {
+            Text(p).scaledFont(size)
+        }
+    }
+}
+
+/// Decoded drawn pictures, kept while memory allows (a list scrolls past the same tiles again)
+@MainActor enum ArtImages {
+    private static let cache = NSCache<NSString, UIImage>()
+    static func image(_ id: String) -> UIImage? {
+        if let img = cache.object(forKey: id as NSString) { return img }
+        guard let url = Library.shared.artURL(id), let img = UIImage(contentsOfFile: url.path) else { return nil }
+        cache.setObject(img, forKey: id as NSString)
+        return img
+    }
+}

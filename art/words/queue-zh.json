@@ -1,0 +1,4042 @@
+[
+{
+"id": "9",
+"hz": "菜",
+"py": "cài",
+"en": "dish, vegetable",
+"cat": "food",
+"ex": "This dish is delicious."
+},
+{
+"id": "66",
+"hz": "米饭",
+"py": "mǐfàn",
+"en": "cooked rice",
+"cat": "food",
+"ex": "I eat rice."
+},
+{
+"id": "79",
+"hz": "苹果",
+"py": "píngguǒ",
+"en": "apple",
+"cat": "food",
+"ex": "I like eating apples."
+},
+{
+"id": "99",
+"hz": "水",
+"py": "shuǐ",
+"en": "water",
+"cat": "food",
+"ex": "Please give me water."
+},
+{
+"id": "100",
+"hz": "水果",
+"py": "shuǐguǒ",
+"en": "fruit",
+"cat": "food",
+"ex": "I like eating fruit."
+},
+{
+"id": "193",
+"hz": "鸡蛋",
+"py": "jīdàn",
+"en": "egg",
+"cat": "food",
+"ex": "I eat two eggs in the morning."
+},
+{
+"id": "202",
+"hz": "咖啡",
+"py": "kāfēi",
+"en": "coffee",
+"cat": "food",
+"ex": "I drink coffee every day."
+},
+{
+"id": "222",
+"hz": "面条",
+"py": "miàntiáo",
+"en": "noodles",
+"cat": "food",
+"ex": "I eat noodles at noon."
+},
+{
+"id": "225",
+"hz": "牛奶",
+"py": "niúnǎi",
+"en": "milk",
+"cat": "food",
+"ex": "Children like to drink milk."
+},
+{
+"id": "263",
+"hz": "西瓜",
+"py": "xīguā",
+"en": "watermelon",
+"cat": "food",
+"ex": "In summer I love eating watermelon."
+},
+{
+"id": "274",
+"hz": "羊肉",
+"py": "yángròu",
+"en": "mutton, lamb",
+"cat": "food",
+"ex": "I don't eat lamb."
+},
+{
+"id": "328",
+"hz": "菜单",
+"py": "càidān",
+"en": "menu",
+"cat": "food",
+"ex": "Please give me the menu."
+},
+{
+"id": "347",
+"hz": "蛋糕",
+"py": "dàngāo",
+"en": "cake",
+"cat": "food",
+"ex": "The birthday cake is delicious."
+},
+{
+"id": "465",
+"hz": "面包",
+"py": "miànbāo",
+"en": "bread",
+"cat": "food",
+"ex": "I eat bread in the morning."
+},
+{
+"id": "480",
+"hz": "啤酒",
+"py": "píjiǔ",
+"en": "beer",
+"cat": "food",
+"ex": "Two bottles of beer, please."
+},
+{
+"id": "541",
+"hz": "香蕉",
+"py": "xiāngjiāo",
+"en": "banana",
+"cat": "food",
+"ex": "Monkeys like eating bananas."
+},
+{
+"id": "565",
+"hz": "饮料",
+"py": "yǐnliào",
+"en": "drink, beverage",
+"cat": "food",
+"ex": "What would you like to drink?"
+},
+{
+"id": "63",
+"hz": "猫",
+"py": "māo",
+"en": "cat",
+"cat": "animals",
+"ex": "That cat is very small."
+},
+{
+"id": "287",
+"hz": "鱼",
+"py": "yú",
+"en": "fish",
+"cat": "animals",
+"ex": "I like eating fish."
+},
+{
+"id": "358",
+"hz": "动物",
+"py": "dòngwù",
+"en": "animal",
+"cat": "animals",
+"ex": "I like small animals."
+},
+{
+"id": "460",
+"hz": "马",
+"py": "mǎ",
+"en": "horse",
+"cat": "animals",
+"ex": "I can ride a horse."
+},
+{
+"id": "474",
+"hz": "鸟",
+"py": "niǎo",
+"en": "bird",
+"cat": "animals",
+"ex": "There are many birds in the tree."
+},
+{
+"id": "550",
+"hz": "熊猫",
+"py": "xióngmāo",
+"en": "panda",
+"cat": "animals",
+"ex": "Pandas are very cute."
+},
+{
+"id": "4",
+"hz": "杯子",
+"py": "bēizi",
+"en": "cup, glass",
+"cat": "objects",
+"ex": "This cup is very pretty."
+},
+{
+"id": "17",
+"hz": "电脑",
+"py": "diànnǎo",
+"en": "computer",
+"cat": "objects",
+"ex": "My computer is very small."
+},
+{
+"id": "18",
+"hz": "电视",
+"py": "diànshì",
+"en": "television",
+"cat": "objects",
+"ex": "He is watching TV."
+},
+{
+"id": "19",
+"hz": "电影",
+"py": "diànyǐng",
+"en": "movie, film",
+"cat": "objects",
+"ex": "I like watching movies."
+},
+{
+"id": "20",
+"hz": "东西",
+"py": "dōngxi",
+"en": "thing, stuff",
+"cat": "objects",
+"ex": "I'm going shopping."
+},
+{
+"id": "82",
+"hz": "钱",
+"py": "qián",
+"en": "money",
+"cat": "objects",
+"ex": "I don't have money."
+},
+{
+"id": "98",
+"hz": "书",
+"py": "shū",
+"en": "book",
+"cat": "objects",
+"ex": "This is a Chinese book."
+},
+{
+"id": "132",
+"hz": "衣服",
+"py": "yīfu",
+"en": "clothes",
+"cat": "objects",
+"ex": "I want to buy clothes."
+},
+{
+"id": "135",
+"hz": "椅子",
+"py": "yǐzi",
+"en": "chair",
+"cat": "objects",
+"ex": "This chair is big."
+},
+{
+"id": "146",
+"hz": "桌子",
+"py": "zhuōzi",
+"en": "table, desk",
+"cat": "objects",
+"ex": "There are books on the table."
+},
+{
+"id": "155",
+"hz": "报纸",
+"py": "bàozhǐ",
+"en": "newspaper",
+"cat": "objects",
+"ex": "Dad is reading the newspaper."
+},
+{
+"id": "221",
+"hz": "门",
+"py": "mén",
+"en": "door, gate",
+"cat": "objects",
+"ex": "Please close the door."
+},
+{
+"id": "230",
+"hz": "票",
+"py": "piào",
+"en": "ticket",
+"cat": "objects",
+"ex": "I bought two tickets."
+},
+{
+"id": "234",
+"hz": "铅笔",
+"py": "qiānbǐ",
+"en": "pencil",
+"cat": "objects",
+"ex": "Please write with a pencil."
+},
+{
+"id": "245",
+"hz": "手表",
+"py": "shǒubiǎo",
+"en": "wristwatch",
+"cat": "objects",
+"ex": "This is my new watch."
+},
+{
+"id": "246",
+"hz": "手机",
+"py": "shǒujī",
+"en": "mobile phone",
+"cat": "objects",
+"ex": "Where is my phone?"
+},
+{
+"id": "314",
+"hz": "包",
+"py": "bāo",
+"en": "bag; to wrap",
+"cat": "objects",
+"ex": "This bag is expensive."
+},
+{
+"id": "321",
+"hz": "笔记本",
+"py": "bǐjìběn",
+"en": "notebook; laptop",
+"cat": "objects",
+"ex": "My notebook is on the table."
+},
+{
+"id": "325",
+"hz": "冰箱",
+"py": "bīngxiāng",
+"en": "refrigerator",
+"cat": "objects",
+"ex": "The milk is in the fridge."
+},
+{
+"id": "334",
+"hz": "衬衫",
+"py": "chènshān",
+"en": "shirt",
+"cat": "objects",
+"ex": "This shirt looks nice."
+},
+{
+"id": "350",
+"hz": "灯",
+"py": "dēng",
+"en": "lamp, light",
+"cat": "objects",
+"ex": "Please turn on the light."
+},
+{
+"id": "353",
+"hz": "地图",
+"py": "dìtú",
+"en": "map",
+"cat": "objects",
+"ex": "I look at the map to find the way."
+},
+{
+"id": "354",
+"hz": "电梯",
+"py": "diàntī",
+"en": "elevator",
+"cat": "objects",
+"ex": "The elevator is over there."
+},
+{
+"id": "355",
+"hz": "电子邮件",
+"py": "diànzǐ yóujiàn",
+"en": "email",
+"cat": "objects",
+"ex": "Please send me an email."
+},
+{
+"id": "397",
+"hz": "护照",
+"py": "hùzhào",
+"en": "passport",
+"cat": "objects",
+"ex": "Please show your passport."
+},
+{
+"id": "441",
+"hz": "空调",
+"py": "kōngtiáo",
+"en": "air conditioner",
+"cat": "objects",
+"ex": "Please turn on the air conditioner."
+},
+{
+"id": "444",
+"hz": "裤子",
+"py": "kùzi",
+"en": "trousers, pants",
+"cat": "objects",
+"ex": "These trousers are too long."
+},
+{
+"id": "445",
+"hz": "筷子",
+"py": "kuàizi",
+"en": "chopsticks",
+"cat": "objects",
+"ex": "Can you use chopsticks?"
+},
+{
+"id": "449",
+"hz": "礼物",
+"py": "lǐwù",
+"en": "gift, present",
+"cat": "objects",
+"ex": "This is a gift for you."
+},
+{
+"id": "463",
+"hz": "帽子",
+"py": "màozi",
+"en": "hat, cap",
+"cat": "objects",
+"ex": "He is wearing a hat."
+},
+{
+"id": "477",
+"hz": "盘子",
+"py": "pánzi",
+"en": "plate",
+"cat": "objects",
+"ex": "There is fruit on the plate."
+},
+{
+"id": "479",
+"hz": "皮鞋",
+"py": "píxié",
+"en": "leather shoes",
+"cat": "objects",
+"ex": "He is wearing black leather shoes."
+},
+{
+"id": "481",
+"hz": "瓶子",
+"py": "píngzi",
+"en": "bottle",
+"cat": "objects",
+"ex": "There is no water left in the bottle."
+},
+{
+"id": "491",
+"hz": "裙子",
+"py": "qúnzi",
+"en": "skirt",
+"cat": "objects",
+"ex": "She is wearing a red skirt."
+},
+{
+"id": "498",
+"hz": "伞",
+"py": "sǎn",
+"en": "umbrella",
+"cat": "objects",
+"ex": "Don't forget to bring an umbrella."
+},
+{
+"id": "527",
+"hz": "碗",
+"py": "wǎn",
+"en": "bowl",
+"cat": "objects",
+"ex": "I want a bowl of rice."
+},
+{
+"id": "548",
+"hz": "信用卡",
+"py": "xìnyòngkǎ",
+"en": "credit card",
+"cat": "objects",
+"ex": "Can I pay by credit card?"
+},
+{
+"id": "549",
+"hz": "行李箱",
+"py": "xínglǐxiāng",
+"en": "suitcase",
+"cat": "objects",
+"ex": "My suitcase is very heavy."
+},
+{
+"id": "582",
+"hz": "照片",
+"py": "zhàopiàn",
+"en": "photo",
+"cat": "objects",
+"ex": "This is our photo."
+},
+{
+"id": "583",
+"hz": "照相机",
+"py": "zhàoxiàngjī",
+"en": "camera",
+"cat": "objects",
+"ex": "I brought a camera."
+},
+{
+"id": "5",
+"hz": "北京",
+"py": "Běijīng",
+"en": "Beijing",
+"cat": "places",
+"ex": "I live in Beijing."
+},
+{
+"id": "28",
+"hz": "饭店",
+"py": "fàndiàn",
+"en": "restaurant, hotel",
+"cat": "places",
+"ex": "This restaurant is very good."
+},
+{
+"id": "41",
+"hz": "后面",
+"py": "hòumian",
+"en": "behind, back",
+"cat": "places",
+"ex": "He is behind me."
+},
+{
+"id": "46",
+"hz": "家",
+"py": "jiā",
+"en": "home, family",
+"cat": "places",
+"ex": "There are four people in my family."
+},
+{
+"id": "58",
+"hz": "里",
+"py": "lǐ",
+"en": "inside, in",
+"cat": "places",
+"ex": "The book is at home."
+},
+{
+"id": "81",
+"hz": "前面",
+"py": "qiánmiàn",
+"en": "in front, ahead",
+"cat": "places",
+"ex": "The shop is ahead."
+},
+{
+"id": "89",
+"hz": "商店",
+"py": "shāngdiàn",
+"en": "shop, store",
+"cat": "places",
+"ex": "There are many things in the shop."
+},
+{
+"id": "90",
+"hz": "上",
+"py": "shàng",
+"en": "up, on, above",
+"cat": "places",
+"ex": "The book is on the table."
+},
+{
+"id": "116",
+"hz": "下",
+"py": "xià",
+"en": "down, below, under",
+"cat": "places",
+"ex": "The cat is under the table."
+},
+{
+"id": "130",
+"hz": "学校",
+"py": "xuéxiào",
+"en": "school",
+"cat": "places",
+"ex": "The school is big."
+},
+{
+"id": "134",
+"hz": "医院",
+"py": "yīyuàn",
+"en": "hospital",
+"cat": "places",
+"ex": "The hospital is behind the school."
+},
+{
+"id": "143",
+"hz": "中国",
+"py": "Zhōngguó",
+"en": "China",
+"cat": "places",
+"ex": "I like China."
+},
+{
+"id": "158",
+"hz": "宾馆",
+"py": "bīnguǎn",
+"en": "hotel, guesthouse",
+"cat": "places",
+"ex": "We are staying at this hotel."
+},
+{
+"id": "175",
+"hz": "房间",
+"py": "fángjiān",
+"en": "room",
+"cat": "places",
+"ex": "My room is very small."
+},
+{
+"id": "183",
+"hz": "公司",
+"py": "gōngsī",
+"en": "company",
+"cat": "places",
+"ex": "He works at a company."
+},
+{
+"id": "191",
+"hz": "火车站",
+"py": "huǒchēzhàn",
+"en": "train station",
+"cat": "places",
+"ex": "Where is the train station?"
+},
+{
+"id": "192",
+"hz": "机场",
+"py": "jīchǎng",
+"en": "airport",
+"cat": "places",
+"ex": "I'm going to the airport to pick up a friend."
+},
+{
+"id": "195",
+"hz": "教室",
+"py": "jiàoshì",
+"en": "classroom",
+"cat": "places",
+"ex": "There are many students in the classroom."
+},
+{
+"id": "214",
+"hz": "路",
+"py": "lù",
+"en": "road, way",
+"cat": "places",
+"ex": "This road is very long."
+},
+{
+"id": "227",
+"hz": "旁边",
+"py": "pángbiān",
+"en": "beside, next to",
+"cat": "places",
+"ex": "The bank is next to the school."
+},
+{
+"id": "255",
+"hz": "外",
+"py": "wài",
+"en": "outside",
+"cat": "places",
+"ex": "He is waiting for you outside."
+},
+{
+"id": "286",
+"hz": "右边",
+"py": "yòubian",
+"en": "right side",
+"cat": "places",
+"ex": "The shop is on the right."
+},
+{
+"id": "301",
+"hz": "左边",
+"py": "zuǒbian",
+"en": "left side",
+"cat": "places",
+"ex": "The bank is on the left."
+},
+{
+"id": "311",
+"hz": "办公室",
+"py": "bàngōngshì",
+"en": "office",
+"cat": "places",
+"ex": "The manager is in the office."
+},
+{
+"id": "316",
+"hz": "北方",
+"py": "běifāng",
+"en": "the north",
+"cat": "places",
+"ex": "Winter in the north is very cold."
+},
+{
+"id": "333",
+"hz": "超市",
+"py": "chāoshì",
+"en": "supermarket",
+"cat": "places",
+"ex": "I'm going to the supermarket to shop."
+},
+{
+"id": "351",
+"hz": "地方",
+"py": "dìfang",
+"en": "place",
+"cat": "places",
+"ex": "This place is very beautiful."
+},
+{
+"id": "356",
+"hz": "东",
+"py": "dōng",
+"en": "east",
+"cat": "places",
+"ex": "The sun rises in the east."
+},
+{
+"id": "372",
+"hz": "附近",
+"py": "fùjìn",
+"en": "nearby, vicinity",
+"cat": "places",
+"ex": "Is there a supermarket nearby?"
+},
+{
+"id": "383",
+"hz": "公园",
+"py": "gōngyuán",
+"en": "park",
+"cat": "places",
+"ex": "We go for a walk in the park."
+},
+{
+"id": "390",
+"hz": "国家",
+"py": "guójiā",
+"en": "country, nation",
+"cat": "places",
+"ex": "China is a big country."
+},
+{
+"id": "405",
+"hz": "黄河",
+"py": "Huánghé",
+"en": "the Yellow River",
+"cat": "places",
+"ex": "The Yellow River is very long."
+},
+{
+"id": "423",
+"hz": "街道",
+"py": "jiēdào",
+"en": "street",
+"cat": "places",
+"ex": "This street is very quiet."
+},
+{
+"id": "458",
+"hz": "楼",
+"py": "lóu",
+"en": "building; floor",
+"cat": "places",
+"ex": "I live on the third floor."
+},
+{
+"id": "469",
+"hz": "南",
+"py": "nán",
+"en": "south",
+"cat": "places",
+"ex": "He lives in the south of the city."
+},
+{
+"id": "502",
+"hz": "世界",
+"py": "shìjiè",
+"en": "world",
+"cat": "places",
+"ex": "The world is big."
+},
+{
+"id": "524",
+"hz": "图书馆",
+"py": "túshūguǎn",
+"en": "library",
+"cat": "places",
+"ex": "I read in the library."
+},
+{
+"id": "534",
+"hz": "西",
+"py": "xī",
+"en": "west",
+"cat": "places",
+"ex": "The sun sets in the west."
+},
+{
+"id": "536",
+"hz": "洗手间",
+"py": "xǐshǒujiān",
+"en": "restroom, toilet",
+"cat": "places",
+"ex": "Where is the restroom?"
+},
+{
+"id": "564",
+"hz": "银行",
+"py": "yínháng",
+"en": "bank",
+"cat": "places",
+"ex": "I'm going to the bank to withdraw money."
+},
+{
+"id": "587",
+"hz": "中间",
+"py": "zhōngjiān",
+"en": "middle, between",
+"cat": "places",
+"ex": "I sit in the middle."
+},
+{
+"id": "12",
+"hz": "出租车",
+"py": "chūzūchē",
+"en": "taxi",
+"cat": "transport",
+"ex": "We'll go by taxi."
+},
+{
+"id": "29",
+"hz": "飞机",
+"py": "fēijī",
+"en": "airplane",
+"cat": "transport",
+"ex": "I fly to Beijing."
+},
+{
+"id": "182",
+"hz": "公共汽车",
+"py": "gōnggòng qìchē",
+"en": "bus",
+"cat": "transport",
+"ex": "I take the bus to work."
+},
+{
+"id": "339",
+"hz": "船",
+"py": "chuán",
+"en": "boat, ship",
+"cat": "transport",
+"ex": "We go by boat."
+},
+{
+"id": "352",
+"hz": "地铁",
+"py": "dìtiě",
+"en": "subway, metro",
+"cat": "transport",
+"ex": "I take the subway to work."
+},
+{
+"id": "486",
+"hz": "起飞",
+"py": "qǐfēi",
+"en": "to take off (plane)",
+"cat": "transport",
+"ex": "The plane takes off at nine."
+},
+{
+"id": "596",
+"hz": "自行车",
+"py": "zìxíngchē",
+"en": "bicycle",
+"cat": "transport",
+"ex": "I ride a bike to work."
+},
+{
+"id": "240",
+"hz": "身体",
+"py": "shēntǐ",
+"en": "body; health",
+"cat": "body",
+"ex": "He is in good health."
+},
+{
+"id": "241",
+"hz": "生病",
+"py": "shēngbìng",
+"en": "to get sick",
+"cat": "body",
+"ex": "He got sick and didn't come to class."
+},
+{
+"id": "273",
+"hz": "眼睛",
+"py": "yǎnjing",
+"en": "eye",
+"cat": "body",
+"ex": "Her eyes are big."
+},
+{
+"id": "275",
+"hz": "药",
+"py": "yào",
+"en": "medicine",
+"cat": "body",
+"ex": "You need to take medicine."
+},
+{
+"id": "318",
+"hz": "鼻子",
+"py": "bízi",
+"en": "nose",
+"cat": "body",
+"ex": "He has a high nose."
+},
+{
+"id": "364",
+"hz": "耳朵",
+"py": "ěrduo",
+"en": "ear",
+"cat": "body",
+"ex": "Rabbits have long ears."
+},
+{
+"id": "366",
+"hz": "发烧",
+"py": "fāshāo",
+"en": "to have a fever",
+"cat": "body",
+"ex": "He has a fever."
+},
+{
+"id": "375",
+"hz": "感冒",
+"py": "gǎnmào",
+"en": "to catch a cold; cold",
+"cat": "body",
+"ex": "I have a cold."
+},
+{
+"id": "378",
+"hz": "个子",
+"py": "gèzi",
+"en": "height, build",
+"cat": "body",
+"ex": "He is tall."
+},
+{
+"id": "417",
+"hz": "健康",
+"py": "jiànkāng",
+"en": "healthy; health",
+"cat": "body",
+"ex": "Wishing you good health!"
+},
+{
+"id": "421",
+"hz": "脚",
+"py": "jiǎo",
+"en": "foot",
+"cat": "body",
+"ex": "My foot hurts."
+},
+{
+"id": "442",
+"hz": "口",
+"py": "kǒu",
+"en": "mouth; (measure word for family members)",
+"cat": "body",
+"ex": "There are four people in my family."
+},
+{
+"id": "451",
+"hz": "脸",
+"py": "liǎn",
+"en": "face",
+"cat": "body",
+"ex": "Her face turned red."
+},
+{
+"id": "515",
+"hz": "疼",
+"py": "téng",
+"en": "to hurt, painful",
+"cat": "body",
+"ex": "I have a headache."
+},
+{
+"id": "522",
+"hz": "头发",
+"py": "tóufa",
+"en": "hair",
+"cat": "body",
+"ex": "Her hair is very long."
+},
+{
+"id": "525",
+"hz": "腿",
+"py": "tuǐ",
+"en": "leg",
+"cat": "body",
+"ex": "My leg hurts."
+},
+{
+"id": "598",
+"hz": "嘴",
+"py": "zuǐ",
+"en": "mouth",
+"cat": "body",
+"ex": "Open your mouth."
+},
+{
+"id": "108",
+"hz": "天气",
+"py": "tiānqì",
+"en": "weather",
+"cat": "nature",
+"ex": "How's the weather today?"
+},
+{
+"id": "118",
+"hz": "下雨",
+"py": "xiàyǔ",
+"en": "to rain",
+"cat": "nature",
+"ex": "It will rain tomorrow."
+},
+{
+"id": "235",
+"hz": "晴",
+"py": "qíng",
+"en": "sunny, clear (weather)",
+"cat": "nature",
+"ex": "Today is a sunny day."
+},
+{
+"id": "271",
+"hz": "雪",
+"py": "xuě",
+"en": "snow",
+"cat": "nature",
+"ex": "It snowed yesterday."
+},
+{
+"id": "284",
+"hz": "阴",
+"py": "yīn",
+"en": "cloudy, overcast",
+"cat": "nature",
+"ex": "It's cloudy today."
+},
+{
+"id": "330",
+"hz": "草",
+"py": "cǎo",
+"en": "grass",
+"cat": "nature",
+"ex": "Grass is green."
+},
+{
+"id": "385",
+"hz": "刮风",
+"py": "guāfēng",
+"en": "to be windy",
+"cat": "nature",
+"ex": "It's windy today."
+},
+{
+"id": "398",
+"hz": "花",
+"py": "huā",
+"en": "flower; to spend",
+"cat": "nature",
+"ex": "These flowers are really beautiful."
+},
+{
+"id": "403",
+"hz": "环境",
+"py": "huánjìng",
+"en": "environment, surroundings",
+"cat": "nature",
+"ex": "The environment here is very good."
+},
+{
+"id": "507",
+"hz": "树",
+"py": "shù",
+"en": "tree",
+"cat": "nature",
+"ex": "There are many trees in the park."
+},
+{
+"id": "513",
+"hz": "太阳",
+"py": "tàiyáng",
+"en": "sun",
+"cat": "nature",
+"ex": "The sun is strong today."
+},
+{
+"id": "575",
+"hz": "月亮",
+"py": "yuèliang",
+"en": "moon",
+"cat": "nature",
+"ex": "The moon is very round tonight."
+},
+{
+"id": "3",
+"hz": "爸爸",
+"py": "bàba",
+"en": "dad, father",
+"cat": "people",
+"ex": "My dad is a doctor."
+},
+{
+"id": "26",
+"hz": "儿子",
+"py": "érzi",
+"en": "son",
+"cat": "people",
+"ex": "His son is five years old."
+},
+{
+"id": "55",
+"hz": "老师",
+"py": "lǎoshī",
+"en": "teacher",
+"cat": "people",
+"ex": "She is my teacher."
+},
+{
+"id": "60",
+"hz": "妈妈",
+"py": "māma",
+"en": "mom, mother",
+"cat": "people",
+"ex": "My mom is very beautiful."
+},
+{
+"id": "68",
+"hz": "名字",
+"py": "míngzi",
+"en": "name",
+"cat": "people",
+"ex": "My name is Xiaoming."
+},
+{
+"id": "76",
+"hz": "女儿",
+"py": "nǚ'ér",
+"en": "daughter",
+"cat": "people",
+"ex": "Her daughter is very pretty."
+},
+{
+"id": "77",
+"hz": "朋友",
+"py": "péngyou",
+"en": "friend",
+"cat": "people",
+"ex": "He is my good friend."
+},
+{
+"id": "86",
+"hz": "人",
+"py": "rén",
+"en": "person, people",
+"cat": "people",
+"ex": "He is Chinese."
+},
+{
+"id": "110",
+"hz": "同学",
+"py": "tóngxué",
+"en": "classmate",
+"cat": "people",
+"ex": "He is my classmate."
+},
+{
+"id": "119",
+"hz": "先生",
+"py": "xiānsheng",
+"en": "Mr., sir, husband",
+"cat": "people",
+"ex": "Mr. Wang is a doctor."
+},
+{
+"id": "123",
+"hz": "小姐",
+"py": "xiǎojie",
+"en": "Miss, young lady",
+"cat": "people",
+"ex": "Miss Li is a teacher."
+},
+{
+"id": "128",
+"hz": "学生",
+"py": "xuésheng",
+"en": "student",
+"cat": "people",
+"ex": "We are students."
+},
+{
+"id": "177",
+"hz": "服务员",
+"py": "fúwùyuán",
+"en": "waiter, waitress",
+"cat": "people",
+"ex": "Waiter, the bill please!"
+},
+{
+"id": "223",
+"hz": "男",
+"py": "nán",
+"en": "male, man",
+"cat": "people",
+"ex": "He is my boyfriend."
+},
+{
+"id": "226",
+"hz": "女",
+"py": "nǚ",
+"en": "female, woman",
+"cat": "people",
+"ex": "She is my girlfriend."
+},
+{
+"id": "269",
+"hz": "姓",
+"py": "xìng",
+"en": "surname; to be surnamed",
+"cat": "people",
+"ex": "What is your surname?"
+},
+{
+"id": "432",
+"hz": "经理",
+"py": "jīnglǐ",
+"en": "manager",
+"cat": "people",
+"ex": "He is our manager."
+},
+{
+"id": "440",
+"hz": "客人",
+"py": "kèrén",
+"en": "guest, customer",
+"cat": "people",
+"ex": "We have guests at home today."
+},
+{
+"id": "456",
+"hz": "邻居",
+"py": "línjū",
+"en": "neighbor",
+"cat": "people",
+"ex": "My neighbors are very warm-hearted."
+},
+{
+"id": "512",
+"hz": "司机",
+"py": "sījī",
+"en": "driver",
+"cat": "people",
+"ex": "The driver drives very fast."
+},
+{
+"id": "520",
+"hz": "同事",
+"py": "tóngshì",
+"en": "colleague",
+"cat": "people",
+"ex": "He is my colleague."
+},
+{
+"id": "545",
+"hz": "校长",
+"py": "xiàozhǎng",
+"en": "school principal",
+"cat": "people",
+"ex": "The principal is in a meeting."
+},
+{
+"id": "171",
+"hz": "弟弟",
+"py": "dìdi",
+"en": "younger brother",
+"cat": "family",
+"ex": "My younger brother is ten."
+},
+{
+"id": "180",
+"hz": "哥哥",
+"py": "gēge",
+"en": "older brother",
+"cat": "family",
+"ex": "My older brother is a teacher."
+},
+{
+"id": "187",
+"hz": "孩子",
+"py": "háizi",
+"en": "child",
+"cat": "family",
+"ex": "They have two children."
+},
+{
+"id": "196",
+"hz": "姐姐",
+"py": "jiějie",
+"en": "older sister",
+"cat": "family",
+"ex": "My older sister works in Beijing."
+},
+{
+"id": "220",
+"hz": "妹妹",
+"py": "mèimei",
+"en": "younger sister",
+"cat": "family",
+"ex": "My younger sister is very cute."
+},
+{
+"id": "231",
+"hz": "妻子",
+"py": "qīzi",
+"en": "wife",
+"cat": "family",
+"ex": "This is my wife."
+},
+{
+"id": "292",
+"hz": "丈夫",
+"py": "zhàngfu",
+"en": "husband",
+"cat": "family",
+"ex": "Her husband is a doctor."
+},
+{
+"id": "302",
+"hz": "阿姨",
+"py": "āyí",
+"en": "aunt; auntie (any older woman)",
+"cat": "family",
+"ex": "Hello, auntie!"
+},
+{
+"id": "468",
+"hz": "奶奶",
+"py": "nǎinai",
+"en": "grandmother (father's side)",
+"cat": "family",
+"ex": "Grandma is eighty this year."
+},
+{
+"id": "505",
+"hz": "叔叔",
+"py": "shūshu",
+"en": "uncle (father's younger brother)",
+"cat": "family",
+"ex": "My uncle gave me a book."
+},
+{
+"id": "554",
+"hz": "爷爷",
+"py": "yéye",
+"en": "grandfather (father's side)",
+"cat": "family",
+"ex": "Grandpa likes drinking tea."
+},
+{
+"id": "160",
+"hz": "唱歌",
+"py": "chànggē",
+"en": "to sing",
+"cat": "sports",
+"ex": "She likes singing."
+},
+{
+"id": "166",
+"hz": "打篮球",
+"py": "dǎ lánqiú",
+"en": "to play basketball",
+"cat": "sports",
+"ex": "He plays basketball every day."
+},
+{
+"id": "215",
+"hz": "旅游",
+"py": "lǚyóu",
+"en": "to travel; tourism",
+"cat": "sports",
+"ex": "I like to travel."
+},
+{
+"id": "228",
+"hz": "跑步",
+"py": "pǎobù",
+"en": "to run, to jog",
+"cat": "sports",
+"ex": "I go running in the morning."
+},
+{
+"id": "252",
+"hz": "踢足球",
+"py": "tī zúqiú",
+"en": "to play football (soccer)",
+"cat": "sports",
+"ex": "They are playing football."
+},
+{
+"id": "254",
+"hz": "跳舞",
+"py": "tiàowǔ",
+"en": "to dance",
+"cat": "sports",
+"ex": "She dances very well."
+},
+{
+"id": "285",
+"hz": "游泳",
+"py": "yóuyǒng",
+"en": "to swim",
+"cat": "sports",
+"ex": "I can swim."
+},
+{
+"id": "289",
+"hz": "运动",
+"py": "yùndòng",
+"en": "sports, exercise",
+"cat": "sports",
+"ex": "I exercise one hour every day."
+},
+{
+"id": "305",
+"hz": "爱好",
+"py": "àihào",
+"en": "hobby",
+"cat": "sports",
+"ex": "What hobbies do you have?"
+},
+{
+"id": "320",
+"hz": "比赛",
+"py": "bǐsài",
+"en": "match, competition",
+"cat": "sports",
+"ex": "There's a football match tomorrow."
+},
+{
+"id": "361",
+"hz": "锻炼",
+"py": "duànliàn",
+"en": "to exercise, to work out",
+"cat": "sports",
+"ex": "I exercise every morning."
+},
+{
+"id": "399",
+"hz": "画",
+"py": "huà",
+"en": "to draw, to paint; painting",
+"cat": "sports",
+"ex": "She likes drawing."
+},
+{
+"id": "476",
+"hz": "爬山",
+"py": "páshān",
+"en": "to climb a mountain, to hike",
+"cat": "sports",
+"ex": "We go hiking on the weekend."
+},
+{
+"id": "517",
+"hz": "体育",
+"py": "tǐyù",
+"en": "sports, physical education",
+"cat": "sports",
+"ex": "I like PE class."
+},
+{
+"id": "563",
+"hz": "音乐",
+"py": "yīnyuè",
+"en": "music",
+"cat": "sports",
+"ex": "I like listening to music."
+},
+{
+"id": "569",
+"hz": "游戏",
+"py": "yóuxì",
+"en": "game",
+"cat": "sports",
+"ex": "The children are playing a game."
+},
+{
+"id": "33",
+"hz": "工作",
+"py": "gōngzuò",
+"en": "work, job; to work",
+"cat": "study",
+"ex": "Where do you work?"
+},
+{
+"id": "35",
+"hz": "汉语",
+"py": "Hànyǔ",
+"en": "Chinese language",
+"cat": "study",
+"ex": "I study Chinese."
+},
+{
+"id": "129",
+"hz": "学习",
+"py": "xuéxí",
+"en": "to study, to learn",
+"cat": "study",
+"ex": "I am studying Chinese."
+},
+{
+"id": "147",
+"hz": "字",
+"py": "zì",
+"en": "character, word",
+"cat": "study",
+"ex": "How do you write this character?"
+},
+{
+"id": "204",
+"hz": "考试",
+"py": "kǎoshì",
+"en": "exam; to take an exam",
+"cat": "study",
+"ex": "There is an exam tomorrow."
+},
+{
+"id": "207",
+"hz": "课",
+"py": "kè",
+"en": "class, lesson",
+"cat": "study",
+"ex": "I have three classes today."
+},
+{
+"id": "239",
+"hz": "上班",
+"py": "shàngbān",
+"en": "to go to work",
+"cat": "study",
+"ex": "I go to work at eight every day."
+},
+{
+"id": "253",
+"hz": "题",
+"py": "tí",
+"en": "question, problem (on a test)",
+"cat": "study",
+"ex": "This question is very hard."
+},
+{
+"id": "308",
+"hz": "班",
+"py": "bān",
+"en": "class (group); shift",
+"cat": "study",
+"ex": "Our class has twenty students."
+},
+{
+"id": "335",
+"hz": "成绩",
+"py": "chéngjì",
+"en": "grade, result",
+"cat": "study",
+"ex": "His grades are very good."
+},
+{
+"id": "341",
+"hz": "词典",
+"py": "cídiǎn",
+"en": "dictionary",
+"cat": "study",
+"ex": "I look up this word in the dictionary."
+},
+{
+"id": "373",
+"hz": "复习",
+"py": "fùxí",
+"en": "to review (studies)",
+"cat": "study",
+"ex": "I'm reviewing Chinese."
+},
+{
+"id": "395",
+"hz": "黑板",
+"py": "hēibǎn",
+"en": "blackboard",
+"cat": "study",
+"ex": "The teacher writes on the blackboard."
+},
+{
+"id": "407",
+"hz": "会议",
+"py": "huìyì",
+"en": "meeting, conference",
+"cat": "study",
+"ex": "There's a meeting in the afternoon."
+},
+{
+"id": "419",
+"hz": "教",
+"py": "jiāo",
+"en": "to teach",
+"cat": "study",
+"ex": "He teaches us Chinese."
+},
+{
+"id": "435",
+"hz": "句子",
+"py": "jùzi",
+"en": "sentence",
+"cat": "study",
+"ex": "Please read this sentence."
+},
+{
+"id": "450",
+"hz": "历史",
+"py": "lìshǐ",
+"en": "history",
+"cat": "study",
+"ex": "I like Chinese history."
+},
+{
+"id": "452",
+"hz": "练习",
+"py": "liànxí",
+"en": "to practice; exercise",
+"cat": "study",
+"ex": "I practice writing characters every day."
+},
+{
+"id": "457",
+"hz": "留学",
+"py": "liúxué",
+"en": "to study abroad",
+"cat": "study",
+"ex": "He is studying abroad in China."
+},
+{
+"id": "472",
+"hz": "年级",
+"py": "niánjí",
+"en": "grade, year (in school)",
+"cat": "study",
+"ex": "What grade are you in?"
+},
+{
+"id": "489",
+"hz": "请假",
+"py": "qǐngjià",
+"en": "to ask for leave",
+"cat": "study",
+"ex": "I'd like to take a day off tomorrow."
+},
+{
+"id": "508",
+"hz": "数学",
+"py": "shùxué",
+"en": "mathematics",
+"cat": "study",
+"ex": "I like math."
+},
+{
+"id": "588",
+"hz": "中文",
+"py": "Zhōngwén",
+"en": "Chinese (language)",
+"cat": "study",
+"ex": "Your Chinese is very good."
+},
+{
+"id": "601",
+"hz": "作业",
+"py": "zuòyè",
+"en": "homework",
+"cat": "study",
+"ex": "I'm doing my homework."
+},
+{
+"id": "16",
+"hz": "点",
+"py": "diǎn",
+"en": "o'clock; dot",
+"cat": "time",
+"ex": "It's three o'clock now."
+},
+{
+"id": "30",
+"hz": "分钟",
+"py": "fēnzhōng",
+"en": "minute",
+"cat": "time",
+"ex": "Please wait five minutes."
+},
+{
+"id": "37",
+"hz": "号",
+"py": "hào",
+"en": "number; day of the month",
+"cat": "time",
+"ex": "What's the date today?"
+},
+{
+"id": "48",
+"hz": "今天",
+"py": "jīntiān",
+"en": "today",
+"cat": "time",
+"ex": "The weather is nice today."
+},
+{
+"id": "67",
+"hz": "明天",
+"py": "míngtiān",
+"en": "tomorrow",
+"cat": "time",
+"ex": "See you tomorrow!"
+},
+{
+"id": "75",
+"hz": "年",
+"py": "nián",
+"en": "year",
+"cat": "time",
+"ex": "I studied Chinese for a year."
+},
+{
+"id": "91",
+"hz": "上午",
+"py": "shàngwǔ",
+"en": "morning (before noon)",
+"cat": "time",
+"ex": "I study in the morning."
+},
+{
+"id": "96",
+"hz": "时候",
+"py": "shíhou",
+"en": "time, moment",
+"cat": "time",
+"ex": "When are you coming?"
+},
+{
+"id": "117",
+"hz": "下午",
+"py": "xiàwǔ",
+"en": "afternoon",
+"cat": "time",
+"ex": "In the afternoon I go to the shop."
+},
+{
+"id": "120",
+"hz": "现在",
+"py": "xiànzài",
+"en": "now",
+"cat": "time",
+"ex": "What time is it now?"
+},
+{
+"id": "127",
+"hz": "星期",
+"py": "xīngqī",
+"en": "week",
+"cat": "time",
+"ex": "Today is Monday."
+},
+{
+"id": "137",
+"hz": "月",
+"py": "yuè",
+"en": "month; moon",
+"cat": "time",
+"ex": "I go to China in March."
+},
+{
+"id": "144",
+"hz": "中午",
+"py": "zhōngwǔ",
+"en": "noon, midday",
+"cat": "time",
+"ex": "We eat at noon."
+},
+{
+"id": "148",
+"hz": "昨天",
+"py": "zuótiān",
+"en": "yesterday",
+"cat": "time",
+"ex": "Yesterday was cold."
+},
+{
+"id": "236",
+"hz": "去年",
+"py": "qùnián",
+"en": "last year",
+"cat": "time",
+"ex": "I went to China last year."
+},
+{
+"id": "238",
+"hz": "日",
+"py": "rì",
+"en": "day; sun",
+"cat": "time",
+"ex": "Today is May 1st."
+},
+{
+"id": "242",
+"hz": "生日",
+"py": "shēngrì",
+"en": "birthday",
+"cat": "time",
+"ex": "Today is my birthday."
+},
+{
+"id": "243",
+"hz": "时间",
+"py": "shíjiān",
+"en": "time",
+"cat": "time",
+"ex": "I don't have time."
+},
+{
+"id": "258",
+"hz": "晚上",
+"py": "wǎnshang",
+"en": "evening, night",
+"cat": "time",
+"ex": "In the evening we watch a movie."
+},
+{
+"id": "266",
+"hz": "小时",
+"py": "xiǎoshí",
+"en": "hour",
+"cat": "time",
+"ex": "I waited for two hours."
+},
+{
+"id": "291",
+"hz": "早上",
+"py": "zǎoshang",
+"en": "morning",
+"cat": "time",
+"ex": "Good morning!"
+},
+{
+"id": "340",
+"hz": "春",
+"py": "chūn",
+"en": "spring (season)",
+"cat": "time",
+"ex": "Spring has come."
+},
+{
+"id": "357",
+"hz": "冬",
+"py": "dōng",
+"en": "winter",
+"cat": "time",
+"ex": "Winter is very cold."
+},
+{
+"id": "371",
+"hz": "分",
+"py": "fēn",
+"en": "minute; cent; to divide",
+"cat": "time",
+"ex": "It's 8:10 now."
+},
+{
+"id": "377",
+"hz": "刚才",
+"py": "gāngcái",
+"en": "just now",
+"cat": "time",
+"ex": "He was here just now."
+},
+{
+"id": "392",
+"hz": "过去",
+"py": "guòqù",
+"en": "the past; to go over",
+"cat": "time",
+"ex": "In the past this was a school."
+},
+{
+"id": "396",
+"hz": "后来",
+"py": "hòulái",
+"en": "later, afterwards",
+"cat": "time",
+"ex": "Later he went to Beijing."
+},
+{
+"id": "413",
+"hz": "季节",
+"py": "jìjié",
+"en": "season",
+"cat": "time",
+"ex": "Which season do you like best?"
+},
+{
+"id": "425",
+"hz": "节日",
+"py": "jiérì",
+"en": "festival, holiday",
+"cat": "time",
+"ex": "Spring Festival is China's most important holiday."
+},
+{
+"id": "433",
+"hz": "久",
+"py": "jiǔ",
+"en": "long (time)",
+"cat": "time",
+"ex": "Long time no see!"
+},
+{
+"id": "439",
+"hz": "刻",
+"py": "kè",
+"en": "quarter (of an hour)",
+"cat": "time",
+"ex": "It's a quarter past three."
+},
+{
+"id": "490",
+"hz": "秋",
+"py": "qiū",
+"en": "autumn",
+"cat": "time",
+"ex": "Autumn is cool."
+},
+{
+"id": "538",
+"hz": "夏",
+"py": "xià",
+"en": "summer",
+"cat": "time",
+"ex": "Summer is hot."
+},
+{
+"id": "559",
+"hz": "一会儿",
+"py": "yíhuìr",
+"en": "a little while",
+"cat": "time",
+"ex": "Please wait a little while."
+},
+{
+"id": "562",
+"hz": "以前",
+"py": "yǐqián",
+"en": "before, formerly",
+"cat": "time",
+"ex": "I used to live in Shanghai."
+},
+{
+"id": "592",
+"hz": "周末",
+"py": "zhōumò",
+"en": "weekend",
+"cat": "time",
+"ex": "What do you do on the weekend?"
+},
+{
+"id": "599",
+"hz": "最后",
+"py": "zuìhòu",
+"en": "last, finally",
+"cat": "time",
+"ex": "In the end he agreed."
+},
+{
+"id": "600",
+"hz": "最近",
+"py": "zuìjìn",
+"en": "recently",
+"cat": "time",
+"ex": "How have you been recently?"
+},
+{
+"id": "1",
+"hz": "爱",
+"py": "ài",
+"en": "to love",
+"cat": "verbs",
+"ex": "I love you."
+},
+{
+"id": "13",
+"hz": "打电话",
+"py": "dǎ diànhuà",
+"en": "to make a phone call",
+"cat": "verbs",
+"ex": "I call my mom."
+},
+{
+"id": "22",
+"hz": "读",
+"py": "dú",
+"en": "to read",
+"cat": "verbs",
+"ex": "Please read this character."
+},
+{
+"id": "38",
+"hz": "喝",
+"py": "hē",
+"en": "to drink",
+"cat": "verbs",
+"ex": "I drink water."
+},
+{
+"id": "42",
+"hz": "回",
+"py": "huí",
+"en": "to return, go back",
+"cat": "verbs",
+"ex": "I went home."
+},
+{
+"id": "43",
+"hz": "会",
+"py": "huì",
+"en": "can, be able to (learned skill)",
+"cat": "verbs",
+"ex": "I can speak Chinese."
+},
+{
+"id": "47",
+"hz": "叫",
+"py": "jiào",
+"en": "to be called, to call",
+"cat": "verbs",
+"ex": "What's your name?"
+},
+{
+"id": "50",
+"hz": "开",
+"py": "kāi",
+"en": "to open; to drive",
+"cat": "verbs",
+"ex": "Please open the door."
+},
+{
+"id": "51",
+"hz": "看",
+"py": "kàn",
+"en": "to look, to watch, to read",
+"cat": "verbs",
+"ex": "I read a book."
+},
+{
+"id": "52",
+"hz": "看见",
+"py": "kànjiàn",
+"en": "to see",
+"cat": "verbs",
+"ex": "I saw him."
+},
+{
+"id": "54",
+"hz": "来",
+"py": "lái",
+"en": "to come",
+"cat": "verbs",
+"ex": "Please come to my home."
+},
+{
+"id": "62",
+"hz": "买",
+"py": "mǎi",
+"en": "to buy",
+"cat": "verbs",
+"ex": "I want to buy apples."
+},
+{
+"id": "65",
+"hz": "没有",
+"py": "méiyǒu",
+"en": "to not have; there is not",
+"cat": "verbs",
+"ex": "I have no money."
+},
+{
+"id": "73",
+"hz": "能",
+"py": "néng",
+"en": "can, to be able to",
+"cat": "verbs",
+"ex": "Can you come?"
+},
+{
+"id": "83",
+"hz": "请",
+"py": "qǐng",
+"en": "please; to invite",
+"cat": "verbs",
+"ex": "Please sit down."
+},
+{
+"id": "84",
+"hz": "去",
+"py": "qù",
+"en": "to go",
+"cat": "verbs",
+"ex": "I go to school."
+},
+{
+"id": "87",
+"hz": "认识",
+"py": "rènshi",
+"en": "to know (a person), to recognize",
+"cat": "verbs",
+"ex": "I know him."
+},
+{
+"id": "97",
+"hz": "是",
+"py": "shì",
+"en": "to be (am, is, are)",
+"cat": "verbs",
+"ex": "I am a student."
+},
+{
+"id": "101",
+"hz": "睡觉",
+"py": "shuìjiào",
+"en": "to sleep",
+"cat": "verbs",
+"ex": "I go to sleep at ten."
+},
+{
+"id": "102",
+"hz": "说",
+"py": "shuō",
+"en": "to speak, to say",
+"cat": "verbs",
+"ex": "He speaks Chinese."
+},
+{
+"id": "109",
+"hz": "听",
+"py": "tīng",
+"en": "to listen, to hear",
+"cat": "verbs",
+"ex": "Please listen to me."
+},
+{
+"id": "115",
+"hz": "喜欢",
+"py": "xǐhuan",
+"en": "to like",
+"cat": "verbs",
+"ex": "I like cats."
+},
+{
+"id": "121",
+"hz": "想",
+"py": "xiǎng",
+"en": "to want, to think, to miss",
+"cat": "verbs",
+"ex": "I want to drink water."
+},
+{
+"id": "125",
+"hz": "写",
+"py": "xiě",
+"en": "to write",
+"cat": "verbs",
+"ex": "Please write your name."
+},
+{
+"id": "136",
+"hz": "有",
+"py": "yǒu",
+"en": "to have; there is",
+"cat": "verbs",
+"ex": "I have a cat."
+},
+{
+"id": "139",
+"hz": "在",
+"py": "zài",
+"en": "at, in; to be located",
+"cat": "verbs",
+"ex": "He is at home."
+},
+{
+"id": "145",
+"hz": "住",
+"py": "zhù",
+"en": "to live, to reside",
+"cat": "verbs",
+"ex": "Where do you live?"
+},
+{
+"id": "149",
+"hz": "坐",
+"py": "zuò",
+"en": "to sit; to travel by",
+"cat": "verbs",
+"ex": "Please sit here."
+},
+{
+"id": "150",
+"hz": "做",
+"py": "zuò",
+"en": "to do, to make",
+"cat": "verbs",
+"ex": "What are you doing?"
+},
+{
+"id": "154",
+"hz": "帮助",
+"py": "bāngzhù",
+"en": "to help; help",
+"cat": "verbs",
+"ex": "Thanks for your help."
+},
+{
+"id": "161",
+"hz": "出",
+"py": "chū",
+"en": "to go out, to come out",
+"cat": "verbs",
+"ex": "He went out."
+},
+{
+"id": "162",
+"hz": "穿",
+"py": "chuān",
+"en": "to wear, to put on",
+"cat": "verbs",
+"ex": "It's cold today, wear more clothes."
+},
+{
+"id": "168",
+"hz": "到",
+"py": "dào",
+"en": "to arrive; to, until",
+"cat": "verbs",
+"ex": "I have arrived home."
+},
+{
+"id": "170",
+"hz": "等",
+"py": "děng",
+"en": "to wait; etc.",
+"cat": "verbs",
+"ex": "Please wait a moment."
+},
+{
+"id": "173",
+"hz": "懂",
+"py": "dǒng",
+"en": "to understand",
+"cat": "verbs",
+"ex": "I understand."
+},
+{
+"id": "179",
+"hz": "告诉",
+"py": "gàosu",
+"en": "to tell",
+"cat": "verbs",
+"ex": "Please tell me your name."
+},
+{
+"id": "181",
+"hz": "给",
+"py": "gěi",
+"en": "to give; to, for",
+"cat": "verbs",
+"ex": "Please give me a glass of water."
+},
+{
+"id": "185",
+"hz": "过",
+"py": "guò",
+"en": "to pass, to cross; to spend (time)",
+"cat": "verbs",
+"ex": "Be careful crossing the road."
+},
+{
+"id": "197",
+"hz": "介绍",
+"py": "jièshào",
+"en": "to introduce",
+"cat": "verbs",
+"ex": "Let me introduce."
+},
+{
+"id": "198",
+"hz": "进",
+"py": "jìn",
+"en": "to enter",
+"cat": "verbs",
+"ex": "Please come in!"
+},
+{
+"id": "201",
+"hz": "觉得",
+"py": "juéde",
+"en": "to feel, to think",
+"cat": "verbs",
+"ex": "I think it's very good."
+},
+{
+"id": "203",
+"hz": "开始",
+"py": "kāishǐ",
+"en": "to begin, to start",
+"cat": "verbs",
+"ex": "Let's start the class."
+},
+{
+"id": "206",
+"hz": "可以",
+"py": "kěyǐ",
+"en": "can, may",
+"cat": "verbs",
+"ex": "May I come in?"
+},
+{
+"id": "216",
+"hz": "卖",
+"py": "mài",
+"en": "to sell",
+"cat": "verbs",
+"ex": "Fruit is sold here."
+},
+{
+"id": "232",
+"hz": "起床",
+"py": "qǐchuáng",
+"en": "to get up (out of bed)",
+"cat": "verbs",
+"ex": "I get up at seven."
+},
+{
+"id": "237",
+"hz": "让",
+"py": "ràng",
+"en": "to let, to make (someone do)",
+"cat": "verbs",
+"ex": "Let me have a look."
+},
+{
+"id": "247",
+"hz": "说话",
+"py": "shuōhuà",
+"en": "to talk, to speak",
+"cat": "verbs",
+"ex": "Please don't talk."
+},
+{
+"id": "248",
+"hz": "送",
+"py": "sòng",
+"en": "to give (a gift); to deliver; to see off",
+"cat": "verbs",
+"ex": "I'll give you a book."
+},
+{
+"id": "256",
+"hz": "完",
+"py": "wán",
+"en": "to finish; finished",
+"cat": "verbs",
+"ex": "I have finished eating."
+},
+{
+"id": "257",
+"hz": "玩",
+"py": "wán",
+"en": "to play, to have fun",
+"cat": "verbs",
+"ex": "The children are playing outside."
+},
+{
+"id": "261",
+"hz": "问",
+"py": "wèn",
+"en": "to ask",
+"cat": "verbs",
+"ex": "I'd like to ask a question."
+},
+{
+"id": "264",
+"hz": "希望",
+"py": "xīwàng",
+"en": "to hope; hope",
+"cat": "verbs",
+"ex": "I hope you like it."
+},
+{
+"id": "265",
+"hz": "洗",
+"py": "xǐ",
+"en": "to wash",
+"cat": "verbs",
+"ex": "Wash your hands before eating."
+},
+{
+"id": "267",
+"hz": "笑",
+"py": "xiào",
+"en": "to laugh, to smile",
+"cat": "verbs",
+"ex": "She smiled."
+},
+{
+"id": "270",
+"hz": "休息",
+"py": "xiūxi",
+"en": "to rest",
+"cat": "verbs",
+"ex": "Let's take a break."
+},
+{
+"id": "276",
+"hz": "要",
+"py": "yào",
+"en": "to want; will; must",
+"cat": "verbs",
+"ex": "I want a cup of coffee."
+},
+{
+"id": "293",
+"hz": "找",
+"py": "zhǎo",
+"en": "to look for, to find",
+"cat": "verbs",
+"ex": "What are you looking for?"
+},
+{
+"id": "297",
+"hz": "知道",
+"py": "zhīdao",
+"en": "to know",
+"cat": "verbs",
+"ex": "I don't know."
+},
+{
+"id": "298",
+"hz": "准备",
+"py": "zhǔnbèi",
+"en": "to prepare; to plan to",
+"cat": "verbs",
+"ex": "I plan to go to China."
+},
+{
+"id": "299",
+"hz": "走",
+"py": "zǒu",
+"en": "to walk, to leave",
+"cat": "verbs",
+"ex": "Let's go."
+},
+{
+"id": "309",
+"hz": "搬",
+"py": "bān",
+"en": "to move (house, objects)",
+"cat": "verbs",
+"ex": "We are moving next month."
+},
+{
+"id": "313",
+"hz": "帮忙",
+"py": "bāngmáng",
+"en": "to help out",
+"cat": "verbs",
+"ex": "Can you help?"
+},
+{
+"id": "329",
+"hz": "参加",
+"py": "cānjiā",
+"en": "to take part in",
+"cat": "verbs",
+"ex": "I want to take part in the competition."
+},
+{
+"id": "337",
+"hz": "迟到",
+"py": "chídào",
+"en": "to be late",
+"cat": "verbs",
+"ex": "Sorry, I'm late."
+},
+{
+"id": "343",
+"hz": "打扫",
+"py": "dǎsǎo",
+"en": "to clean, to sweep",
+"cat": "verbs",
+"ex": "I clean my room on weekends."
+},
+{
+"id": "344",
+"hz": "打算",
+"py": "dǎsuàn",
+"en": "to plan, to intend",
+"cat": "verbs",
+"ex": "What do you plan to do?"
+},
+{
+"id": "345",
+"hz": "带",
+"py": "dài",
+"en": "to bring, to carry; belt",
+"cat": "verbs",
+"ex": "Don't forget to bring your passport."
+},
+{
+"id": "346",
+"hz": "担心",
+"py": "dānxīn",
+"en": "to worry",
+"cat": "verbs",
+"ex": "Don't worry, no problem."
+},
+{
+"id": "365",
+"hz": "发",
+"py": "fā",
+"en": "to send; to issue",
+"cat": "verbs",
+"ex": "I'll send you a text message."
+},
+{
+"id": "367",
+"hz": "发现",
+"py": "fāxiàn",
+"en": "to discover, to find",
+"cat": "verbs",
+"ex": "I found a problem."
+},
+{
+"id": "369",
+"hz": "放",
+"py": "fàng",
+"en": "to put, to place",
+"cat": "verbs",
+"ex": "Put the book on the table."
+},
+{
+"id": "370",
+"hz": "放心",
+"py": "fàngxīn",
+"en": "to feel relieved, not worry",
+"cat": "verbs",
+"ex": "Don't worry, I'll help you."
+},
+{
+"id": "376",
+"hz": "感兴趣",
+"py": "gǎn xìngqù",
+"en": "to be interested in",
+"cat": "verbs",
+"ex": "I'm interested in history."
+},
+{
+"id": "386",
+"hz": "关",
+"py": "guān",
+"en": "to close, to turn off",
+"cat": "verbs",
+"ex": "Please turn off the light."
+},
+{
+"id": "388",
+"hz": "关心",
+"py": "guānxīn",
+"en": "to care about",
+"cat": "verbs",
+"ex": "Mom cares about me a lot."
+},
+{
+"id": "394",
+"hz": "害怕",
+"py": "hàipà",
+"en": "to be afraid",
+"cat": "verbs",
+"ex": "I'm afraid of dogs."
+},
+{
+"id": "402",
+"hz": "还",
+"py": "huán",
+"en": "to return, to give back",
+"cat": "verbs",
+"ex": "I'll return your book tomorrow."
+},
+{
+"id": "404",
+"hz": "换",
+"py": "huàn",
+"en": "to change, to exchange",
+"cat": "verbs",
+"ex": "I'd like to exchange money."
+},
+{
+"id": "406",
+"hz": "回答",
+"py": "huídá",
+"en": "to answer",
+"cat": "verbs",
+"ex": "Please answer my question."
+},
+{
+"id": "412",
+"hz": "记得",
+"py": "jìde",
+"en": "to remember",
+"cat": "verbs",
+"ex": "I remember his name."
+},
+{
+"id": "414",
+"hz": "检查",
+"py": "jiǎnchá",
+"en": "to check, to examine",
+"cat": "verbs",
+"ex": "The doctor gives me a check-up."
+},
+{
+"id": "416",
+"hz": "见面",
+"py": "jiànmiàn",
+"en": "to meet (someone)",
+"cat": "verbs",
+"ex": "We'll meet tomorrow."
+},
+{
+"id": "418",
+"hz": "讲",
+"py": "jiǎng",
+"en": "to speak, to explain, to tell",
+"cat": "verbs",
+"ex": "The teacher explains very clearly."
+},
+{
+"id": "422",
+"hz": "接",
+"py": "jiē",
+"en": "to pick up (someone); to receive; to answer (phone)",
+"cat": "verbs",
+"ex": "I'll pick you up at the airport."
+},
+{
+"id": "426",
+"hz": "结婚",
+"py": "jiéhūn",
+"en": "to get married",
+"cat": "verbs",
+"ex": "They got married last year."
+},
+{
+"id": "427",
+"hz": "结束",
+"py": "jiéshù",
+"en": "to end, to finish",
+"cat": "verbs",
+"ex": "The meeting is over."
+},
+{
+"id": "428",
+"hz": "解决",
+"py": "jiějué",
+"en": "to solve",
+"cat": "verbs",
+"ex": "The problem is solved."
+},
+{
+"id": "429",
+"hz": "借",
+"py": "jiè",
+"en": "to borrow, to lend",
+"cat": "verbs",
+"ex": "May I borrow your pen?"
+},
+{
+"id": "431",
+"hz": "经过",
+"py": "jīngguò",
+"en": "to pass by; through",
+"cat": "verbs",
+"ex": "I pass the park every day."
+},
+{
+"id": "436",
+"hz": "决定",
+"py": "juédìng",
+"en": "to decide; decision",
+"cat": "verbs",
+"ex": "I decided to study in China."
+},
+{
+"id": "443",
+"hz": "哭",
+"py": "kū",
+"en": "to cry",
+"cat": "verbs",
+"ex": "The child is crying."
+},
+{
+"id": "448",
+"hz": "离开",
+"py": "líkāi",
+"en": "to leave",
+"cat": "verbs",
+"ex": "He has already left."
+},
+{
+"id": "454",
+"hz": "聊天",
+"py": "liáotiān",
+"en": "to chat",
+"cat": "verbs",
+"ex": "Let's have a chat."
+},
+{
+"id": "455",
+"hz": "了解",
+"py": "liǎojiě",
+"en": "to understand, to know about",
+"cat": "verbs",
+"ex": "I know him well."
+},
+{
+"id": "466",
+"hz": "明白",
+"py": "míngbai",
+"en": "to understand; clear",
+"cat": "verbs",
+"ex": "I understand."
+},
+{
+"id": "467",
+"hz": "拿",
+"py": "ná",
+"en": "to take, to hold",
+"cat": "verbs",
+"ex": "Please hold on to your things."
+},
+{
+"id": "475",
+"hz": "努力",
+"py": "nǔlì",
+"en": "to work hard; hard-working",
+"cat": "verbs",
+"ex": "He studies very hard."
+},
+{
+"id": "485",
+"hz": "骑",
+"py": "qí",
+"en": "to ride (bike, horse)",
+"cat": "verbs",
+"ex": "I ride a bike to school."
+},
+{
+"id": "487",
+"hz": "起来",
+"py": "qǐlai",
+"en": "to get up; (starting an action)",
+"cat": "verbs",
+"ex": "Get up quickly, you'll be late!"
+},
+{
+"id": "494",
+"hz": "认为",
+"py": "rènwéi",
+"en": "to think, to believe",
+"cat": "verbs",
+"ex": "I think you are right."
+},
+{
+"id": "499",
+"hz": "上网",
+"py": "shàngwǎng",
+"en": "to go online",
+"cat": "verbs",
+"ex": "In the evening I go online to read the news."
+},
+{
+"id": "500",
+"hz": "生气",
+"py": "shēngqì",
+"en": "to get angry",
+"cat": "verbs",
+"ex": "Don't be angry."
+},
+{
+"id": "503",
+"hz": "试",
+"py": "shì",
+"en": "to try",
+"cat": "verbs",
+"ex": "May I try it?"
+},
+{
+"id": "509",
+"hz": "刷牙",
+"py": "shuāyá",
+"en": "to brush teeth",
+"cat": "verbs",
+"ex": "I brush my teeth twice a day."
+},
+{
+"id": "516",
+"hz": "提高",
+"py": "tígāo",
+"en": "to improve, to raise",
+"cat": "verbs",
+"ex": "I want to improve my Chinese."
+},
+{
+"id": "521",
+"hz": "同意",
+"py": "tóngyì",
+"en": "to agree",
+"cat": "verbs",
+"ex": "I agree with your view."
+},
+{
+"id": "526",
+"hz": "完成",
+"py": "wánchéng",
+"en": "to complete",
+"cat": "verbs",
+"ex": "I finished my homework."
+},
+{
+"id": "529",
+"hz": "忘记",
+"py": "wàngjì",
+"en": "to forget",
+"cat": "verbs",
+"ex": "I forgot to bring money."
+},
+{
+"id": "537",
+"hz": "洗澡",
+"py": "xǐzǎo",
+"en": "to take a shower/bath",
+"cat": "verbs",
+"ex": "I shower in the evening."
+},
+{
+"id": "540",
+"hz": "相信",
+"py": "xiāngxìn",
+"en": "to believe, to trust",
+"cat": "verbs",
+"ex": "I believe you."
+},
+{
+"id": "543",
+"hz": "像",
+"py": "xiàng",
+"en": "to resemble, to be like",
+"cat": "verbs",
+"ex": "She looks like her mom."
+},
+{
+"id": "544",
+"hz": "小心",
+"py": "xiǎoxīn",
+"en": "to be careful",
+"cat": "verbs",
+"ex": "Careful, a car is coming!"
+},
+{
+"id": "551",
+"hz": "需要",
+"py": "xūyào",
+"en": "to need",
+"cat": "verbs",
+"ex": "Do you need help?"
+},
+{
+"id": "552",
+"hz": "选择",
+"py": "xuǎnzé",
+"en": "to choose; choice",
+"cat": "verbs",
+"ex": "You can choose one."
+},
+{
+"id": "553",
+"hz": "要求",
+"py": "yāoqiú",
+"en": "to require; requirement",
+"cat": "verbs",
+"ex": "The teacher requires us to practice daily."
+},
+{
+"id": "566",
+"hz": "应该",
+"py": "yīnggāi",
+"en": "should, ought to",
+"cat": "verbs",
+"ex": "You should rest more."
+},
+{
+"id": "567",
+"hz": "影响",
+"py": "yǐngxiǎng",
+"en": "to influence; influence",
+"cat": "verbs",
+"ex": "The weather affects my mood."
+},
+{
+"id": "568",
+"hz": "用",
+"py": "yòng",
+"en": "to use",
+"cat": "verbs",
+"ex": "I read the news on my phone."
+},
+{
+"id": "572",
+"hz": "遇到",
+"py": "yùdào",
+"en": "to meet, to run into",
+"cat": "verbs",
+"ex": "I ran into my teacher on the way."
+},
+{
+"id": "574",
+"hz": "愿意",
+"py": "yuànyì",
+"en": "to be willing",
+"cat": "verbs",
+"ex": "I'm willing to help you."
+},
+{
+"id": "577",
+"hz": "站",
+"py": "zhàn",
+"en": "to stand; station, stop",
+"cat": "verbs",
+"ex": "The next stop is Beijing Station."
+},
+{
+"id": "579",
+"hz": "长",
+"py": "zhǎng",
+"en": "to grow",
+"cat": "verbs",
+"ex": "Children grow very fast."
+},
+{
+"id": "581",
+"hz": "照顾",
+"py": "zhàogu",
+"en": "to take care of",
+"cat": "verbs",
+"ex": "She takes care of her sick mother."
+},
+{
+"id": "594",
+"hz": "注意",
+"py": "zhùyì",
+"en": "to pay attention to",
+"cat": "verbs",
+"ex": "Please pay attention to safety."
+},
+{
+"id": "14",
+"hz": "大",
+"py": "dà",
+"en": "big, large",
+"cat": "adjectives",
+"ex": "Beijing is very big."
+},
+{
+"id": "24",
+"hz": "多",
+"py": "duō",
+"en": "many, much",
+"cat": "adjectives",
+"ex": "There are many people here."
+},
+{
+"id": "31",
+"hz": "高兴",
+"py": "gāoxìng",
+"en": "happy, glad",
+"cat": "adjectives",
+"ex": "Nice to meet you."
+},
+{
+"id": "36",
+"hz": "好",
+"py": "hǎo",
+"en": "good, well",
+"cat": "adjectives",
+"ex": "How are you?"
+},
+{
+"id": "57",
+"hz": "冷",
+"py": "lěng",
+"en": "cold",
+"cat": "adjectives",
+"ex": "It's cold today."
+},
+{
+"id": "78",
+"hz": "漂亮",
+"py": "piàoliang",
+"en": "pretty, beautiful",
+"cat": "adjectives",
+"ex": "This piece of clothing is pretty."
+},
+{
+"id": "85",
+"hz": "热",
+"py": "rè",
+"en": "hot",
+"cat": "adjectives",
+"ex": "It's too hot today."
+},
+{
+"id": "92",
+"hz": "少",
+"py": "shǎo",
+"en": "few, little",
+"cat": "adjectives",
+"ex": "There are few people here."
+},
+{
+"id": "122",
+"hz": "小",
+"py": "xiǎo",
+"en": "small, little",
+"cat": "adjectives",
+"ex": "This cup is very small."
+},
+{
+"id": "152",
+"hz": "白",
+"py": "bái",
+"en": "white",
+"cat": "adjectives",
+"ex": "I like white clothes."
+},
+{
+"id": "159",
+"hz": "长",
+"py": "cháng",
+"en": "long",
+"cat": "adjectives",
+"ex": "This road is very long."
+},
+{
+"id": "165",
+"hz": "错",
+"py": "cuò",
+"en": "wrong; mistake",
+"cat": "adjectives",
+"ex": "This character is written wrong."
+},
+{
+"id": "174",
+"hz": "对",
+"py": "duì",
+"en": "correct; towards",
+"cat": "adjectives",
+"ex": "You're right."
+},
+{
+"id": "178",
+"hz": "高",
+"py": "gāo",
+"en": "tall, high",
+"cat": "adjectives",
+"ex": "He is very tall."
+},
+{
+"id": "184",
+"hz": "贵",
+"py": "guì",
+"en": "expensive",
+"cat": "adjectives",
+"ex": "This is too expensive."
+},
+{
+"id": "188",
+"hz": "好吃",
+"py": "hǎochī",
+"en": "delicious",
+"cat": "adjectives",
+"ex": "This dish is really delicious!"
+},
+{
+"id": "189",
+"hz": "黑",
+"py": "hēi",
+"en": "black; dark",
+"cat": "adjectives",
+"ex": "It's getting dark."
+},
+{
+"id": "190",
+"hz": "红",
+"py": "hóng",
+"en": "red",
+"cat": "adjectives",
+"ex": "She is wearing red clothes."
+},
+{
+"id": "199",
+"hz": "近",
+"py": "jìn",
+"en": "near, close",
+"cat": "adjectives",
+"ex": "The school is close to my home."
+},
+{
+"id": "208",
+"hz": "快",
+"py": "kuài",
+"en": "fast, quick",
+"cat": "adjectives",
+"ex": "He runs very fast."
+},
+{
+"id": "209",
+"hz": "快乐",
+"py": "kuàilè",
+"en": "happy",
+"cat": "adjectives",
+"ex": "Happy birthday!"
+},
+{
+"id": "210",
+"hz": "累",
+"py": "lèi",
+"en": "tired",
+"cat": "adjectives",
+"ex": "I'm very tired today."
+},
+{
+"id": "217",
+"hz": "慢",
+"py": "màn",
+"en": "slow",
+"cat": "adjectives",
+"ex": "Please speak a little slower."
+},
+{
+"id": "218",
+"hz": "忙",
+"py": "máng",
+"en": "busy",
+"cat": "adjectives",
+"ex": "I'm very busy today."
+},
+{
+"id": "229",
+"hz": "便宜",
+"py": "piányi",
+"en": "cheap",
+"cat": "adjectives",
+"ex": "This is very cheap."
+},
+{
+"id": "268",
+"hz": "新",
+"py": "xīn",
+"en": "new",
+"cat": "adjectives",
+"ex": "This is my new phone."
+},
+{
+"id": "288",
+"hz": "远",
+"py": "yuǎn",
+"en": "far",
+"cat": "adjectives",
+"ex": "The airport is far away."
+},
+{
+"id": "304",
+"hz": "矮",
+"py": "ǎi",
+"en": "short (height), low",
+"cat": "adjectives",
+"ex": "He is shorter than me."
+},
+{
+"id": "306",
+"hz": "安静",
+"py": "ānjìng",
+"en": "quiet",
+"cat": "adjectives",
+"ex": "Please be a little quieter."
+},
+{
+"id": "315",
+"hz": "饱",
+"py": "bǎo",
+"en": "full (after eating)",
+"cat": "adjectives",
+"ex": "I'm full."
+},
+{
+"id": "332",
+"hz": "差",
+"py": "chà",
+"en": "poor, bad; to lack; short of",
+"cat": "adjectives",
+"ex": "It's five to eight."
+},
+{
+"id": "342",
+"hz": "聪明",
+"py": "cōngming",
+"en": "clever, smart",
+"cat": "adjectives",
+"ex": "This child is very smart."
+},
+{
+"id": "359",
+"hz": "短",
+"py": "duǎn",
+"en": "short (length, time)",
+"cat": "adjectives",
+"ex": "Her hair is very short."
+},
+{
+"id": "363",
+"hz": "饿",
+"py": "è",
+"en": "hungry",
+"cat": "adjectives",
+"ex": "I'm hungry."
+},
+{
+"id": "368",
+"hz": "方便",
+"py": "fāngbiàn",
+"en": "convenient",
+"cat": "adjectives",
+"ex": "Taking the subway is convenient."
+},
+{
+"id": "374",
+"hz": "干净",
+"py": "gānjìng",
+"en": "clean",
+"cat": "adjectives",
+"ex": "The room is very clean."
+},
+{
+"id": "400",
+"hz": "坏",
+"py": "huài",
+"en": "bad; broken",
+"cat": "adjectives",
+"ex": "My phone is broken."
+},
+{
+"id": "415",
+"hz": "简单",
+"py": "jiǎndān",
+"en": "simple, easy",
+"cat": "adjectives",
+"ex": "This question is very simple."
+},
+{
+"id": "434",
+"hz": "旧",
+"py": "jiù",
+"en": "old (things), used",
+"cat": "adjectives",
+"ex": "This is an old book."
+},
+{
+"id": "437",
+"hz": "可爱",
+"py": "kě'ài",
+"en": "cute, lovely",
+"cat": "adjectives",
+"ex": "This cat is really cute."
+},
+{
+"id": "438",
+"hz": "渴",
+"py": "kě",
+"en": "thirsty",
+"cat": "adjectives",
+"ex": "I'm thirsty, I want to drink water."
+},
+{
+"id": "446",
+"hz": "蓝",
+"py": "lán",
+"en": "blue",
+"cat": "adjectives",
+"ex": "The sky is very blue."
+},
+{
+"id": "447",
+"hz": "老",
+"py": "lǎo",
+"en": "old (people)",
+"cat": "adjectives",
+"ex": "My grandpa is very old."
+},
+{
+"id": "459",
+"hz": "绿",
+"py": "lǜ",
+"en": "green",
+"cat": "adjectives",
+"ex": "Leaves are green."
+},
+{
+"id": "462",
+"hz": "满意",
+"py": "mǎnyì",
+"en": "satisfied",
+"cat": "adjectives",
+"ex": "I'm satisfied with this job."
+},
+{
+"id": "470",
+"hz": "难",
+"py": "nán",
+"en": "difficult",
+"cat": "adjectives",
+"ex": "Chinese characters are hard to write."
+},
+{
+"id": "471",
+"hz": "难过",
+"py": "nánguò",
+"en": "sad, upset",
+"cat": "adjectives",
+"ex": "Don't be sad."
+},
+{
+"id": "473",
+"hz": "年轻",
+"py": "niánqīng",
+"en": "young",
+"cat": "adjectives",
+"ex": "He is still very young."
+},
+{
+"id": "478",
+"hz": "胖",
+"py": "pàng",
+"en": "fat, plump",
+"cat": "adjectives",
+"ex": "This cat is very fat."
+},
+{
+"id": "484",
+"hz": "奇怪",
+"py": "qíguài",
+"en": "strange, odd",
+"cat": "adjectives",
+"ex": "This matter is very strange."
+},
+{
+"id": "488",
+"hz": "清楚",
+"py": "qīngchu",
+"en": "clear",
+"cat": "adjectives",
+"ex": "I hear it very clearly."
+},
+{
+"id": "493",
+"hz": "热情",
+"py": "rèqíng",
+"en": "warm, enthusiastic",
+"cat": "adjectives",
+"ex": "Chinese people are very warm-hearted."
+},
+{
+"id": "495",
+"hz": "认真",
+"py": "rènzhēn",
+"en": "serious, earnest",
+"cat": "adjectives",
+"ex": "He works very conscientiously."
+},
+{
+"id": "496",
+"hz": "容易",
+"py": "róngyì",
+"en": "easy",
+"cat": "adjectives",
+"ex": "This question is easy."
+},
+{
+"id": "504",
+"hz": "瘦",
+"py": "shòu",
+"en": "thin, slim",
+"cat": "adjectives",
+"ex": "She is very thin."
+},
+{
+"id": "506",
+"hz": "舒服",
+"py": "shūfu",
+"en": "comfortable",
+"cat": "adjectives",
+"ex": "This chair is very comfortable."
+},
+{
+"id": "518",
+"hz": "甜",
+"py": "tián",
+"en": "sweet",
+"cat": "adjectives",
+"ex": "This watermelon is very sweet."
+},
+{
+"id": "547",
+"hz": "新鲜",
+"py": "xīnxiān",
+"en": "fresh",
+"cat": "adjectives",
+"ex": "These fruits are very fresh."
+},
+{
+"id": "560",
+"hz": "一样",
+"py": "yíyàng",
+"en": "the same",
+"cat": "adjectives",
+"ex": "Our clothes are the same."
+},
+{
+"id": "570",
+"hz": "有名",
+"py": "yǒumíng",
+"en": "famous",
+"cat": "adjectives",
+"ex": "He is a famous doctor."
+},
+{
+"id": "580",
+"hz": "着急",
+"py": "zháojí",
+"en": "anxious, in a hurry",
+"cat": "adjectives",
+"ex": "Don't worry, there's still time."
+},
+{
+"id": "591",
+"hz": "重要",
+"py": "zhòngyào",
+"en": "important",
+"cat": "adjectives",
+"ex": "This meeting is very important."
+},
+{
+"id": "593",
+"hz": "主要",
+"py": "zhǔyào",
+"en": "main, mainly",
+"cat": "adjectives",
+"ex": "I mainly study Chinese."
+},
+{
+"id": "244",
+"hz": "事情",
+"py": "shìqing",
+"en": "matter, thing, affair",
+"cat": "misc",
+"ex": "I have something to tell you."
+},
+{
+"id": "262",
+"hz": "问题",
+"py": "wèntí",
+"en": "question, problem",
+"cat": "misc",
+"ex": "No problem!"
+},
+{
+"id": "272",
+"hz": "颜色",
+"py": "yánsè",
+"en": "color",
+"cat": "misc",
+"ex": "What color do you like?"
+},
+{
+"id": "281",
+"hz": "意思",
+"py": "yìsi",
+"en": "meaning",
+"cat": "misc",
+"ex": "What does this character mean?"
+},
+{
+"id": "310",
+"hz": "办法",
+"py": "bànfǎ",
+"en": "way, method",
+"cat": "misc",
+"ex": "I have a good idea."
+},
+{
+"id": "323",
+"hz": "变化",
+"py": "biànhuà",
+"en": "change",
+"cat": "misc",
+"ex": "This city has changed a lot."
+},
+{
+"id": "384",
+"hz": "故事",
+"py": "gùshi",
+"en": "story",
+"cat": "misc",
+"ex": "Mom tells me a story."
+},
+{
+"id": "387",
+"hz": "关系",
+"py": "guānxi",
+"en": "relationship, relation",
+"cat": "misc",
+"ex": "They have a good relationship."
+},
+{
+"id": "410",
+"hz": "机会",
+"py": "jīhuì",
+"en": "opportunity, chance",
+"cat": "misc",
+"ex": "This is a good opportunity."
+},
+{
+"id": "424",
+"hz": "节目",
+"py": "jiémù",
+"en": "program, show",
+"cat": "misc",
+"ex": "This show is very interesting."
+},
+{
+"id": "501",
+"hz": "声音",
+"py": "shēngyīn",
+"en": "sound, voice",
+"cat": "misc",
+"ex": "Her voice is very pleasant."
+},
+{
+"id": "511",
+"hz": "水平",
+"py": "shuǐpíng",
+"en": "level, standard",
+"cat": "misc",
+"ex": "His Chinese level is very high."
+},
+{
+"id": "533",
+"hz": "文化",
+"py": "wénhuà",
+"en": "culture",
+"cat": "misc",
+"ex": "I'm very interested in Chinese culture."
+},
+{
+"id": "535",
+"hz": "习惯",
+"py": "xíguàn",
+"en": "habit; to be used to",
+"cat": "misc",
+"ex": "I'm used to getting up early."
+},
+{
+"id": "546",
+"hz": "新闻",
+"py": "xīnwén",
+"en": "news",
+"cat": "misc",
+"ex": "I watch the news every day."
+},
+{
+"id": "7",
+"hz": "不客气",
+"py": "bú kèqi",
+"en": "you're welcome",
+"cat": "phrases",
+"ex": "Thanks! — You're welcome."
+},
+{
+"id": "23",
+"hz": "对不起",
+"py": "duìbuqǐ",
+"en": "sorry, excuse me",
+"cat": "phrases",
+"ex": "Sorry, I'm late."
+},
+{
+"id": "64",
+"hz": "没关系",
+"py": "méi guānxi",
+"en": "it doesn't matter, never mind",
+"cat": "phrases",
+"ex": "Sorry! — It doesn't matter."
+},
+{
+"id": "111",
+"hz": "喂",
+"py": "wèi",
+"en": "hello (on the phone)",
+"cat": "phrases",
+"ex": "Hello (on the phone)!"
+},
+{
+"id": "126",
+"hz": "谢谢",
+"py": "xièxie",
+"en": "thank you",
+"cat": "phrases",
+"ex": "Thank you!"
+},
+{
+"id": "138",
+"hz": "再见",
+"py": "zàijiàn",
+"en": "goodbye",
+"cat": "phrases",
+"ex": "Bye, see you tomorrow!"
+},
+{
+"id": "401",
+"hz": "欢迎",
+"py": "huānyíng",
+"en": "to welcome",
+"cat": "phrases",
+"ex": "Welcome to Beijing!"
+},
+{
+"id": "157",
+"hz": "别",
+"py": "bié",
+"en": "don't; other",
+"cat": "adverbs",
+"ex": "Don't talk!"
+},
+{
+"id": "176",
+"hz": "非常",
+"py": "fēicháng",
+"en": "very, extremely",
+"cat": "adverbs",
+"ex": "I like it here very much."
+},
+{
+"id": "186",
+"hz": "还",
+"py": "hái",
+"en": "still, also",
+"cat": "adverbs",
+"ex": "He is still sleeping."
+},
+{
+"id": "200",
+"hz": "就",
+"py": "jiù",
+"en": "then, right away; just",
+"cat": "adverbs",
+"ex": "I'll come right away."
+},
+{
+"id": "205",
+"hz": "可能",
+"py": "kěnéng",
+"en": "maybe, possibly",
+"cat": "adverbs",
+"ex": "It may rain tomorrow."
+},
+{
+"id": "249",
+"hz": "虽然",
+"py": "suīrán",
+"en": "although",
+"cat": "adverbs",
+"ex": "Although tired, I'm very happy."
+},
+{
+"id": "250",
+"hz": "但是",
+"py": "dànshì",
+"en": "but, however",
+"cat": "adverbs",
+"ex": "I want to go, but I have no time."
+},
+{
+"id": "277",
+"hz": "也",
+"py": "yě",
+"en": "also, too",
+"cat": "adverbs",
+"ex": "I am also a student."
+},
+{
+"id": "278",
+"hz": "一起",
+"py": "yìqǐ",
+"en": "together",
+"cat": "adverbs",
+"ex": "Let's go together."
+},
+{
+"id": "282",
+"hz": "因为",
+"py": "yīnwèi",
+"en": "because",
+"cat": "adverbs",
+"ex": "Because it rained, I didn't go."
+},
+{
+"id": "283",
+"hz": "所以",
+"py": "suǒyǐ",
+"en": "so, therefore",
+"cat": "adverbs",
+"ex": "I was sick, so I didn't go to work."
+},
+{
+"id": "290",
+"hz": "再",
+"py": "zài",
+"en": "again, once more",
+"cat": "adverbs",
+"ex": "Please say it again."
+},
+{
+"id": "295",
+"hz": "真",
+"py": "zhēn",
+"en": "really; true",
+"cat": "adverbs",
+"ex": "It's really beautiful here!"
+},
+{
+"id": "296",
+"hz": "正在",
+"py": "zhèngzài",
+"en": "in the process of, currently",
+"cat": "adverbs",
+"ex": "I am eating right now."
+},
+{
+"id": "300",
+"hz": "最",
+"py": "zuì",
+"en": "most, -est",
+"cat": "adverbs",
+"ex": "I like summer the most."
+},
+{
+"id": "319",
+"hz": "比较",
+"py": "bǐjiào",
+"en": "relatively; to compare",
+"cat": "adverbs",
+"ex": "It's relatively cold today."
+},
+{
+"id": "322",
+"hz": "必须",
+"py": "bìxū",
+"en": "must, have to",
+"cat": "adverbs",
+"ex": "You must go."
+},
+{
+"id": "326",
+"hz": "不但",
+"py": "búdàn",
+"en": "not only",
+"cat": "adverbs",
+"ex": "She is not only pretty but also smart."
+},
+{
+"id": "327",
+"hz": "而且",
+"py": "érqiě",
+"en": "moreover, and also",
+"cat": "adverbs",
+"ex": "This dish is tasty and also cheap."
+},
+{
+"id": "348",
+"hz": "当然",
+"py": "dāngrán",
+"en": "of course",
+"cat": "adverbs",
+"ex": "Of course you can!"
+},
+{
+"id": "362",
+"hz": "多么",
+"py": "duōme",
+"en": "how (exclamation)",
+"cat": "adverbs",
+"ex": "What beautiful flowers!"
+},
+{
+"id": "381",
+"hz": "更",
+"py": "gèng",
+"en": "even more",
+"cat": "adverbs",
+"ex": "Today is even colder than yesterday."
+},
+{
+"id": "393",
+"hz": "还是",
+"py": "háishi",
+"en": "or (in questions); still; had better",
+"cat": "adverbs",
+"ex": "Do you drink tea or coffee?"
+},
+{
+"id": "408",
+"hz": "或者",
+"py": "huòzhě",
+"en": "or (in statements)",
+"cat": "adverbs",
+"ex": "Either you or he can go."
+},
+{
+"id": "409",
+"hz": "几乎",
+"py": "jīhū",
+"en": "almost",
+"cat": "adverbs",
+"ex": "I run almost every day."
+},
+{
+"id": "411",
+"hz": "极",
+"py": "jí",
+"en": "extremely",
+"cat": "adverbs",
+"ex": "This dish is extremely tasty."
+},
+{
+"id": "430",
+"hz": "经常",
+"py": "jīngcháng",
+"en": "often",
+"cat": "adverbs",
+"ex": "I often go to the library."
+},
+{
+"id": "461",
+"hz": "马上",
+"py": "mǎshàng",
+"en": "right away, immediately",
+"cat": "adverbs",
+"ex": "I'll be there right away."
+},
+{
+"id": "482",
+"hz": "其实",
+"py": "qíshí",
+"en": "actually, in fact",
+"cat": "adverbs",
+"ex": "Actually I don't like coffee."
+},
+{
+"id": "492",
+"hz": "然后",
+"py": "ránhòu",
+"en": "then, afterwards",
+"cat": "adverbs",
+"ex": "First eat, then watch a movie."
+},
+{
+"id": "497",
+"hz": "如果",
+"py": "rúguǒ",
+"en": "if",
+"cat": "adverbs",
+"ex": "If it rains, I won't go."
+},
+{
+"id": "514",
+"hz": "特别",
+"py": "tèbié",
+"en": "special; especially",
+"cat": "adverbs",
+"ex": "It's especially hot today."
+},
+{
+"id": "523",
+"hz": "突然",
+"py": "tūrán",
+"en": "suddenly",
+"cat": "adverbs",
+"ex": "Suddenly it started to rain."
+},
+{
+"id": "539",
+"hz": "先",
+"py": "xiān",
+"en": "first, before",
+"cat": "adverbs",
+"ex": "You go first."
+},
+{
+"id": "555",
+"hz": "一般",
+"py": "yìbān",
+"en": "general, ordinary; usually",
+"cat": "adverbs",
+"ex": "I usually get up at seven."
+},
+{
+"id": "556",
+"hz": "一边",
+"py": "yìbiān",
+"en": "while (doing two things at once)",
+"cat": "adverbs",
+"ex": "He eats while watching TV."
+},
+{
+"id": "557",
+"hz": "一定",
+"py": "yídìng",
+"en": "certainly, must",
+"cat": "adverbs",
+"ex": "I will certainly come."
+},
+{
+"id": "558",
+"hz": "一共",
+"py": "yígòng",
+"en": "altogether, in total",
+"cat": "adverbs",
+"ex": "How much is it altogether?"
+},
+{
+"id": "561",
+"hz": "一直",
+"py": "yìzhí",
+"en": "always, all along; straight",
+"cat": "adverbs",
+"ex": "Keep going straight ahead."
+},
+{
+"id": "571",
+"hz": "又",
+"py": "yòu",
+"en": "again; both... and",
+"cat": "adverbs",
+"ex": "He was late again."
+},
+{
+"id": "576",
+"hz": "越",
+"py": "yuè",
+"en": "the more... the more",
+"cat": "adverbs",
+"ex": "The more I study Chinese, the more I like it."
+},
+{
+"id": "585",
+"hz": "只有",
+"py": "zhǐyǒu",
+"en": "only; only if",
+"cat": "adverbs",
+"ex": "Only he knows the answer."
+},
+{
+"id": "586",
+"hz": "才",
+"py": "cái",
+"en": "only then; not until; just",
+"cat": "adverbs",
+"ex": "He didn't come until ten."
+},
+{
+"id": "589",
+"hz": "终于",
+"py": "zhōngyú",
+"en": "finally, at last",
+"cat": "adverbs",
+"ex": "I finally arrived!"
+},
+{
+"id": "597",
+"hz": "总是",
+"py": "zǒngshì",
+"en": "always",
+"cat": "adverbs",
+"ex": "He is always busy."
+}
+]

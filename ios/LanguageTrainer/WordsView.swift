@@ -177,9 +177,9 @@ struct Tile: View {
         let st = store.status(w.id), r = max(2, Look.current.radius - 2)
         HStack(spacing: 10) {
             // German and Spanish: no letter in the empty picture slot (it says nothing in Latin script), more room for the word
-            if store.words.picture(w.id) != nil || !store.course.gender {
+            if store.words.hasPicture(w.id) || !store.course.gender {
                 Group {
-                    if let p = store.words.picture(w.id) { Text(p).font(.system(size: 24)) }
+                    if store.words.hasPicture(w.id) { WordPic(id: w.id, size: 24, box: 44) }
                     else { Text(String(w.hz.prefix(1))).hanziFont(20).foregroundStyle(Color.ink3) }
                 }
                 .frame(width: 44, height: 44)
@@ -225,8 +225,8 @@ struct WordDetail: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(alignment: .top, spacing: 12) {
-                    if let p = store.words.picture(w.id) {
-                        Text(p).font(.system(size: 40)).frame(width: 72, height: 72)
+                    if store.words.hasPicture(w.id) {
+                        WordPic(id: w.id, size: 40, box: 72).frame(width: 72, height: 72)
                             .background(Color.paper, in: RoundedRectangle(cornerRadius: max(2, Look.current.radius - 2)))
                             .overlay(RoundedRectangle(cornerRadius: max(2, Look.current.radius - 2)).stroke(Color.line))
                             .accessibilityLabel(store.tr(w))
@@ -351,6 +351,6 @@ struct WordPicture: View {
     let word: Word
     var size: CGFloat = 64
     var body: some View {
-        if let p = store.words.picture(word.id) { Text(p).scaledFont(size).accessibilityHidden(true) }
+        if store.words.hasPicture(word.id) { WordPic(id: word.id, size: size).accessibilityHidden(true) }
     }
 }

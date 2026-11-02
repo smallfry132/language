@@ -110,6 +110,7 @@ web/
   js/dialogues.js       Dialogues per course (Chinese: HSK 1)
   js/themes.js          Topics (ordered groups of word ids) and pictures for the Chinese words
   js/themes-auto.js     Topics and pictures for Vietnamese and Japanese (generated, see tools/build-topics.mjs)
+  js/art.js             Drawn word pictures: word id → picture in web/art (generated, see tools/build-art.mjs)
   js/app.js             Application logic (views, training modes, spaced repetition, speech, storage, sync)
   api/sync.mjs          Vercel function: sync store (Upstash Redis)
   manifest.webmanifest  PWA manifest
@@ -123,6 +124,8 @@ ios/
 android/                Placeholder for a native Android app
 tools/export-data.mjs   Copies the web app's data and texts into the iPhone app
 tools/build-topics.mjs  Builds the Vietnamese and Japanese topics and pictures from the Chinese ones and the meanings
+tools/build-art.mjs     Turns the generated pictures (art/words; the full-size pictures are not in git) into small WebP files for web and iPhone;
+                        other courses share a picture by English meaning. Pictures are listed in art/words/log.jsonl
 tools/check-themes.mjs  Checks that every word is in exactly one topic and no picture is used twice
 ```
 

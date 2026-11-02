@@ -70,7 +70,7 @@ struct ChooseWord: View {
         } else {
             VStack(alignment: .leading, spacing: 6) {
                 Text(store.tr(w)).font(.title.weight(.bold))
-                if let p = store.words.picture(w.id) { Text(p).scaledFont(48).accessibilityHidden(true) }
+                if store.words.hasPicture(w.id) { WordPic(id: w.id, size: 48).accessibilityHidden(true) }
             }
         }
     }

@@ -203,6 +203,8 @@ public final class Library: @unchecked Sendable {
     public let themes: [String: [Theme]]
     /// An emoji per word id for words that can be shown as a picture
     public let pictures: [String: String]
+    /// A drawn picture per word id (art.json, made by tools/build-art.mjs): the file name in Data/art
+    public let art: [String: String]
     /// "Say it" tips per course (tips.json)
     public let tips: SayTips
     /// Word families per course (families.json)
@@ -228,10 +230,16 @@ public final class Library: @unchecked Sendable {
         strings = load("strings", Strings.self)
         themes = load("themes", [String: [Theme]].self)
         pictures = load("pictures", [String: [String: String]].self).values.reduce(into: [:]) { $0.merge($1) { a, _ in a } }
+        art = Bundle.module.url(forResource: "art", withExtension: "json", subdirectory: "Data").flatMap { try? Data(contentsOf: $0) }
+            .flatMap { try? JSONDecoder().decode([String: [String: String]].self, from: $0) }?.values.reduce(into: [:]) { $0.merge($1) { a, _ in a } } ?? [:]
         families = Bundle.module.url(forResource: "families", withExtension: "json", subdirectory: "Data").flatMap { try? Data(contentsOf: $0) }.flatMap { try? JSONDecoder().decode([String: [FamilyData]].self, from: $0) } ?? [:]
         tips = SayTips(json: Bundle.module.url(forResource: "tips", withExtension: "json", subdirectory: "Data").flatMap { try? Data(contentsOf: $0) })
         index = Dictionary(words.values.flatMap { $0 }.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
     }
 
     public func word(_ id: String) -> Word? { index[id] }
+    /// The file of a word's drawn picture
+    public func artURL(_ id: String) -> URL? {
+        art[id].flatMap { Bundle.module.url(forResource: $0, withExtension: "webp", subdirectory: "Data/art") }
+    }
 }

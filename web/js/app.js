@@ -3047,7 +3047,7 @@
     // Role play: a random role; pick your reply from two, then say it (or type it). A good recording moves on,
     // otherwise Retry or Next.
     function runDlgTurn() {
-      let me = Math.floor(Math.random() * d.people.length), i = 0, right = 0, hint = 0, chosen = false, wrongPick = null, typing = false, attempt = null, replies = [];
+      let me = Math.floor(Math.random() * d.people.length), i = 0, right = 0, hint = 0, chosen = false, wrongPick = null, ruled = [], typing = false, attempt = null, replies = [];
       const shown = []; // { k, res }
       const myLines = () => d.lines.map((l, k) => (l.who === me ? k : -1)).filter((k) => k >= 0);
       const makeReplies = () => {
@@ -3055,7 +3055,7 @@
         const other = shuffle(others.filter((x) => x.who === l.who))[0] || shuffle(others)[0];
         replies = shuffle([l].concat(other ? [other] : []));
       };
-      const resetTurn = () => { hint = 0; chosen = false; wrongPick = null; typing = false; attempt = null; replies = []; };
+      const resetTurn = () => { hint = 0; chosen = false; wrongPick = null; ruled = []; typing = false; attempt = null; replies = []; };
       redraw = () => {
         if (!alive()) return;
         $("#chat").innerHTML = `<div class="list-hint">${t("rolePlay")} · ${t("youAre", nameOf(me))}</div>` + shown.map((x) => bubble(d.lines[x.k], x.k, x.res ? { cls: x.res.ok === false ? "weak" : "", html: x.res.html ? `<div class="b-act">${x.res.html}</div>` : "" } : null, d.lines[x.k].who === me)).join("");
@@ -3076,7 +3076,7 @@
         const hintTxt = hint === 0 ? "" : C.id === "zh" ? l.py : l.py || l.hz;
         foot.innerHTML = `
           <div class="cp-head"><b>${t("pickReply")}</b><span>${n} / ${myLines().length}</span></div>
-          ${!chosen ? `<div class="cp-replies">${replies.map((x, k) => `<button class="cp-reply ${wrongPick === k ? "wrong" : ""}" data-reply="${k}" type="button"><span>${line(x)}</span>${opt().tr ? `<small>${esc(L(x))}</small>` : ""}</button>`).join("")}</div>`
+          ${!chosen ? `<div class="cp-replies">${replies.map((x, k) => `<button class="cp-reply ${wrongPick === k || ruled.includes(k) ? "wrong" : ""}" data-reply="${k}" type="button"><span>${line(x)}</span>${opt().tr ? `<small>${esc(L(x))}</small>` : ""}</button>`).join("")}</div>`
             : `<div class="cp-line">${C.id === "zh" && !zhPf && opt().py ? `<div>${pyHtml(hint ? l.py : l.py.split(/\s+/).map((w) => w.replace(/^([^a-zA-Zāáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜü]*)(.)(.*)$/, (_, a, b, c) => a + b + c.replace(/[\p{L}]/gu, "·"))).join(" "))}</div>` : ""}<div class="cp-main">${line(l)}</div>${hintTxt && C.id !== "zh" ? `<div class="small muted">${esc(hintTxt)}</div>` : ""}</div>
               ${attempt ? `<div class="cp-attempt">${attempt.html}<button class="btn sm" id="t-next" type="button">${t("next")}</button></div>` : ""}
               ${typing ? `<form class="row turn-type" id="turn-form"><input class="type-input" name="a" type="text" placeholder="${esc(t("typeOr"))}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" lang="${C.tts}"><button class="btn" type="submit">${t("check")}</button></form>` : ""}`}
@@ -3090,7 +3090,14 @@
           if (x.hz === l.hz) { chosen = true; wrongPick = null; speak(l.hz, { rate: 0.75, who: l.who, people: d.people }); } else wrongPick = +b.dataset.reply;
           redraw();
         }));
-        $("#t-hint").onclick = () => { if (chosen) hint++; else wrongPick = replies.findIndex((x) => x.hz !== l.hz); redraw(); };
+        // Hint, a step further on each tap: before the reply is picked, one more wrong reply is crossed out (then the
+        // right one is played); after, the hidden reading is shown, then the line is played slowly to repeat
+        $("#t-hint").onclick = () => {
+          const slow = () => speak(l.hz, { rate: 0.6, who: l.who, people: d.people });
+          if (!chosen) { const k = replies.findIndex((x, j) => x.hz !== l.hz && !ruled.includes(j)); if (k >= 0) ruled.push(k); else slow(); }
+          else { const hidden = C.id === "zh" ? !zhPf && opt().py : C.id === "ko" || C.id === "ja"; if (hidden && !hint) hint = 1; else { hint = Math.max(hint, 1); slow(); } }
+          redraw();
+        };
         if ($("#t-type")) $("#t-type").onclick = () => { chosen = true; typing = !typing; redraw(); if ($("#turn-form")) $("#turn-form").a.focus(); };
         if ($("#t-retry")) $("#t-retry").onclick = () => { attempt = null; redraw(); };
         if ($("#t-next")) $("#t-next").onclick = () => answer(attempt.r);

@@ -300,6 +300,7 @@ struct DialogueTurn: View {
     @State private var i = 0
     @State private var right = 0
     @State private var hint = 0
+    @State private var ruled: Set<String> = [] // replies the hint crossed out
     @State private var shown: [Shown] = []
     @State private var typed = ""
     @State private var gen = 0
@@ -380,8 +381,8 @@ struct DialogueTurn: View {
                                 if store.state.settings.dlgTr != false { Text(x.tr(store.state.lang)).font(.caption2).foregroundStyle(Color.ink2).lineLimit(2) }
                             }
                             .multilineTextAlignment(.center).padding(8).frame(maxWidth: .infinity, minHeight: 52)
-                            .background(wrongPick == x.hz ? Color.bad.opacity(0.1) : Color.paper, in: RoundedRectangle(cornerRadius: r))
-                            .overlay(RoundedRectangle(cornerRadius: r).stroke(wrongPick == x.hz ? Color.bad : Color.line))
+                            .background(wrongPick == x.hz || ruled.contains(x.hz) ? Color.bad.opacity(0.1) : Color.paper, in: RoundedRectangle(cornerRadius: r))
+                            .overlay(RoundedRectangle(cornerRadius: r).stroke(wrongPick == x.hz || ruled.contains(x.hz) ? Color.bad : Color.line))
                             .foregroundStyle(Color.ink)
                         }.buttonStyle(.card)
                     }
@@ -411,7 +412,7 @@ struct DialogueTurn: View {
                 }
             }
             HStack {
-                side(store.t("hint"), "lightbulb") { if chosen { hint += 1 } else { wrongPick = replies.first { $0.hz != l.hz }?.hz } }
+                side(store.t("hint"), "lightbulb") { hintTap(l) }
                 Spacer()
                 MicButton(key: "turn\(i)", target: l.hz, py: l.py, big: true) { r in
                     if !chosen { chosen = true }
@@ -445,7 +446,19 @@ struct DialogueTurn: View {
         if x.hz == l.hz { withAnimation { chosen = true }; wrongPick = nil; store.speaker.say(l.hz, rate: 0.75, who: l.who) }
         else { wrongPick = x.hz; Haptic.answer(false) }
     }
-    func resetTurn() { hint = 0; typed = ""; chosen = false; wrongPick = nil; typing = false; attempt = nil; replies = [] }
+    func resetTurn() { hint = 0; ruled = []; typed = ""; chosen = false; wrongPick = nil; typing = false; attempt = nil; replies = [] }
+    /// Hint, a step further on each tap: before the reply is picked, one more wrong reply is crossed out (then the right
+    /// one is played); after, the hidden reading is shown, then the line is played slowly to repeat
+    func hintTap(_ l: Dialogue.Line) {
+        let c = store.course.id
+        if !chosen {
+            if let x = replies.first(where: { $0.hz != l.hz && !ruled.contains($0.hz) }) { ruled.insert(x.hz) }
+            else { store.speaker.say(l.hz, rate: 0.6, who: l.who) }
+            return
+        }
+        let hidden = store.dialogueReading && (c == "zh" ? !store.pyFirst : c == "ko" || c == "ja")
+        if hidden && hint == 0 { hint = 1 } else { hint = max(hint, 1); store.speaker.say(l.hz, rate: 0.6, who: l.who) }
+    }
 
     func submitTyped() {
         // Tone numbers typed just before Return may not have turned into marks yet

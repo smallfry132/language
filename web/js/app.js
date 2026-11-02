@@ -3683,6 +3683,8 @@
     let hits = [];
     if (native && C.id !== "vi") hits = pool.filter((w) => w.hz === native || w.hz.split(/\s*;\s*/).includes(native) || (w.kana && w.kana === native));
     if (!hits.length) hits = pool.filter((w) => w.hz.toLowerCase() === low); // Vietnamese, or a whole native word
+    // German and Spanish: nouns typed without their article, words without umlauts or accents (Strasse → die Straße)
+    if (!hits.length && C.gender) { const bare = (x) => stripLatin(x.replace(/^(der|die|das|el|la|los|las)\s+/i, "")); hits = pool.filter((w) => bare(w.hz) === bare(raw) || stripLatin(w.hz) === stripLatin(raw.replace(/ae/g, "ä").replace(/oe/g, "ö").replace(/ue/g, "ü"))); }
     if (!hits.length && latin && C.id === "zh") {
       const exact = pool.filter((w) => w.py.toLowerCase().replace(/\s/g, "") === numToMarks(latin).toLowerCase().replace(/\s/g, ""));
       hits = exact.length ? exact : pool.filter((w) => norm(w.py) === norm(latin));

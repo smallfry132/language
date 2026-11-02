@@ -2,8 +2,8 @@ import SwiftUI
 import LanguageCore
 
 /* A dialogue as a chat (style canvas): listen to it, read it aloud (with a reading time to beat), and role play
- * (the app speaks the other person; you pick your reply, then say it or type it). The header switches the
- * reading line and the translation; each line has Play and 0.75×. */
+ * (the app speaks the other person; you pick your reply, then say it or type it). Switches next to the tabs show
+ * the reading line and the translation; each line has Play and 0.75×. */
 
 struct DialogueScreen: View {
     @Environment(Store.self) var store
@@ -19,6 +19,8 @@ struct DialogueScreen: View {
                     tab("listen", store.t("dlg_listen"), st.listen != nil)
                     tab("read", store.t("dlg_read"), st.read != nil)
                     tab("turn", store.t("rolePlay"), st.turn != nil)
+                    // The switches sit with the tabs, not in the toolbar: iOS 26 would wrap both in one glass capsule
+                    DialogueToggles().padding(.leading, 8)
                 }
                 .padding(.horizontal, 16)
                 .overlay(alignment: .bottom) { Rectangle().fill(Color.line).frame(height: 1) }
@@ -37,7 +39,6 @@ struct DialogueScreen: View {
                         Text(d.people.map { store.pyFirst ? $0.py : $0.hz }.joined(separator: " · ")).font(.caption2).foregroundStyle(Color.ink2).lineLimit(1)
                     }
                 }
-                ToolbarItemGroup(placement: .topBarTrailing) { DialogueToggles() }
             }
             .onDisappear { store.speaker.stop(); store.mic.cancel() }
         }

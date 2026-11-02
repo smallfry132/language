@@ -39,17 +39,13 @@ struct LearnView: View {
                 }
                 if course == "vi" { ToneDrillCard() } else { quickTiles(due: p.due.count) }
             }
-            if let next {
-                SectionTitle(text: store.t("dialogues"))
-                VStack(spacing: 0) {
-                    NavigationLink(value: Route.dialogue(next.id)) { DialogueRow(d: next) }.buttonStyle(.plain)
-                    Divider().padding(.leading, 16)
-                    NavigationLink(value: Route.dialogues) { ListRow(title: store.t("allDialogues"), icon: "bubble.left.and.bubble.right") }.buttonStyle(.plain)
-                }.background(Color.elevated, in: RoundedRectangle(cornerRadius: radius + 2)).overlay(RoundedRectangle(cornerRadius: radius + 2).stroke(Color.line))
-            }
-            MyLessons(path: $path)
+            if let next { nextDialogue(next) }
+            lessonLines
             if store.device.code != nil {
-                Text("☁️ " + store.syncStatusText).font(.footnote).foregroundStyle(Color.ink3).frame(maxWidth: .infinity).padding(.top, 8)
+                HStack(spacing: 6) {
+                    Circle().fill(store.syncState == .error || store.syncState == .offline || store.syncState == .off ? Color.ink3 : Color.tone(3)).frame(width: 8, height: 8)
+                    Text(store.syncStatusText).font(.caption).foregroundStyle(Color.ink2)
+                }.padding(.top, 14)
             }
         }
         .toolbar(.hidden, for: .navigationBar)
@@ -164,20 +160,26 @@ struct LearnView: View {
     var sessionTitleNative: String { ["zh": "今天的课", "ja": "今日のレッスン", "ko": "오늘의 공부", "vi": "Bài hôm nay"][course] ?? "" }
 
     @ViewBuilder func lessonCard(_ p: (due: [Word], fresh: [Word], unseen: Int)) -> some View {
-        let work = !p.due.isEmpty || !p.fresh.isEmpty
+        let plan = TodaySession.plan(store)
+        let work = !p.due.isEmpty || !p.fresh.isEmpty || !plan.todo.isEmpty
         let n = store.state.dayCount(todayKey()), introduced = store.words.introducedToday(store.state)
         let topic = p.fresh.first.flatMap { store.words.theme(of: $0.id) }
         let dark = course == "ko" || course == "vi" // a filled card with a light button
+        let planText = !p.due.isEmpty && !p.fresh.isEmpty ? store.t("sessionPlan", p.due.count, p.fresh.count) : !p.due.isEmpty ? store.t("sessionPlanReviews", p.due.count) : store.t("sessionPlanNew", p.fresh.count)
         let content = VStack(alignment: .leading, spacing: 4) {
-            if let topic { Text("\(topic.icon)  \(topic.name.get(store.state.lang))").font(.caption) .foregroundStyle(dark ? Color.white.opacity(0.75) : Color.ink2) }
             if work {
-                HStack(alignment: .firstTextBaseline, spacing: 10) {
-                    Text(sessionTitleNative).hanziFont(course == "vi" ? 24 : 28, course == "ja" ? .bold : .semibold)
-                    Text(store.t("sessionTitle")).font(.callout.weight(.medium))
-                }
-                Text(store.t("sessionDesc", p.due.count, p.fresh.count)).font(.footnote).foregroundStyle(dark ? Color.white.opacity(0.75) : Color.ink2)
+                HStack {
+                    Text(store.t("todaysSession").uppercased()).font(.caption.weight(.bold)).tracking(1.4)
+                    Spacer()
+                    Text(store.t("minAbout", TodaySession.minutes(plan.todo))).font(.caption)
+                }.foregroundStyle(dark ? Color.white.opacity(0.75) : Color.ink2)
+                Text(planText).font(.title2.weight(.bold)).padding(.top, 6)
+                if let topic { Text(store.t("topicLine", topic.name.get(store.state.lang))).font(.footnote).foregroundStyle(dark ? Color.white.opacity(0.75) : Color.ink2) }
+                let done = Set(plan.done + plan.steps.filter { $0.list.isEmpty }.map(\.kind))
+                StepSegments(kinds: plan.steps.map(\.kind), done: done, current: plan.todo.first?.kind, onDark: dark).padding(.top, 10)
                 Button { path.append(Route.today) } label: { Text(continueLabel) }.buttonStyle(cardButton).accessibilityIdentifier("Continue").padding(.top, 8)
             } else {
+                if let topic { Text("\(topic.icon)  \(topic.name.get(store.state.lang))").font(.caption).foregroundStyle(dark ? Color.white.opacity(0.75) : Color.ink2) }
                 Text(n > 0 || introduced > 0 ? store.t("sessionDone") : store.t("sessionTitle")).font(.title3.weight(.bold))
                 Text(n > 0 || introduced > 0 ? store.t("sessionDoneSub") : store.t("sessionEmpty")).font(.footnote).foregroundStyle(dark ? Color.white.opacity(0.75) : Color.ink2)
                 if p.unseen > 0 {
@@ -323,7 +325,7 @@ struct LearnView: View {
 
     func quickTiles(due: Int) -> some View {
         let labels: [String: [String]] = ["zh": ["复习", "听", "说"], "ja": ["復習", "聞く", "話す"], "ko": ["복습", "듣기", "말하기"]]
-        let l = labels[course] ?? ["↺", "♪", "◎"]
+        let l = store.pyFirst ? ["fùxí", "tīng", "shuō"] : labels[course] ?? ["↺", "♪", "◎"]
         let tiles: [(String, String, Route)] = [
             (l[0], store.t("stepReview") + (due > 0 ? " · \(due)" : ""), .mode(.flash)),
             (l[1], store.t("stepListen") + " · " + store.t("minutes", 5), .mode(.listen)),
@@ -335,7 +337,8 @@ struct LearnView: View {
                 let hot = k == 0 && due > 0
                 NavigationLink(value: tile.2) {
                     VStack(alignment: .leading, spacing: 0) {
-                        Text(tile.0).hanziFont(24).foregroundStyle(hot ? Color.accent : Color.ink)
+                        if store.pyFirst { PinyinText(py: tile.0, size: 17, weight: .bold) }
+                        else { Text(tile.0).hanziFont(24).foregroundStyle(hot ? Color.accent : Color.ink) }
                         Spacer(minLength: 8)
                         Text(tile.1).font(.caption).foregroundStyle(Color.ink).lineLimit(2)
                     }
@@ -346,6 +349,86 @@ struct LearnView: View {
                 .buttonStyle(.plain)
             }
         }
+    }
+
+    // MARK: Next dialogue and lessons, each under a heavy rule
+
+    func ruleHead(_ left: String, _ right: String) -> some View {
+        HStack {
+            Text(left.uppercased()).font(.caption.weight(.bold)).tracking(1.4)
+            Spacer()
+            Text(right).font(.caption)
+        }.foregroundStyle(Color.ink2)
+    }
+    /// The next dialogue: its first line, and which of Listen · Read aloud · Role play are done
+    func nextDialogue(_ d: Dialogue) -> some View {
+        let st = store.state.dialogue(d.id), l0 = d.lines[0], all = store.dialogues
+        let k = (all.firstIndex { $0.id == d.id } ?? 0) + 1
+        return NavigationLink(value: Route.dialogue(d.id)) {
+            VStack(alignment: .leading, spacing: 6) {
+                ruleHead(store.t("nextDialogue"), "\(d.topic.get(store.state.lang)) · \(store.t("dlgOf", k, all.count))")
+                if course == "zh" && store.pyFirst {
+                    PinyinText(py: l0.py, size: 19, weight: .bold)
+                    (Text(l0.hz).foregroundColor(Color.ink) + Text(" · " + l0.tr(store.state.lang)).foregroundColor(Color.ink2)).font(.subheadline)
+                } else {
+                    if course == "vi" { VietText(text: l0.hz, size: 19, weight: .bold) } else { Text(l0.hz).hanziFont(19, .bold) }
+                    Text((course != "vi" && !l0.py.isEmpty ? l0.py + " · " : "") + l0.tr(store.state.lang)).font(.subheadline).foregroundStyle(Color.ink2)
+                }
+                HStack(spacing: 14) {
+                    tick(st.listen != nil, store.t("dlg_listen")); tick(st.read != nil, store.t("dlg_read")); tick(st.turn != nil, store.t("dlg_turn"))
+                }.padding(.top, 2)
+            }
+            .padding(.top, 12).frame(maxWidth: .infinity, alignment: .leading)
+            .overlay(alignment: .top) { Rectangle().fill(Color.ink).frame(height: 2) }
+            .contentShape(Rectangle())
+        }.buttonStyle(.plain).padding(.top, 18)
+    }
+    func tick(_ on: Bool, _ label: String) -> some View {
+        HStack(spacing: 4) {
+            if on { Image(systemName: "checkmark").font(.caption2.weight(.bold)) }
+            else { RoundedRectangle(cornerRadius: 2).stroke(Color.ink2, lineWidth: 1.5).frame(width: 10, height: 10) }
+            Text(label)
+        }.font(.caption).foregroundStyle(on ? Color.ink : Color.ink2)
+    }
+    /// Your lessons as progress lines (the newest three); all of them on the dialogues page
+    var lessonLines: some View {
+        let lessons = store.state.lessons(course: store.course.id)
+        return VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text(store.t("myLessons").uppercased()).font(.caption.weight(.bold)).tracking(1.4).foregroundStyle(Color.ink2)
+                Spacer()
+                Button {
+                    let id = newId("l")
+                    let name = store.t("lessonDefault", lessons.count + 1) // read before changing the state
+                    store.update { $0.lessons[id] = Lesson(course: $0.course, name: name, created: nowMs()) }
+                    path.append(Route.lesson(id))
+                } label: { Label(store.t("lessonNew"), systemImage: "plus").font(.caption.weight(.semibold)) }.buttonStyle(.plain).foregroundStyle(Color.ink).frame(minHeight: 32)
+            }
+            if lessons.isEmpty { Text(store.t("lessonEmpty")).font(.footnote).foregroundStyle(Color.ink2) }
+            ForEach(Array(lessons.reversed().prefix(3)), id: \.id) { l in
+                let ws = l.lesson.words.filter { store.word($0.id) != nil }
+                let known = ws.filter { store.status($0.id) == .known }.count
+                let pct = ws.isEmpty ? 0 : Int((Double(known) / Double(ws.count) * 100).rounded())
+                NavigationLink(value: Route.lesson(l.id)) {
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack {
+                            Text(l.lesson.name).font(.subheadline.weight(.medium)).foregroundStyle(Color.ink).lineLimit(1)
+                            Spacer()
+                            Text("\(store.t("lessonWords", ws.count)) · \(pct)%").font(.subheadline).foregroundStyle(Color.ink2)
+                        }
+                        GeometryReader { g in
+                            ZStack(alignment: .leading) { Rectangle().fill(Color.sunken); Rectangle().fill(Color.ink).frame(width: g.size.width * CGFloat(pct) / 100) }
+                        }.frame(height: 4)
+                    }.contentShape(Rectangle())
+                }.buttonStyle(.plain)
+            }
+            if lessons.count > 3 {
+                NavigationLink(value: Route.dialogues) { Text(store.t("allLessons") + " →").font(.caption.weight(.semibold)).foregroundStyle(Color.ink) }.buttonStyle(.plain)
+            }
+        }
+        .padding(.top, 12)
+        .overlay(alignment: .top) { Rectangle().fill(Color.ink).frame(height: 2) }
+        .padding(.top, 18)
     }
 
     /// Once per language: how to get a natural voice

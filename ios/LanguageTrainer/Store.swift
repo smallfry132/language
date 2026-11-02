@@ -47,7 +47,7 @@ final class Store {
 
     init() {
         var s = (try? Data(contentsOf: Self.fileURL)).flatMap { try? JSONDecoder().decode(AppState.self, from: $0) } ?? AppState()
-        if ProcessInfo.processInfo.arguments.contains("-demo") { s = Demo.state() }
+        if ProcessInfo.processInfo.arguments.contains("-demo") { s = Demo.state(); UserDefaults.standard.removeObject(forKey: "flow.today") } // a fresh session too
         if let c = Launch.value("-course"), Course.all.contains(where: { $0.id == c }) { s.course = c } // for screenshots and tests
         state = s
         snap = Snapshot(s)

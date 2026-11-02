@@ -19,21 +19,20 @@ final class FlowTests: XCTestCase {
         launch()
         app.buttons["Continue"].tap()
         var steps: [String] = []
-        for _ in 0..<200 {
-            if text("Session complete").exists { break }
-            if text("Step ").exists && app.buttons["Start"].exists {
-                steps.append(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Step '")).firstMatch.label)
-                app.buttons["Start"].tap(); continue
-            }
+        for _ in 0..<300 {
+            if app.buttons["FlowDone"].exists { break }
+            // The session header: "Step 2 of 5 · 1 of 14"
+            let sub = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Step '")).firstMatch
+            if sub.exists, let step = sub.label.components(separatedBy: " · ").first, !steps.contains(step) { steps.append(step) }
+            if app.buttons["NextWord"].exists { app.buttons["NextWord"].tap(); continue }   // meet
             if app.buttons["Show answer"].exists { app.buttons["Show answer"].tap(); continue }
             if button("Good").exists { button("Good").tap(); continue }
-            if text("Say it out loud").exists { app.buttons["Next"].tap(); continue }       // meet
             if text("Which word did you hear").exists {                                    // listen
                 if app.buttons["Next"].exists { app.buttons["Next"].tap() } else { button("1").tap() }
                 continue
             }
             if app.buttons["Speak"].exists && app.buttons["Skip"].exists { app.buttons["Skip"].tap(); continue } // speak
-            if app.textFields.firstMatch.exists {                                           // write
+            if app.textFields.firstMatch.exists {                                           // type with the tone tiles
                 if app.buttons["Next"].exists { app.buttons["Next"].tap(); continue }
                 let f = app.textFields.firstMatch
                 f.tap(); f.typeText("ni3hao3")
@@ -42,9 +41,9 @@ final class FlowTests: XCTestCase {
             }
             RunLoop.current.run(until: Date().addingTimeInterval(0.3))
         }
-        XCTAssertTrue(text("Session complete").exists)
-        XCTAssertEqual(steps.count, 5, "review, new words, listen, speak, write: \(steps)")
-        app.buttons["Back to Learn"].tap()
+        XCTAssertTrue(text("session is done").exists)
+        XCTAssertEqual(steps.count, 5, "meet, cards, listen, say, type: \(steps)")
+        app.buttons["FlowDone"].tap()
         XCTAssertTrue(text("Done for today").waitForExistence(timeout: 3))
     }
 

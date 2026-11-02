@@ -88,8 +88,9 @@ struct DialogueRow: View {
 
 struct DialoguesScreen: View {
     @Environment(Store.self) var store
+    @Binding var path: NavigationPath
     var body: some View {
-        Page { DialogueList() }.navigationTitle(store.t("dialogues")).navigationBarTitleDisplayMode(.inline)
+        Page { DialogueList(); MyLessons(path: $path) }.navigationTitle(store.t("dialogues")).navigationBarTitleDisplayMode(.inline)
     }
 }
 

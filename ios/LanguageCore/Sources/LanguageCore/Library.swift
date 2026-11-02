@@ -78,14 +78,31 @@ public struct LocalText: Codable, Hashable, Sendable {
 }
 
 public struct Dialogue: Codable, Identifiable, Sendable {
-    public struct Person: Codable, Sendable { public let hz: String; public let py: String }
+    /// Vietnamese is written in Latin letters: its people and lines have no separate reading (py is then "")
+    public struct Person: Codable, Sendable {
+        public let hz: String
+        public let py: String
+        public init(from d: Decoder) throws {
+            let c = try d.container(keyedBy: CodingKeys.self)
+            hz = try c.decode(String.self, forKey: .hz); py = try c.decodeIfPresent(String.self, forKey: .py) ?? ""
+        }
+    }
     public struct Line: Codable, Hashable, Sendable {
         public let who: Int
         public let hz: String
         public let py: String
         public let en: String
         public let de: String?
+        /// A short note on the line's grammar or usage, shown inline (round-2 canvas)
+        public let tip: LocalText?
         public func tr(_ lang: String) -> String { lang == "de" ? (de ?? en) : en }
+        public init(from d: Decoder) throws {
+            let c = try d.container(keyedBy: CodingKeys.self)
+            who = try c.decode(Int.self, forKey: .who); hz = try c.decode(String.self, forKey: .hz)
+            py = try c.decodeIfPresent(String.self, forKey: .py) ?? ""
+            en = try c.decode(String.self, forKey: .en); de = try c.decodeIfPresent(String.self, forKey: .de)
+            tip = try c.decodeIfPresent(LocalText.self, forKey: .tip)
+        }
     }
     public let id: String
     public let icon: String?
@@ -151,6 +168,8 @@ public final class Library: @unchecked Sendable {
     public let themes: [String: [Theme]]
     /// An emoji per word id for words that can be shown as a picture
     public let pictures: [String: String]
+    /// "Say it" tips per course (tips.json)
+    public let tips: SayTips
     private let index: [String: Word]
 
     private init() {
@@ -172,6 +191,7 @@ public final class Library: @unchecked Sendable {
         strings = load("strings", Strings.self)
         themes = load("themes", [String: [Theme]].self)
         pictures = load("pictures", [String: [String: String]].self).values.reduce(into: [:]) { $0.merge($1) { a, _ in a } }
+        tips = SayTips(json: Bundle.module.url(forResource: "tips", withExtension: "json", subdirectory: "Data").flatMap { try? Data(contentsOf: $0) })
         index = Dictionary(words.values.flatMap { $0 }.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
     }
 

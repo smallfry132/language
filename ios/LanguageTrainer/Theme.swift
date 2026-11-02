@@ -301,7 +301,11 @@ struct ProgressHeader: View {
     let i: Int
     let n: Int
     var extra: String?
+    @Environment(\.flowInfo) private var flow
     var body: some View {
+        if let flow { FlowHeader(flow: flow, i: i, n: n) } else { bar }
+    }
+    var bar: some View {
         HStack(spacing: 12) {
             if n <= 24 {
                 // One segment per question, as on the style canvas

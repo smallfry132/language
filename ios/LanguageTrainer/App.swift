@@ -82,7 +82,7 @@ struct RootView: View {
         case .lesson(let id): LessonEditor(path: path(tab), lid: id)
         case .lessonPractice(let id): FlowScreen(lessonId: id)
         case .dialogue(let id): DialogueScreen(id: id)
-        case .dialogues: DialoguesScreen()
+        case .dialogues: DialoguesScreen(path: path(tab))
         case .sounds: SoundChart()
         case .soundDrill: SoundDrillScreen()
         case .progress: StatsView()

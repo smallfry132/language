@@ -9,6 +9,8 @@ struct SessionResult {
     var total: Int
     var mistakes: [Word]
     var extra: String?
+    /// Why each mistake was one (typed …, picked …, Again), for the Watch these list of the daily session
+    var why: [String: String] = [:]
 }
 
 /// "Again" means a word comes back at the end of the session. The card as on the style canvas: the word large
@@ -22,6 +24,7 @@ struct Flashcards: View {
     @State private var i = 0
     @State private var flipped = false
     @State private var mistakes: [Word] = []
+    @State private var why: [String: String] = [:]
     private let count: Int
 
     init(words: [Word], done: @escaping (SessionResult) -> Void) { _queue = State(initialValue: words); count = words.count; self.done = done }
@@ -145,10 +148,10 @@ struct Flashcards: View {
         Button {
             let w = queue[i]
             store.grade(w.id, q); store.recordAnswer(q >= 2)
-            if q < 2 && !mistakes.contains(w) { mistakes.append(w) }
+            if q < 2 && !mistakes.contains(w) { mistakes.append(w); why[w.id] = store.t(q == 0 ? "whyAgain" : "rateHard") }
             if q == 0 { queue.append(w) }
             flipped = false
-            if i + 1 >= queue.count { done(SessionResult(correct: count - mistakes.count, total: count, mistakes: mistakes)) } else { i += 1 }
+            if i + 1 >= queue.count { done(SessionResult(correct: count - mistakes.count, total: count, mistakes: mistakes, why: why)) } else { i += 1 }
         } label: {
             VStack(spacing: 2) { Text(label).font(.subheadline.weight(.bold)); Text(sub).font(.caption2).opacity(0.8) }
                 .frame(maxWidth: .infinity, minHeight: 56)
@@ -201,6 +204,7 @@ struct ChoiceQuiz: View {
     @State private var correct = 0
     @State private var picked: String?
     @State private var mistakes: [Word] = []
+    @State private var why: [String: String] = [:]
     @State private var options: [Word] = []
 
     var body: some View {
@@ -326,11 +330,15 @@ struct ChoiceQuiz: View {
         picked = x.id
         Haptic.answer(ok)
         store.answer(w, ok: ok)
-        if ok { correct += 1 } else { mistakes.append(w) }
+        if ok { correct += 1 } else {
+            mistakes.append(w)
+            let c = store.course.id
+            why[w.id] = store.t("whyPicked", [.hzTr, .picWord, .listenPic].contains(direction) ? store.tr(x) : "\(store.tr(x)) (\(c == "zh" || c == "ja" ? x.py : x.hz))")
+        }
         if store.state.settings.autoSpeak && !direction.listens { store.speaker.say(w.hz) }
     }
     func next() {
-        if i + 1 >= list.count { done(SessionResult(correct: correct, total: list.count, mistakes: mistakes)); return }
+        if i + 1 >= list.count { done(SessionResult(correct: correct, total: list.count, mistakes: mistakes, why: why)); return }
         i += 1; picked = nil; options = optionsFor(list[i])
         if direction.listens { store.speaker.say(list[i].hz) }
     }
@@ -361,7 +369,9 @@ struct PinyinField: View {
     }
 }
 
-/// See (or hear) a word, type its pinyin / reading / Vietnamese spelling
+/// See (or hear) a word, type its pinyin / reading / Vietnamese spelling. Chinese and Vietnamese (style canvas,
+/// round 2): type the letters, then tap each syllable's tone (4 or 6 tiles; a second tap clears a Chinese tone =
+/// neutral). Tone numbers and Telex marks work too; every tone has to be right.
 struct TypeWord: View {
     @Environment(Store.self) var store
     let list: [Word]
@@ -371,87 +381,309 @@ struct TypeWord: View {
     @State private var input = ""
     @State private var result: Bool?
     @State private var mistakes: [Word] = []
+    @State private var why: [String: String] = [:]
+    @FocusState private var focused: Bool
+
+    var course: String { store.course.id }
+    var pick: Bool { course == "zh" || course == "vi" }
 
     var body: some View {
         let w = list[i]
         Page {
             ProgressHeader(i: i, n: list.count, extra: "✓ \(correct)")
-            VStack(spacing: 10) {
-                if store.pyFirst || store.course.id == "vi" {
-                    Text(store.tr(w)).font(.title2.weight(.semibold)).multilineTextAlignment(.center)
-                    if store.pyFirst { SpeakButton(text: w.hz, small: true) }
-                } else {
-                    Text(w.hz).hanziFont(52)
-                    Text(store.tr(w)).foregroundStyle(Color.ink2)
-                }
-            }.frame(maxWidth: .infinity).padding(.vertical, 20)
-            PinyinField(placeholder: store.t("typePlaceholder"), text: $input) { result == nil ? check() : next() }
-                .id(i)
-                .disabled(result != nil)
-            Text(store.t("typeHint")).font(.footnote).foregroundStyle(Color.ink3).frame(maxWidth: .infinity)
+            if pick { pickerPrompt(w) } else {
+                VStack(spacing: 10) {
+                    if store.pyFirst {
+                        Text(store.tr(w)).font(.title2.weight(.semibold)).multilineTextAlignment(.center)
+                        SpeakButton(text: w.hz, small: true)
+                    } else {
+                        Text(w.hz).hanziFont(52)
+                        Text(store.tr(w)).foregroundStyle(Color.ink2)
+                    }
+                }.frame(maxWidth: .infinity).padding(.vertical, 20)
+                PinyinField(placeholder: store.t("typePlaceholder"), text: $input) { result == nil ? check() : next() }
+                    .id(i)
+                    .disabled(result != nil)
+                Text(store.t("typeHint")).font(.footnote).foregroundStyle(Color.ink3).frame(maxWidth: .infinity)
+            }
             if let ok = result {
-                let shown = store.course.id == "vi" ? "\(w.hz) [\(w.py)]" : w.py
-                FeedbackBar(ok: ok, text: AttributedString((ok ? store.t("correct") : store.t("wrong")) + "  " + store.t("answerWas") + " " + shown), speak: w.hz)
+                FeedbackBar(ok: ok, text: answerText(w, ok), speak: w.hz)
                 Button(store.t("next")) { next() }.buttonStyle(.primary)
             } else {
-                HStack {
-                    Button(store.t("skip")) { reveal(false) }.buttonStyle(.secondary)
+                VStack(spacing: 6) {
                     Button(store.t("check")) { check() }.buttonStyle(.primary)
+                    Button(store.t(pick ? "dontKnow" : "skip")) { reveal(false) }
+                        .font(.subheadline).foregroundStyle(Color.ink2).frame(maxWidth: .infinity, minHeight: 44)
+                }.padding(.top, 6)
+            }
+        }
+        .onAppear {
+            if store.pyFirst || pick { store.speaker.say(list[i].hz) }
+            if let v = Launch.value("-typed") { input = v } // for screenshots
+        }
+    }
+
+    @ViewBuilder func pickerPrompt(_ w: Word) -> some View {
+        let r = Look.current.radius
+        HStack(spacing: 14) {
+            if let p = store.words.picture(w.id) {
+                Text(p).font(.system(size: 40)).frame(width: 72, height: 72)
+                    .background(Color.elevated, in: RoundedRectangle(cornerRadius: r)).overlay(RoundedRectangle(cornerRadius: r).stroke(Color.line))
+                    .accessibilityHidden(true)
+            }
+            VStack(alignment: .leading, spacing: 2) {
+                Text(store.tr(w)).font(.title3.weight(.bold))
+                if course == "zh" { Text(w.hz).hanziFont(18).foregroundStyle(Color.ink2) } else if let t2 = store.tr2(w) { Text(t2).foregroundStyle(Color.ink2) }
+            }
+            Spacer()
+            Button { store.speaker.say(w.hz) } label: {
+                Image(systemName: "speaker.wave.2").frame(width: 44, height: 44)
+                    .background(Color.elevated, in: RoundedRectangle(cornerRadius: r)).overlay(RoundedRectangle(cornerRadius: r).stroke(Color.line))
+            }.buttonStyle(.plain).foregroundStyle(Color.ink).accessibilityLabel(store.t("hearIt"))
+        }.padding(.bottom, 8)
+        CapsLabel(text: store.t(course == "zh" ? "typeThePinyin" : "typeTheWord"))
+        TextField("", text: $input)
+            .font(.system(size: 26, weight: .medium))
+            .textInputAutocapitalization(.never).autocorrectionDisabled()
+            .keyboardType(course == "zh" ? .asciiCapable : .default)
+            .submitLabel(.done)
+            .frame(height: 52)
+            .overlay(alignment: .bottom) { Rectangle().fill(Color.ink).frame(height: 2) }
+            .focused($focused)
+            .disabled(result != nil)
+            .onSubmit { result == nil ? check() : next() }
+            .onChange(of: input) { _, v in
+                if course == "zh", v.contains(where: { ("1"..."5").contains($0) }) { input = Lingo.numToMarks(v) }
+            }
+            .onAppear { focused = true }
+            .id(i)
+            .accessibilityIdentifier("TypeField")
+        Text(store.t(course == "vi" ? "typePickHintVi" : "typePickHint")).font(.caption).foregroundStyle(Color.ink2)
+        let syls = typedSyllables(input)
+        if !syls.isEmpty {
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
+                ForEach(Array(syls.enumerated()), id: \.offset) { k, x in syllableCard(k, x) }
+            }.padding(.top, 8)
+            Text(store.t(course == "vi" ? "eachSyllableVi" : "eachSyllable")).font(.caption).foregroundStyle(Color.ink2).multilineTextAlignment(.center).frame(maxWidth: .infinity)
+        }
+    }
+
+    func syllableCard(_ k: Int, _ x: (text: String, tone: Int)) -> some View {
+        let n = course == "zh" ? 4 : 6, r = Look.current.radius
+        let color = { (t: Int) -> Color in Look.toneColors ? (course == "zh" ? Color.tone(t) : Color.viTone(t)) : Color.ink }
+        return VStack(spacing: 10) {
+            Text(x.text).font(.system(size: 28, weight: .bold)).foregroundStyle(x.tone > 0 ? color(x.tone) : Color.ink).lineLimit(1).minimumScaleFactor(0.5)
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 4), count: n == 4 ? 4 : 3), spacing: 4) {
+                ForEach(1...n, id: \.self) { t in
+                    let on = x.tone == t
+                    Button { tap(k, t) } label: {
+                        ToneIcon(n: t, course: course).scaleEffect(0.45).frame(width: 24, height: 18)
+                            .frame(maxWidth: .infinity, minHeight: 40)
+                            .background(on ? color(t).opacity(0.12) : Color.paper, in: RoundedRectangle(cornerRadius: max(r - 4, 2)))
+                            .overlay(RoundedRectangle(cornerRadius: max(r - 4, 2)).stroke(on ? color(t) : Color.line, lineWidth: on ? 2 : 1))
+                    }
+                    .buttonStyle(.plain).disabled(result != nil)
+                    .accessibilityLabel(toneName(store, t)).accessibilityAddTraits(on ? .isSelected : [])
                 }
             }
         }
-        .onAppear { if store.pyFirst { store.speaker.say(list[i].hz) } }
+        .padding(12).frame(maxWidth: .infinity)
+        .background(Color.elevated, in: RoundedRectangle(cornerRadius: r))
+        .overlay(RoundedRectangle(cornerRadius: r).stroke(x.tone > 0 ? Color.line : Color.ink2, style: StrokeStyle(lineWidth: x.tone > 0 ? 1 : 1.5, dash: x.tone > 0 ? [] : [5, 3])))
+    }
+
+    /// The syllables typed so far, each with its tone (Chinese: 0 = none chosen yet; Vietnamese: no mark = ngang)
+    func typedSyllables(_ v: String) -> [(text: String, tone: Int)] {
+        if course == "vi" { return v.split(whereSeparator: { $0.isWhitespace }).map { (String($0), Lingo.firstTone(String($0), course: "vi")) } }
+        return Lingo.pyParts(Lingo.numToMarks(v)).filter { !$0.sep }.map { ($0.text, Lingo.toneSeq($0.text).first ?? 0) }
+    }
+    func tap(_ k: Int, _ t: Int) {
+        var cur = typedSyllables(input)
+        guard k < cur.count else { return }
+        if course == "vi" { cur[k].text = Lingo.viMark(cur[k].text, t) }
+        else {
+            let marks: Set<Unicode.Scalar> = ["\u{0300}", "\u{0301}", "\u{0304}", "\u{030C}"]
+            let plain = String(String.UnicodeScalarView(cur[k].text.decomposedStringWithCanonicalMapping.unicodeScalars.filter { !marks.contains($0) })).precomposedStringWithCanonicalMapping
+            cur[k].text = Lingo.markSyllable(plain, cur[k].tone == t ? 5 : t)
+        }
+        input = cur.map(\.text).joined(separator: course == "vi" ? " " : "")
+    }
+
+    func answerText(_ w: Word, _ ok: Bool) -> AttributedString {
+        var a = AttributedString((ok ? store.t("correct") : store.t("wrong")) + "  " + store.t("answerWas") + " ")
+        switch course {
+        case "zh": a += PinyinText.attributed(w.py)
+        case "vi": a += VietText.attributed(w.hz)
+        case "ja": a += AttributedString(w.py)
+        default: a += AttributedString("\(w.hz) [\(w.py)]")
+        }
+        return a
     }
     func check() {
+        let w = list[i]
         // Tone numbers typed just before Return may not have turned into marks yet
-        let v = store.course.id == "zh" ? Lingo.numToMarks(input) : input
-        if !v.trimmingCharacters(in: .whitespaces).isEmpty { reveal(Check.typedWord(v, list[i])) }
+        let v = course == "zh" ? Lingo.numToMarks(input) : input
+        guard !v.trimmingCharacters(in: .whitespaces).isEmpty else { return }
+        switch course {
+        case "zh": reveal(Lingo.stripTones(v) == Lingo.stripTones(w.py) && Lingo.toneSeq(v) == Lingo.toneSeq(w.py))
+        case "vi":
+            let a = v.lowercased().split(whereSeparator: { $0.isWhitespace }), b = w.hz.lowercased().split(whereSeparator: { $0.isWhitespace })
+            reveal(Lingo.stripVi(v) == Lingo.stripVi(w.hz) && a.count == b.count && zip(a, b).allSatisfy { Lingo.firstTone(String($0), course: "vi") == Lingo.firstTone(String($1), course: "vi") })
+        default: reveal(Check.typedWord(v, w))
+        }
     }
     func reveal(_ ok: Bool) {
         let w = list[i]
         result = ok
         Haptic.answer(ok)
         store.answer(w, ok: ok)
-        if ok { correct += 1 } else { mistakes.append(w) }
+        if ok { correct += 1 } else {
+            mistakes.append(w)
+            let v = input.trimmingCharacters(in: .whitespaces)
+            why[w.id] = v.isEmpty ? store.t("whyNotHeard") : store.t("whyTyped", v)
+        }
         if store.state.settings.autoSpeak { store.speaker.say(w.hz) }
     }
     func next() {
-        if i + 1 >= list.count { done(SessionResult(correct: correct, total: list.count, mistakes: mistakes)); return }
+        if i + 1 >= list.count { done(SessionResult(correct: correct, total: list.count, mistakes: mistakes, why: why)); return }
         i += 1; input = ""; result = nil
-        if store.pyFirst { store.speaker.say(list[i].hz) }
+        if store.pyFirst || pick { store.speaker.say(list[i].hz) }
     }
 }
 
-/// First contact with a new word: listen and repeat
+/// First contact with a new word (style canvas, round 2): its tone, picture and reading, Play and 0.75×,
+/// a Say-it tip for the trickiest sound and the tone, an example with the word underlined; I know it · Next word
 struct Meet: View {
     @Environment(Store.self) var store
     let list: [Word]
     let done: (SessionResult) -> Void
     @State private var i = 0
 
+    var course: String { store.course.id }
+
     var body: some View {
-        let w = list[i]
+        let w = list[i], r = Look.current.radius
         Page {
             ProgressHeader(i: i, n: list.count)
-            CardBox(padding: 24) {
-                VStack(spacing: 10) {
-                    WordPicture(word: w, size: 72)
-                    WordHero(word: w, size: 60)
-                    Text(store.tr(w)).font(.title3).multilineTextAlignment(.center)
-                    HStack {
-                        Button { store.speaker.say(w.hz) } label: { Label(store.t("play"), systemImage: "speaker.wave.2.fill") }.buttonStyle(.secondary)
-                        Button { store.speaker.say(w.hz, rate: 0.55) } label: { Label(store.t("slowly"), systemImage: "tortoise.fill") }.buttonStyle(.secondary)
-                    }.padding(.top, 6)
-                    if let ex = w.ex { ExampleBox(word: w, ex: ex) }
-                    Label(store.t("sayAloud"), systemImage: "person.wave.2").font(.subheadline).foregroundStyle(Color.ink2).padding(.top, 4)
-                }.frame(maxWidth: .infinity)
+            VStack(spacing: 8) {
+                HStack { CapsLabel(text: store.t("newWord")); Spacer(); ToneChip(word: w) }
+                if let p = store.words.picture(w.id) {
+                    Text(p).font(.system(size: 46)).frame(width: 84, height: 84)
+                        .background(Color.paper, in: RoundedRectangle(cornerRadius: r)).overlay(RoundedRectangle(cornerRadius: r).stroke(Color.line))
+                        .accessibilityHidden(true)
+                }
+                wordBlock(w)
+                HStack(spacing: 8) {
+                    Button { store.speaker.say(w.hz) } label: {
+                        Label(store.t("play"), systemImage: "play.fill").font(.footnote.weight(.bold)).padding(.horizontal, 14).frame(height: 40)
+                            .background(Color.action, in: RoundedRectangle(cornerRadius: r)).foregroundStyle(Color.onAction)
+                    }.buttonStyle(.plain)
+                    Button { store.speaker.say(w.hz, rate: store.state.settings.rate * 0.75) } label: {
+                        Text("0.75×").font(.footnote).padding(.horizontal, 14).frame(height: 40)
+                            .background(Color.elevated, in: RoundedRectangle(cornerRadius: r)).overlay(RoundedRectangle(cornerRadius: r).stroke(Color.line))
+                    }.buttonStyle(.plain).foregroundStyle(Color.ink)
+                }.padding(.top, 4)
             }
-            Button(store.t("next")) {
-                if store.state.card(w.id) == nil { store.update { $0.markLearning(w.id) } }
-                if i + 1 >= list.count { done(SessionResult(correct: list.count, total: list.count, mistakes: [])) } else { i += 1; store.speaker.say(list[i].hz) }
-            }.buttonStyle(.primary)
+            .padding(20).frame(maxWidth: .infinity)
+            .background(Color.elevated, in: RoundedRectangle(cornerRadius: r + 2)).overlay(RoundedRectangle(cornerRadius: r + 2).stroke(Color.line))
+            .multilineTextAlignment(.center)
+            if let tip = Library.shared.tips.tip(for: w, lang: store.state.lang), !(tip.sound + tip.tone).isEmpty {
+                (Text(store.t("sayIt")).bold().foregroundColor(Color.accent) + Text(" · " + [tip.sound, tip.tone].filter { !$0.isEmpty }.joined(separator: " ")).foregroundColor(Color.ink2))
+                    .font(.footnote).lineSpacing(3).padding(.horizontal, 12).padding(.vertical, 10)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .overlay(RoundedRectangle(cornerRadius: r).stroke(Color.dynamic(0xE8B4AC, 0x5A3A36, text: false), style: StrokeStyle(lineWidth: 1, dash: [4, 3])))
+            }
+            if let ex = w.ex { example(w, ex) }
+            HStack(spacing: 10) {
+                Button(store.t("iKnowIt")) { store.update { $0.markKnown(w.id) }; advance() }.buttonStyle(.secondary)
+                Button(store.t("nextWord") + " →") {
+                    if store.state.card(w.id) == nil { store.update { $0.markLearning(w.id) } }
+                    advance()
+                }.buttonStyle(SealButtonStyle()).accessibilityIdentifier("NextWord")
+            }.padding(.top, 6)
         }
         .onAppear { store.speaker.say(w.hz) }
+    }
+
+    func advance() {
+        if i + 1 >= list.count { done(SessionResult(correct: list.count, total: list.count, mistakes: [])) } else { i += 1; store.speaker.say(list[i].hz) }
+    }
+
+    @ViewBuilder func wordBlock(_ w: Word) -> some View {
+        switch course {
+        case "zh":
+            if store.pyFirst {
+                PinyinText(py: w.py, size: 52, weight: .bold)
+                Text(store.tr(w)).font(.title3.weight(.medium))
+                HStack(spacing: 10) {
+                    GridChars(text: w.hz, cell: 52)
+                    Text(store.t("charSmall")).font(.caption).foregroundStyle(Color.ink2).multilineTextAlignment(.leading).frame(maxWidth: 180, alignment: .leading)
+                }
+            } else {
+                GridChars(text: w.hz, cell: w.hz.count > 2 ? 72 : 96)
+                PinyinText(py: w.py, size: 30, weight: .bold)
+                Text(store.tr(w)).font(.title3.weight(.medium))
+            }
+        case "vi":
+            VietText(text: w.hz, size: 52, weight: .heavy).lineLimit(2).minimumScaleFactor(0.5)
+            Text(w.py).font(.subheadline).foregroundStyle(Color.ink3)
+            Text(store.tr(w)).font(.title3.weight(.medium))
+        default:
+            WordHero(word: w, size: 56)
+            Text(store.tr(w)).font(.title3.weight(.medium))
+        }
+    }
+
+    func example(_ w: Word, _ ex: String) -> some View {
+        let pf = store.pyFirst && w.exPy != nil
+        let main = pf ? w.exPy! : ex, key = pf ? w.py : w.hz
+        var a = AttributedString(main)
+        if let rg = a.range(of: key, options: .caseInsensitive) { a[rg].underlineStyle = .single }
+        let sub = pf ? "\(ex) · \(store.exTr(w))" : ([course != "vi" ? w.exPy : nil, store.exTr(w)].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · "))
+        return VStack(spacing: 0) {
+            Divider().padding(.bottom, 12)
+            HStack(spacing: 10) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(a).font(.body.weight(.bold))
+                    Text(sub).font(.footnote).foregroundStyle(Color.ink2)
+                }.frame(maxWidth: .infinity, alignment: .leading)
+                Button { store.speaker.say(ex) } label: {
+                    Image(systemName: "play.fill").font(.footnote).frame(width: 44, height: 44)
+                        .background(Color.elevated, in: RoundedRectangle(cornerRadius: Look.current.radius)).overlay(RoundedRectangle(cornerRadius: Look.current.radius).stroke(Color.line))
+                }.buttonStyle(.plain).foregroundStyle(Color.ink).accessibilityLabel(store.t("playExample"))
+            }
+        }
+    }
+}
+
+/// The tone of a word's first syllable as a small outlined badge with its contour (Chinese, Vietnamese)
+struct ToneChip: View {
+    @Environment(Store.self) var store
+    let word: Word
+    var body: some View {
+        let c = store.course.id
+        if c == "zh" || c == "vi" {
+            let n = Lingo.firstTone(c == "zh" ? word.py : word.hz, course: c)
+            if c == "vi" || n <= 4 {
+                let color = Look.toneColors ? (c == "zh" ? Color.tone(n) : Color.viTone(n)) : Color.ink2
+                HStack(spacing: 4) {
+                    ToneIcon(n: n, course: c).scaleEffect(0.35).frame(width: 17, height: 12)
+                    Text(c == "zh" ? store.t("toneShort\(n)") : ViTone.name(n)).font(.caption2.weight(.medium))
+                }
+                .padding(.horizontal, 8).padding(.vertical, 3).foregroundStyle(color)
+                .overlay(RoundedRectangle(cornerRadius: max(Look.current.radius - 4, 0)).stroke(color))
+            }
+        }
+    }
+}
+
+/// The main forward button of the session in the look's strong colour: seal red, indigo, blue, lime
+struct SealButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        let vi = Look.current.id == "vi"
+        configuration.label.font(.headline).frame(maxWidth: .infinity).padding(.vertical, 14)
+            .background((vi ? Color.dynamic(0xC5F27A, 0xC5F27A, text: false) : Color.accent).opacity(configuration.isPressed ? 0.8 : 1), in: RoundedRectangle(cornerRadius: max(Look.current.radius, 2) + 2, style: .continuous))
+            .foregroundStyle(vi ? Color.dynamic(0x0F2A24, 0x0F2A24, text: false) : Color.dynamic(0xFFFFFF, 0x161514, text: false))
     }
 }
 
@@ -482,6 +714,8 @@ struct SayWord: View {
     @State private var spoken: Spoken?
     @State private var selfOK: Bool?
     @State private var mistakes: [Word] = []
+    @State private var why: [String: String] = [:]
+    @State private var skipped = 0
 
     var body: some View {
         let w = list[i]
@@ -510,20 +744,23 @@ struct SayWord: View {
                 }
             } else {
                 // No microphone at hand: move on without grading the word
-                Button(store.t("skip")) { store.mic.cancel(); advance() }.buttonStyle(.secondary)
+                Button(store.t("skip")) { store.mic.cancel(); skipped += 1; advance() }.buttonStyle(.secondary)
             }
         }
         .onDisappear { store.mic.cancel() }
     }
     func advance() {
         spoken = nil; selfOK = nil
-        if i + 1 >= list.count { done(SessionResult(correct: correct, total: list.count, mistakes: mistakes)) } else { i += 1 }
+        if i + 1 >= list.count { done(SessionResult(correct: correct, total: list.count - skipped, mistakes: mistakes, why: why)) } else { i += 1 }
     }
     func next() {
         let w = list[i]
         let ok = selfOK ?? ((spoken?.score ?? 0) >= 0.8)
         store.answer(w, ok: ok)
-        if ok { correct += 1 } else { mistakes.append(w) }
+        if ok { correct += 1 } else {
+            mistakes.append(w)
+            why[w.id] = store.t(spoken?.tones?.syllables.contains { $0.ok == false } == true ? "whyTones" : "whyNotHeard")
+        }
         advance()
     }
 }

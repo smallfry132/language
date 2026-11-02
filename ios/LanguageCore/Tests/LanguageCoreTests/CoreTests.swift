@@ -272,3 +272,27 @@ final class KoreanTests: XCTestCase {
         XCTAssertEqual(Check.typedLine("bibimbap hana hago gimchijjigae hana juseyo", hz: "비빔밥 하나하고 김치찌개 하나 주세요.", py: "bibimbap hanahago gimchijjigae hana juseyo.", course: "ko").ok, true)
     }
 }
+
+final class TipsTests: XCTestCase {
+    func testSayTips() {
+        let lib = Library.shared, tips = lib.tips
+        let ren = lib.words["zh"]!.first { $0.hz == "人" }!
+        let t = tips.tip(for: ren, lang: "en")!
+        XCTAssertTrue(t.sound.hasPrefix("r is close"), t.sound)
+        XCTAssertTrue(t.tone.contains("huh"), t.tone)
+        let dok = lib.words["ko"]!.first { $0.hz == "독일" }!
+        XCTAssertEqual(tips.tip(for: dok, lang: "en")?.sound.contains("[도길]"), true)
+        let tra = lib.words["vi"]!.first { $0.hz == "trà" }
+        if let tra { XCTAssertTrue(tips.tip(for: tra, lang: "en")!.sound.hasPrefix("tr")) }
+    }
+    func testViMark() {
+        XCTAssertEqual(Lingo.viMark("chao", 2), "chào")
+        XCTAssertEqual(Lingo.viMark("chào", 1), "chao")
+        XCTAssertEqual(Lingo.viMark("hoa", 2), "hòa")
+        XCTAssertEqual(Lingo.viMark("nguoi", 2), "nguòi") // three vowels, open: the middle one
+        XCTAssertEqual(Lingo.viMark("người", 3), "người".replacingOccurrences(of: "ờ", with: "ớ"))
+        XCTAssertEqual(Lingo.viMark("viet", 6), "viẹt")
+        XCTAssertEqual(Lingo.viMark("việt", 6), "việt")
+        XCTAssertEqual(Lingo.viMark("qua", 4), "quả")
+    }
+}

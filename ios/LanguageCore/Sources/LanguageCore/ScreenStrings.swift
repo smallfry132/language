@@ -7,7 +7,7 @@ extension Texts {
             // Say the word: listening, heard nothing, no recogniser
             "sayListening": "Listening…", "sayListeningSub": "Say it when you’re ready. I stop when you pause.",
             "stopListening": "Stop listening", "cancel": "Cancel",
-            "speedTimes": "Speed {0} times", "playSlowly": "Play slowly",
+            "speedTimes": "Speed {0} times", "playSlowly": "Play slowly", "wordPaneHint": "Tap a word to see it here",
             "micOffText": "Turn it on under Open Settings → Microphone to get tone feedback — or say it aloud and rate yourself.",
             "heardNothing": "I didn’t hear anything",
             "heardNothingText": "No problem — that’s usually distance or a quiet start. Nothing was counted.",
@@ -76,7 +76,7 @@ extension Texts {
             "elButFem": "el · but feminine", "compoundRule": "In a compound the last part decides: {0} → {1}.", "trapO": "A classic trap: {0} ends in -o but is feminine.", "trapA": "A classic trap: {0} ends in -a but is masculine.", "expanded": "expanded"
         ],
         "de": [
-            "speedTimes": "Tempo {0}-fach", "playSlowly": "Langsam abspielen",
+            "speedTimes": "Tempo {0}-fach", "playSlowly": "Langsam abspielen", "wordPaneHint": "Tippe ein Wort an, um es hier zu sehen",
             "micOffText": "Schalte es unter Einstellungen öffnen → Mikrofon ein, um Rückmeldung zu den Tönen zu bekommen – oder sprich laut und bewerte dich selbst.",
             "sayListening": "Ich höre zu …", "sayListeningSub": "Sprich, wenn du bereit bist. Ich höre auf, wenn du eine Pause machst.",
             "stopListening": "Zuhören beenden", "cancel": "Abbrechen",

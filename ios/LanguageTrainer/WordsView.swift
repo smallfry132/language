@@ -13,6 +13,10 @@ struct WordsView: View {
     @State private var cat = "all"
     @State private var limit = 240
     @State private var open: Word?
+    @Environment(\.horizontalSizeClass) private var hSize
+    @State private var width: CGFloat = 0
+    /// iPad in landscape: the word opens in a pane next to the tiles (as on the web on a Mac); otherwise in a sheet
+    var paned: Bool { hSize == .regular && width >= 860 }
 
     var filtered: [Word] {
         let query = q.trimmingCharacters(in: .whitespaces).lowercased(), c = store.course.id, qs = Lingo.norm(query, course: c)
@@ -88,8 +92,24 @@ struct WordsView: View {
     }
 
     var body: some View {
+        HStack(spacing: 0) {
+            tiles
+            if paned {
+                Rectangle().fill(Color.line).frame(width: 1).ignoresSafeArea(edges: .bottom)
+                Group {
+                    if let w = open { WordDetail(w: w).id(w.id) }
+                    else { Text(store.t("wordPaneHint")).font(.subheadline).foregroundStyle(Color.ink2).frame(maxWidth: .infinity, maxHeight: .infinity) }
+                }
+                .frame(width: 360).background(Color.elevated)
+            }
+        }
+        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
+        .sheet(item: Binding(get: { paned ? nil : open }, set: { open = $0 })) { w in WordDetail(w: w).presentationDetents([.medium, .large]) }
+    }
+
+    var tiles: some View {
         let list = filtered
-        Page {
+        return Page {
             header
             ChipRow {
                 ForEach(store.course.levels, id: \.self) { l in
@@ -145,7 +165,6 @@ struct WordsView: View {
         .onChange(of: store.course.id) { cat = "all" }
         .onAppear { if open == nil, let id = Launch.value("-word") { open = store.word(id) ?? store.words.selected.first { $0.hz == id } } } // screenshots
         .toolbar(.hidden, for: .navigationBar)
-        .sheet(item: $open) { w in WordDetail(w: w).presentationDetents([.medium, .large]) }
     }
 }
 

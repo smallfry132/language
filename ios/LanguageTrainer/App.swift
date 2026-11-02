@@ -35,17 +35,25 @@ struct RootView: View {
     @State private var tab = Tab.learn
     @State private var paths: [Tab: NavigationPath] = [:]
     @State private var keyboard = false
+    @Environment(\.horizontalSizeClass) private var hSize
 
     var body: some View {
-        // The dock sits below the content (not over it), so every screen scrolls all the way to its end
-        VStack(spacing: 0) {
-            ZStack {
-                // All four stay alive, so each keeps its place when you switch
-                ForEach(Tab.allCases, id: \.self) { t in
-                    stack(t).opacity(tab == t ? 1 : 0).allowsHitTesting(tab == t)
-                }
+        // iPad at full width: a sidebar on the left, as on the web on a Mac. Phones and narrow windows (Split View,
+        // Slide Over): the dock below the content (not over it), so every screen scrolls all the way to its end
+        HStack(spacing: 0) {
+            if hSize == .regular {
+                Sidebar(tab: $tab, paths: $paths)
+                Rectangle().fill(Color.line).frame(width: 1).ignoresSafeArea()
             }
-            if (paths[tab] ?? NavigationPath()).isEmpty && !keyboard { Dock(tab: $tab, paths: $paths) }
+            VStack(spacing: 0) {
+                ZStack {
+                    // All four stay alive, so each keeps its place when you switch
+                    ForEach(Tab.allCases, id: \.self) { t in
+                        stack(t).opacity(tab == t ? 1 : 0).allowsHitTesting(tab == t)
+                    }
+                }
+                if hSize != .regular && (paths[tab] ?? NavigationPath()).isEmpty && !keyboard { Dock(tab: $tab, paths: $paths) }
+            }
         }
         .id(store.course.id) // a new look: everything is drawn afresh
         .environment(\.openRoute) { r in var p = paths[tab] ?? NavigationPath(); p.append(r); paths[tab] = p }
@@ -84,7 +92,10 @@ struct RootView: View {
             }
             // Hidden inside the stack: on the NavigationStack itself it does not reach VoiceOver
             .accessibilityHidden(tab != t)
-            .navigationDestination(for: Route.self) { r in destination(r).accessibilityHidden(tab != t) }
+            // Exercises and other pushed screens: a readable column, centred on an iPad
+            .navigationDestination(for: Route.self) { r in
+                destination(r).frame(maxWidth: 720).frame(maxWidth: .infinity).background(Color.paper).accessibilityHidden(tab != t)
+            }
             .background(Color.paper)
         }
     }
@@ -190,5 +201,80 @@ struct Dock: View {
         .dynamicTypeSize(...DynamicTypeSize.xxLarge)
         .background(Color.paper.ignoresSafeArea(edges: .bottom))
         .overlay(alignment: .top) { Rectangle().fill(Color.line).frame(height: 1) }
+    }
+}
+
+/// iPad sidebar: the course on top (tap to switch), the four sections in the language's look, then My lessons and
+/// Dialogues as places of their own, and the streak at the bottom
+struct Sidebar: View {
+    @Environment(Store.self) var store
+    @Binding var tab: Tab
+    @Binding var paths: [Tab: NavigationPath]
+    @State private var place: Route? // My lessons or Dialogues, opened from here
+    @State private var showCourses = false
+    var body: some View {
+        let names = [store.t("learn"), store.t("train"), store.t("words"), store.t("me")]
+        VStack(alignment: .leading, spacing: 4) {
+            Button { showCourses = true } label: {
+                HStack(spacing: 10) {
+                    Text(store.course.glyph).hanziFont(20, .semibold).foregroundStyle(Color.accent)
+                        .frame(width: 40, height: 40).overlay(RoundedRectangle(cornerRadius: max(2, Look.current.radius - 2)).stroke(Color.accent, lineWidth: 1.5))
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(store.course.name).font(.headline).foregroundStyle(Color.ink).lineLimit(1)
+                        Text(store.levelLabel).font(.caption).foregroundStyle(Color.ink2).lineLimit(1)
+                    }
+                    Spacer(minLength: 0)
+                    Image(systemName: "chevron.up.chevron.down").font(.caption).foregroundStyle(Color.ink3)
+                }
+                .padding(10).background(Color.elevated, in: RoundedRectangle(cornerRadius: Look.current.radius + 2))
+                .overlay(RoundedRectangle(cornerRadius: Look.current.radius + 2).stroke(Color.line))
+            }
+            .buttonStyle(.card).accessibilityHint(store.t("switchCourse")).padding(.bottom, 14)
+            ForEach(Array(Tab.allCases.enumerated()), id: \.offset) { k, t in
+                item(on: tab == t && place == nil, glyph: Look.current.tabs[k], symbol: ["sun.max", "target", "list.bullet", "person"][k], title: names[k], id: "side-\(k)") {
+                    // Tapping the current section goes back to its start. My lessons and Dialogues live inside Learn,
+                    // so leaving them from here closes them, and Learn shows Learn again.
+                    if place != nil { paths[.learn] = NavigationPath() }
+                    else if tab == t { paths[t] = NavigationPath() }
+                    tab = t; place = nil
+                }
+            }
+            Divider().padding(.vertical, 8)
+            item(on: place == .myLessons, glyph: nil, symbol: "text.book.closed", title: store.t("myLessons"), id: "side-lessons") { open(.myLessons) }
+            item(on: place == .dialogues, glyph: nil, symbol: "bubble.left.and.bubble.right", title: store.t("dialogues"), id: "side-dialogues") { open(.dialogues) }
+            Spacer()
+            Text(store.t("streakDays", store.state.streak())).font(.footnote.weight(.semibold)).foregroundStyle(Color.accent).padding(.horizontal, 12)
+        }
+        .padding(.horizontal, 12).padding(.vertical, 16)
+        .frame(width: 250)
+        .background(Color.paper)
+        .sheet(isPresented: $showCourses) { CoursePicker().presentationDetents([.medium, .large]) }
+    }
+    /// My lessons and Dialogues live under Learn, as on the web
+    func open(_ r: Route) {
+        var p = NavigationPath(); p.append(r)
+        paths[.learn] = p; tab = .learn; place = r
+    }
+    func item(on: Bool, glyph: String?, symbol: String?, title: String, id: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                Group {
+                    if let glyph, !Look.current.latinTabs, glyph != title { Text(glyph).hanziFont(18, on ? .semibold : .regular) }
+                    else { Image(systemName: symbol ?? "circle").font(.body) }
+                }
+                .foregroundStyle(on ? Color.accent : Color.ink2).frame(width: 28)
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(Look.current.latinTabs && glyph != nil ? glyph! : title).font(.body.weight(on ? .semibold : .regular)).foregroundStyle(Color.ink)
+                    if Look.current.latinTabs, let glyph, glyph != title { Text(title).font(.caption).foregroundStyle(Color.ink2) }
+                }
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal, 12).padding(.vertical, 9).frame(maxWidth: .infinity, alignment: .leading)
+            .background(on ? Color.accent.opacity(0.1) : Color.clear, in: RoundedRectangle(cornerRadius: max(2, Look.current.radius - 2)))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.card)
+        .accessibilityAddTraits(on ? [.isSelected, .isButton] : .isButton)
+        .accessibilityIdentifier(id)
     }
 }

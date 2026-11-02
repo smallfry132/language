@@ -9,10 +9,17 @@ import LanguageCore
  * Vietnamese (Tone Color): forest pill, forest lesson card with a lime button, the word's tone tile, a tone drill.
  * Below: the next dialogue and your lessons. */
 
+/// What Learn offers today (WordList.planToday)
+typealias TodayPlan = (due: [Word], fresh: [Word], unseen: Int)
+
 struct LearnView: View {
     @Environment(Store.self) var store
     @Environment(\.dynamicTypeSize) var dynamicType
     @Binding var path: NavigationPath
+    @Environment(\.horizontalSizeClass) private var hSize
+    @State private var width: CGFloat = 0
+    /// iPad in landscape: today's plan on the left, the word, practice, dialogue and lessons on the right
+    var twoColumns: Bool { hSize == .regular && width >= 900 && !dynamicType.isAccessibilitySize }
     @State private var showVoiceGuide = Launch.has("-voiceguide")
     @State private var showCourses = false
     @State private var openWord: Word?
@@ -23,8 +30,35 @@ struct LearnView: View {
     var body: some View {
         let p = store.words.planToday(store.state, extraNew: store.extraNew)
         let next = store.dialogues.first { !store.state.dialogueDone($0.id) }
-        Page {
-            VStack(alignment: .leading, spacing: course == "ja" ? 22 : 16) {
+        Page(maxWidth: twoColumns ? 1080 : 640) {
+            if twoColumns {
+                HStack(alignment: .top, spacing: 28) {
+                    VStack(alignment: .leading, spacing: 16) { today(p) }.frame(maxWidth: .infinity, alignment: .topLeading)
+                    VStack(alignment: .leading, spacing: 16) {
+                        practiceBlock(p)
+                        if let next { nextDialogue(next) }
+                        lessonLines
+                        SyncLine()
+                    }.frame(maxWidth: .infinity, alignment: .topLeading)
+                }
+            } else {
+                VStack(alignment: .leading, spacing: course == "ja" ? 22 : 16) {
+                    today(p)
+                    practiceBlock(p)
+                }
+                if let next { nextDialogue(next) }
+                lessonLines
+                SyncLine()
+            }
+        }
+        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
+        .toolbar(.hidden, for: .navigationBar)
+        .sheet(isPresented: $showVoiceGuide) { NavigationStack { VoiceGuide() }.environment(store) }
+        .sheet(isPresented: $showCourses) { CoursePicker().presentationDetents([.medium, .large]) }
+        .sheet(item: $openWord) { w in WordDetail(w: w).presentationDetents([.medium, .large]) }
+    }
+
+    @ViewBuilder func today(_ p: TodayPlan) -> some View {
                 header
                 goal
                 lessonCard(p)
@@ -32,6 +66,9 @@ struct LearnView: View {
                     Text(store.t("stillCurious")).font(.footnote).foregroundStyle(Color.ink2).frame(maxWidth: .infinity, alignment: .leading)
                 }
                 voiceNotice
+    }
+
+    @ViewBuilder func practiceBlock(_ p: TodayPlan) -> some View {
                 if let w = wordOfDay {
                     switch course {
                     case "ja": verticalWord(w)
@@ -42,15 +79,6 @@ struct LearnView: View {
                     }
                 }
                 if course == "vi" { ToneDrillCard() } else { quickTiles(due: p.due.count) }
-            }
-            if let next { nextDialogue(next) }
-            lessonLines
-            SyncLine()
-        }
-        .toolbar(.hidden, for: .navigationBar)
-        .sheet(isPresented: $showVoiceGuide) { NavigationStack { VoiceGuide() }.environment(store) }
-        .sheet(isPresented: $showCourses) { CoursePicker().presentationDetents([.medium, .large]) }
-        .sheet(item: $openWord) { w in WordDetail(w: w).presentationDetents([.medium, .large]) }
     }
 
     // MARK: Header: course (tap to switch), greeting, streak
@@ -449,7 +477,7 @@ struct LearnView: View {
                     let name = store.t("lessonDefault", lessons.count + 1) // read before changing the state
                     store.update { $0.lessons[id] = Lesson(course: $0.course, name: name, created: nowMs()) }
                     path.append(Route.lesson(id))
-                } label: { Label(store.t("lessonNew"), systemImage: "plus").font(.caption.weight(.semibold)) }.buttonStyle(.card).foregroundStyle(Color.ink).frame(minHeight: 32)
+                } label: { Label(store.t("lessonNew"), systemImage: "plus").font(.caption.weight(.semibold)).padding(.horizontal, 8).frame(minHeight: 44).contentShape(Rectangle()) }.buttonStyle(.card).foregroundStyle(Color.ink)
             }
             if lessons.isEmpty { Text(store.t("lessonEmpty")).font(.footnote).foregroundStyle(Color.ink2) }
             ForEach(Array(lessons.reversed().prefix(3)), id: \.id) { l in

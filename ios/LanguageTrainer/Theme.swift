@@ -393,11 +393,13 @@ struct FeedbackBar: View {
 
 /// The page background and width used by every screen
 struct Page<Content: View>: View {
+    /// A readable column; two-column screens on an iPad pass a wider one
+    var maxWidth: CGFloat = 640
     @ViewBuilder var content: Content
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) { content }
-                .padding(16).padding(.bottom, 24).frame(maxWidth: 640).frame(maxWidth: .infinity)
+                .padding(16).padding(.bottom, 24).frame(maxWidth: maxWidth).frame(maxWidth: .infinity)
         }
         .scrollIndicators(.hidden)
         .scrollDismissesKeyboard(.interactively)

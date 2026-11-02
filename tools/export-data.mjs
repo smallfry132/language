@@ -12,7 +12,7 @@ fs.mkdirSync(OUT, { recursive: true });
 
 const ctx = { window: {} };
 vm.createContext(ctx);
-for (const f of ["data.js", "data-hsk2.js", "data-hsk3.js", "data-vi.js", "data-vi-2.js", "data-ja.js", "korean.js", "data-ko.js", "sounds-data.js", "dialogues.js", "themes.js", "themes-auto.js"]) {
+for (const f of ["data.js", "data-hsk2.js", "data-hsk3.js", "data-vi.js", "data-vi-2.js", "data-ja.js", "korean.js", "data-ko.js", "sounds-data.js", "dialogues.js", "themes.js", "themes-auto.js", "tips.js"]) {
   vm.runInContext(fs.readFileSync(path.join(JS, f), "utf8"), ctx, { filename: f });
 }
 const W = ctx.window;
@@ -41,7 +41,7 @@ const words = {
 for (const [c, list] of Object.entries(words)) fs.writeFileSync(path.join(OUT, `words-${c}.json`), JSON.stringify(list));
 
 // Texts: functions become templates with {0}, {1} placeholders; a different singular form is kept as "key.one"
-const MARK = ["{0}", "{1}", "{2}"];
+const MARK = ["{0}", "{1}", "{2}", "{3}", "{4}"];
 function table(src) {
   const out = {};
   for (const [k, v] of Object.entries(src || {})) {
@@ -65,4 +65,5 @@ fs.writeFileSync(path.join(OUT, "sounds.json"), JSON.stringify(W.SOUNDS));
 // Topics with word ids as strings (the native apps use string ids), and pictures per word id
 fs.writeFileSync(path.join(OUT, "themes.json"), JSON.stringify(Object.fromEntries(Object.entries(W.THEMES).map(([c, ts]) => [c, ts.map((t) => ({ ...t, groups: t.groups.map((g) => ({ name: g.name, ids: g.ids.map(String) })) }))]))));
 fs.writeFileSync(path.join(OUT, "pictures.json"), JSON.stringify(W.PICTURES));
+fs.writeFileSync(path.join(OUT, "tips.json"), JSON.stringify(W.SAY_TIPS));
 console.log(Object.entries(words).map(([c, l]) => `${c}: ${l.length}`).join(", "), "→", path.relative(ROOT, OUT));

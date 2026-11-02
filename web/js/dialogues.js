@@ -1,13 +1,13 @@
 /* Beginner dialogues for the Chinese course (HSK 1 vocabulary, a few common extras).
  * Written for this app. Pinyin follows the spoken tone changes of 不 and 一 (bú shì, yì bēi), like the word lists.
- * Fields: id, topic { en, de }, people [names as { hz, py }], lines [{ who: index into people, hz, py, en, de }]
+ * Fields: id, topic { en, de }, people [names as { hz, py, g: "m" | "f" } — g picks a man's or a woman's voice], lines [{ who: index into people, hz, py, en, de }]
  * Korean lines have no py: the romanization is generated from the Hangul (js/korean.js). Vietnamese lines have no py
  * (the spelling is the reading); Japanese py is Hepburn romaji. A line may carry a short tip { en, de }. */
 window.DIALOGUES = {
   ko: [
     {
       id: "ko-greet", icon: "👋", topic: { en: "Greetings", de: "Begrüßung" },
-      people: [{ hz: "민수", py: "Minsu" }, { hz: "안나", py: "Anna" }],
+      people: [{ hz: "민수", py: "Minsu", g: "m" }, { hz: "안나", py: "Anna", g: "f" }],
       lines: [
         { who: 0, hz: "안녕하세요!", en: "Hello!", de: "Hallo!" },
         { who: 1, hz: "안녕하세요!", en: "Hello!", de: "Hallo!" },
@@ -20,7 +20,7 @@ window.DIALOGUES = {
     },
     {
       id: "ko-name", icon: "🙂", topic: { en: "What's your name?", de: "Wie heißt du?" },
-      people: [{ hz: "민수", py: "Minsu" }, { hz: "안나", py: "Anna" }],
+      people: [{ hz: "민수", py: "Minsu", g: "m" }, { hz: "안나", py: "Anna", g: "f" }],
       lines: [
         { who: 0, hz: "이름이 뭐예요?", en: "What's your name?", de: "Wie heißt du?" },
         { who: 1, hz: "저는 안나예요. 이름이 뭐예요?", en: "I'm Anna. What's your name?", de: "Ich bin Anna. Wie heißt du?" },
@@ -31,7 +31,7 @@ window.DIALOGUES = {
     },
     {
       id: "ko-country", icon: "🌍", topic: { en: "Which country are you from?", de: "Aus welchem Land kommst du?" },
-      people: [{ hz: "민수", py: "Minsu" }, { hz: "안나", py: "Anna" }],
+      people: [{ hz: "민수", py: "Minsu", g: "m" }, { hz: "안나", py: "Anna", g: "f" }],
       lines: [
         { who: 0, hz: "어느 나라 사람이에요?", en: "Which country are you from?", de: "Aus welchem Land kommst du?" },
         { who: 1, hz: "저는 독일 사람이에요. 민수 씨는 한국 사람이에요?", en: "I'm German. Are you Korean, Minsu?", de: "Ich bin Deutsche. Bist du Koreaner, Minsu?" },
@@ -42,7 +42,7 @@ window.DIALOGUES = {
     },
     {
       id: "ko-from", icon: "📍", topic: { en: "Where are you from?", de: "Woher kommst du?" },
-      people: [{ hz: "민수", py: "Minsu" }, { hz: "안나", py: "Anna" }],
+      people: [{ hz: "민수", py: "Minsu", g: "m" }, { hz: "안나", py: "Anna", g: "f" }],
       lines: [
         { who: 0, hz: "고향이 어디예요?", en: "Where is your hometown?", de: "Woher kommst du?" },
         { who: 1, hz: "제 고향은 베를린이에요.", en: "My hometown is Berlin.", de: "Ich komme aus Berlin." },
@@ -54,7 +54,7 @@ window.DIALOGUES = {
     },
     {
       id: "ko-family", icon: "👨‍👩‍👧", topic: { en: "Family", de: "Familie" },
-      people: [{ hz: "민수", py: "Minsu" }, { hz: "안나", py: "Anna" }],
+      people: [{ hz: "민수", py: "Minsu", g: "m" }, { hz: "안나", py: "Anna", g: "f" }],
       lines: [
         { who: 0, hz: "가족이 몇 명이에요?", en: "How many people are in your family?", de: "Wie viele seid ihr in deiner Familie?" },
         { who: 1, hz: "네 명이에요. 아버지, 어머니, 오빠, 그리고 저예요.", en: "Four: my father, mother, older brother and me.", de: "Vier: Vater, Mutter, mein älterer Bruder und ich." },
@@ -66,7 +66,7 @@ window.DIALOGUES = {
     },
     {
       id: "ko-food", icon: "🍜", topic: { en: "Ordering food", de: "Essen bestellen" },
-      people: [{ hz: "직원", py: "jigwon" }, { hz: "안나", py: "Anna" }],
+      people: [{ hz: "직원", py: "jigwon", g: "m" }, { hz: "안나", py: "Anna", g: "f" }],
       lines: [
         { who: 0, hz: "어서 오세요! 주문하시겠어요?", en: "Welcome! Would you like to order?", de: "Willkommen! Möchten Sie bestellen?" },
         { who: 1, hz: "비빔밥 하나하고 김치찌개 하나 주세요.", en: "One bibimbap and one kimchi stew, please.", de: "Einmal Bibimbap und einmal Kimchi-Eintopf, bitte." },
@@ -79,7 +79,7 @@ window.DIALOGUES = {
     },
     {
       id: "ko-time", icon: "🕒", topic: { en: "Telling the time", de: "Uhrzeit" },
-      people: [{ hz: "민수", py: "Minsu" }, { hz: "안나", py: "Anna" }],
+      people: [{ hz: "민수", py: "Minsu", g: "m" }, { hz: "안나", py: "Anna", g: "f" }],
       lines: [
         { who: 0, hz: "지금 몇 시예요?", en: "What time is it now?", de: "Wie spät ist es jetzt?" },
         { who: 1, hz: "세 시 십 분이에요.", en: "It's ten past three.", de: "Es ist zehn nach drei." },
@@ -91,7 +91,7 @@ window.DIALOGUES = {
     },
     {
       id: "ko-day", icon: "☀️", topic: { en: "What are you doing today?", de: "Was machst du heute?" },
-      people: [{ hz: "민수", py: "Minsu" }, { hz: "안나", py: "Anna" }],
+      people: [{ hz: "민수", py: "Minsu", g: "m" }, { hz: "안나", py: "Anna", g: "f" }],
       lines: [
         { who: 0, hz: "오늘 뭐 해요?", en: "What are you doing today?", de: "Was machst du heute?" },
         { who: 1, hz: "오전에 한국어를 공부해요. 오후에는 시장에 가요.", en: "In the morning I study Korean. In the afternoon I go to the market.", de: "Vormittags lerne ich Koreanisch. Nachmittags gehe ich auf den Markt." },
@@ -105,7 +105,7 @@ window.DIALOGUES = {
   zh: [
     {
       id: "zh-greet", icon: "👋", topic: { en: "Greetings", de: "Begrüßung" },
-      people: [{ hz: "王明", py: "Wáng Míng" }, { hz: "安娜", py: "Ānnà" }],
+      people: [{ hz: "王明", py: "Wáng Míng", g: "m" }, { hz: "安娜", py: "Ānnà", g: "f" }],
       lines: [
         { who: 0, hz: "你好！", py: "Nǐ hǎo!", en: "Hello!", de: "Hallo!" },
         { who: 1, hz: "你好！", py: "Nǐ hǎo!", en: "Hello!", de: "Hallo!" },
@@ -118,7 +118,7 @@ window.DIALOGUES = {
     },
     {
       id: "zh-name", icon: "🙂", topic: { en: "What's your name?", de: "Wie heißt du?" },
-      people: [{ hz: "王明", py: "Wáng Míng" }, { hz: "安娜", py: "Ānnà" }],
+      people: [{ hz: "王明", py: "Wáng Míng", g: "m" }, { hz: "安娜", py: "Ānnà", g: "f" }],
       lines: [
         { who: 0, hz: "你叫什么名字？", py: "Nǐ jiào shénme míngzi?", en: "What's your name?", de: "Wie heißt du?", tip: { en: "shénme = what. It stays where the answer goes, not at the front.", de: "shénme = was. Es steht dort, wo die Antwort hinkommt, nicht am Anfang." } },
         { who: 1, hz: "我叫安娜。你呢？", py: "Wǒ jiào Ānnà. Nǐ ne?", en: "My name is Anna. And you?", de: "Ich heiße Anna. Und du?" },
@@ -129,7 +129,7 @@ window.DIALOGUES = {
     },
     {
       id: "zh-country", icon: "🌍", topic: { en: "Which country are you from?", de: "Aus welchem Land kommst du?" },
-      people: [{ hz: "王明", py: "Wáng Míng" }, { hz: "安娜", py: "Ānnà" }],
+      people: [{ hz: "王明", py: "Wáng Míng", g: "m" }, { hz: "安娜", py: "Ānnà", g: "f" }],
       lines: [
         { who: 0, hz: "你是哪国人？", py: "Nǐ shì nǎ guó rén?", en: "Which country are you from?", de: "Aus welchem Land kommst du?", tip: { en: "nǎ guó = which country; add rén for the nationality.", de: "nǎ guó = welches Land; mit rén wird daraus die Nationalität." } },
         { who: 1, hz: "我是德国人。你是中国人吗？", py: "Wǒ shì Déguó rén. Nǐ shì Zhōngguó rén ma?", en: "I'm German. Are you Chinese?", de: "Ich bin Deutsche. Bist du Chinese?" },
@@ -140,7 +140,7 @@ window.DIALOGUES = {
     },
     {
       id: "zh-from", icon: "📍", topic: { en: "Where are you from?", de: "Woher kommst du?" },
-      people: [{ hz: "王明", py: "Wáng Míng" }, { hz: "安娜", py: "Ānnà" }],
+      people: [{ hz: "王明", py: "Wáng Míng", g: "m" }, { hz: "安娜", py: "Ānnà", g: "f" }],
       lines: [
         { who: 0, hz: "你是哪里人？", py: "Nǐ shì nǎlǐ rén?", en: "Where are you from?", de: "Woher kommst du?" },
         { who: 1, hz: "我是柏林人。", py: "Wǒ shì Bólín rén.", en: "I'm from Berlin.", de: "Ich komme aus Berlin." },
@@ -152,7 +152,7 @@ window.DIALOGUES = {
     },
     {
       id: "zh-family", icon: "👨‍👩‍👧", topic: { en: "Family", de: "Familie" },
-      people: [{ hz: "王明", py: "Wáng Míng" }, { hz: "安娜", py: "Ānnà" }],
+      people: [{ hz: "王明", py: "Wáng Míng", g: "m" }, { hz: "安娜", py: "Ānnà", g: "f" }],
       lines: [
         { who: 0, hz: "你家有几口人？", py: "Nǐ jiā yǒu jǐ kǒu rén?", en: "How many people are in your family?", de: "Wie viele Personen seid ihr in deiner Familie?" },
         { who: 1, hz: "我家有四口人：爸爸、妈妈、哥哥和我。", py: "Wǒ jiā yǒu sì kǒu rén: bàba, māma, gēge hé wǒ.", en: "There are four of us: dad, mom, my older brother and me.", de: "Wir sind vier: Papa, Mama, mein älterer Bruder und ich." },
@@ -164,7 +164,7 @@ window.DIALOGUES = {
     },
     {
       id: "zh-food", icon: "🍜", topic: { en: "Ordering food", de: "Essen bestellen" },
-      people: [{ hz: "服务员", py: "fúwùyuán" }, { hz: "安娜", py: "Ānnà" }],
+      people: [{ hz: "服务员", py: "fúwùyuán", g: "m" }, { hz: "安娜", py: "Ānnà", g: "f" }],
       lines: [
         { who: 0, hz: "您好！请问，您要吃什么？", py: "Nín hǎo! Qǐngwèn, nín yào chī shénme?", en: "Hello! What would you like to eat?", de: "Guten Tag! Was möchten Sie essen?" },
         { who: 1, hz: "我要一碗米饭和一个菜。", py: "Wǒ yào yì wǎn mǐfàn hé yí ge cài.", en: "I'd like a bowl of rice and a dish.", de: "Ich hätte gern eine Schüssel Reis und ein Gericht.", tip: { en: "yào = want. Number + measure word + thing: yì wǎn mǐfàn, yí ge cài.", de: "yào = möchten. Zahl + Zählwort + Sache: yì wǎn mǐfàn, yí ge cài." } },
@@ -177,7 +177,7 @@ window.DIALOGUES = {
     },
     {
       id: "zh-time", icon: "🕒", topic: { en: "Telling the time", de: "Uhrzeit" },
-      people: [{ hz: "王明", py: "Wáng Míng" }, { hz: "安娜", py: "Ānnà" }],
+      people: [{ hz: "王明", py: "Wáng Míng", g: "m" }, { hz: "安娜", py: "Ānnà", g: "f" }],
       lines: [
         { who: 0, hz: "现在几点？", py: "Xiànzài jǐ diǎn?", en: "What time is it now?", de: "Wie spät ist es jetzt?" },
         { who: 1, hz: "现在三点十分。", py: "Xiànzài sān diǎn shí fēn.", en: "It's ten past three.", de: "Es ist zehn nach drei." },
@@ -189,7 +189,7 @@ window.DIALOGUES = {
     },
     {
       id: "zh-day", icon: "☀️", topic: { en: "What are you doing today?", de: "Was machst du heute?" },
-      people: [{ hz: "王明", py: "Wáng Míng" }, { hz: "安娜", py: "Ānnà" }],
+      people: [{ hz: "王明", py: "Wáng Míng", g: "m" }, { hz: "安娜", py: "Ānnà", g: "f" }],
       lines: [
         { who: 0, hz: "你今天做什么？", py: "Nǐ jīntiān zuò shénme?", en: "What are you doing today?", de: "Was machst du heute?" },
         { who: 1, hz: "上午我学习汉语，下午去商店买东西。", py: "Shàngwǔ wǒ xuéxí Hànyǔ, xiàwǔ qù shāngdiàn mǎi dōngxi.", en: "In the morning I study Chinese, in the afternoon I go shopping.", de: "Vormittags lerne ich Chinesisch, nachmittags gehe ich einkaufen." },
@@ -210,10 +210,12 @@ window.DIALOGUES = {
       },
       "people": [
         {
-          "hz": "Lan"
+          "hz": "Lan",
+          "g": "f"
         },
         {
-          "hz": "Anna"
+          "hz": "Anna",
+          "g": "f"
         }
       ],
       "lines": [
@@ -280,10 +282,12 @@ window.DIALOGUES = {
       },
       "people": [
         {
-          "hz": "Minh"
+          "hz": "Minh",
+          "g": "m"
         },
         {
-          "hz": "Anna"
+          "hz": "Anna",
+          "g": "f"
         }
       ],
       "lines": [
@@ -336,10 +340,12 @@ window.DIALOGUES = {
       },
       "people": [
         {
-          "hz": "Minh"
+          "hz": "Minh",
+          "g": "m"
         },
         {
-          "hz": "Anna"
+          "hz": "Anna",
+          "g": "f"
         }
       ],
       "lines": [
@@ -410,10 +416,12 @@ window.DIALOGUES = {
       },
       "people": [
         {
-          "hz": "Lan"
+          "hz": "Lan",
+          "g": "f"
         },
         {
-          "hz": "Anna"
+          "hz": "Anna",
+          "g": "f"
         }
       ],
       "lines": [
@@ -472,10 +480,12 @@ window.DIALOGUES = {
       },
       "people": [
         {
-          "hz": "Nhân viên"
+          "hz": "Nhân viên",
+          "g": "m"
         },
         {
-          "hz": "Anna"
+          "hz": "Anna",
+          "g": "f"
         }
       ],
       "lines": [
@@ -542,10 +552,12 @@ window.DIALOGUES = {
       },
       "people": [
         {
-          "hz": "Minh"
+          "hz": "Minh",
+          "g": "m"
         },
         {
-          "hz": "Anna"
+          "hz": "Anna",
+          "g": "f"
         }
       ],
       "lines": [
@@ -607,11 +619,13 @@ window.DIALOGUES = {
       "people": [
         {
           "hz": "田中",
-          "py": "Tanaka"
+          "py": "Tanaka",
+          "g": "m"
         },
         {
           "hz": "アンナ",
-          "py": "Anna"
+          "py": "Anna",
+          "g": "f"
         }
       ],
       "lines": [
@@ -685,11 +699,13 @@ window.DIALOGUES = {
       "people": [
         {
           "hz": "田中",
-          "py": "Tanaka"
+          "py": "Tanaka",
+          "g": "m"
         },
         {
           "hz": "アンナ",
-          "py": "Anna"
+          "py": "Anna",
+          "g": "f"
         }
       ],
       "lines": [
@@ -759,11 +775,13 @@ window.DIALOGUES = {
       "people": [
         {
           "hz": "店員",
-          "py": "Ten'in"
+          "py": "Ten'in",
+          "g": "m"
         },
         {
           "hz": "アンナ",
-          "py": "Anna"
+          "py": "Anna",
+          "g": "f"
         }
       ],
       "lines": [
@@ -836,11 +854,13 @@ window.DIALOGUES = {
       "people": [
         {
           "hz": "アンナ",
-          "py": "Anna"
+          "py": "Anna",
+          "g": "f"
         },
         {
           "hz": "店員",
-          "py": "Ten'in"
+          "py": "Ten'in",
+          "g": "m"
         }
       ],
       "lines": [
@@ -910,11 +930,13 @@ window.DIALOGUES = {
       "people": [
         {
           "hz": "田中",
-          "py": "Tanaka"
+          "py": "Tanaka",
+          "g": "m"
         },
         {
           "hz": "アンナ",
-          "py": "Anna"
+          "py": "Anna",
+          "g": "f"
         }
       ],
       "lines": [
@@ -984,11 +1006,13 @@ window.DIALOGUES = {
       "people": [
         {
           "hz": "田中",
-          "py": "Tanaka"
+          "py": "Tanaka",
+          "g": "m"
         },
         {
           "hz": "アンナ",
-          "py": "Anna"
+          "py": "Anna",
+          "g": "f"
         }
       ],
       "lines": [

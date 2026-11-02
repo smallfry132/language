@@ -123,32 +123,41 @@ final class Speaker: NSObject, AVSpeechSynthesizerDelegate {
         return all.first { $0.identifier == pick.id }
     }
 
-    /// rate: 1 = normal speed (the web app's scale). who: the person in a dialogue (1 = the second, with their own voice)
+    /// The genders of the open dialogue's people (1 = man, 2 = woman), so each speaks with a fitting voice
+    var dialogueGenders: [Int] = []
+
+    /// rate: 1 = normal speed (the web app's scale). who: the person in a dialogue (with their own voice)
     func say(_ text: String, rate r: Double? = nil, who: Int = 0, then: (() -> Void)? = nil) {
         stop()
         AudioSession.playback()
-        var voice = currentVoice, lower = false
-        if who == 1 && twoVoices { if let v2 = secondVoice { voice = v2 } else { lower = true } }
+        var voice = currentVoice, cents = 0.0
+        if twoVoices && (who == 1 || who < dialogueGenders.count) {
+            let g = dialogueGenders.indices.contains(who) ? dialogueGenders[who] : 0
+            let og = dialogueGenders.count == 2 ? dialogueGenders[1 - min(who, 1)] : 0, all = courseVoices()
+            let pick = VoicePick.person(gender: g, who: who, otherGender: og, main: voice.map(Self.info), among: all.map(Self.info), language: course.tts)
+            if let id = pick.id, let v = all.first(where: { $0.identifier == id }) { voice = v }
+            cents = pick.cents
+        }
         let scale = r ?? rate
-        if natural, let voice { sayNatural(text, voice: voice, scale: scale, lower: lower, then: then); return }
-        speakPlain(text, voice: voice, scale: scale, lower: lower, then: then)
+        if natural, let voice { sayNatural(text, voice: voice, scale: scale, cents: cents, then: then); return }
+        speakPlain(text, voice: voice, scale: scale, cents: cents, then: then)
     }
-    private func speakPlain(_ text: String, voice: AVSpeechSynthesisVoice?, scale: Double, lower: Bool, then: (() -> Void)?) {
+    private func speakPlain(_ text: String, voice: AVSpeechSynthesisVoice?, scale: Double, cents: Double, then: (() -> Void)?) {
         let u = AVSpeechUtterance(string: text)
         u.voice = voice
         u.rate = max(AVSpeechUtteranceMinimumSpeechRate, min(AVSpeechUtteranceMaximumSpeechRate, AVSpeechUtteranceDefaultSpeechRate * Float(scale)))
-        if lower { u.pitchMultiplier = 0.85 }
+        if cents != 0 { u.pitchMultiplier = Float(min(2, max(0.5, pow(2, cents / 1200)))) }
         if muted { u.volume = 0 }
         if let then { done[ObjectIdentifier(u)] = then }
         synth.speak(u)
     }
 
     /// The voice speaks at its own speed into buffers; they play as they arrive through the stretch and the equaliser
-    private func sayNatural(_ text: String, voice: AVSpeechSynthesisVoice, scale: Double, lower: Bool, then: (() -> Void)?) {
+    private func sayNatural(_ text: String, voice: AVSpeechSynthesisVoice, scale: Double, cents: Double, then: (() -> Void)?) {
         let gen = generation
         let t = tune(voice.identifier)
         stretch.rate = Float(min(2, max(0.25, scale)))
-        stretch.pitch = Float(t.pitch + (lower ? VoicePick.samePitchDrop : 0))
+        stretch.pitch = Float(t.pitch + cents)
         eq.bands[0].gain = Float(t.bass); eq.bands[1].gain = Float(t.clarity); eq.bands[2].gain = Float(t.bright)
         engine.mainMixerNode.outputVolume = muted ? 0 : 1
         lastRender = (0, false, false, 0)
@@ -162,7 +171,7 @@ final class Speaker: NSObject, AVSpeechSynthesizerDelegate {
             self.generation += 1 // the natural render is void from here on: only one of the two may speak
             self.lastRender.fallback = true
             self.writer.stopSpeaking(at: .immediate)
-            self.speakPlain(text, voice: voice, scale: scale, lower: lower, then: then)
+            self.speakPlain(text, voice: voice, scale: scale, cents: cents, then: then)
         }
         // Some voices never deliver audio to write(): speak the plain way if nothing came. The first render after
         // launch takes a while (the voice loads), so this waits long enough not to cut in on a slow start.

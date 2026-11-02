@@ -3,7 +3,7 @@ window.DIALOGUES = window.DIALOGUES || {};
 window.DIALOGUES.de = [
   {
     id: "de-greet", icon: "👋", topic: { en: "Greetings", de: "Begrüßung" },
-    people: [{ hz: "Lena" }, { hz: "Tom" }],
+    people: [{ hz: "Lena", g: "f" }, { hz: "Tom", g: "m" }],
     lines: [
       { who: 0, hz: "Hallo Tom! Wie geht's?", en: "Hi Tom! How are you?", de: "Hallo Tom! Wie geht's?", tip: { en: "Wie geht's? is the short, friendly form of Wie geht es dir?", de: "Wie geht's? ist die kurze, freundliche Form von Wie geht es dir?" } },
       { who: 1, hz: "Danke, gut. Und dir?", en: "Fine, thanks. And you?", de: "Danke, gut. Und dir?", tip: { en: "Und dir? (and you?) uses dir, not du, because it is short for Wie geht es dir?", de: "Und dir? steht mit dir, nicht du, weil es die Kurzform von Wie geht es dir? ist." } },
@@ -15,7 +15,7 @@ window.DIALOGUES.de = [
   },
   {
     id: "de-name", icon: "🙂", topic: { en: "Introducing yourself", de: "Sich vorstellen" },
-    people: [{ hz: "Frau Becker" }, { hz: "Daniel" }],
+    people: [{ hz: "Frau Becker", g: "f" }, { hz: "Daniel", g: "m" }],
     lines: [
       { who: 0, hz: "Guten Tag! Ich heiße Anja Becker. Wie heißen Sie?", en: "Hello! My name is Anja Becker. What's your name?", de: "Guten Tag! Ich heiße Anja Becker. Wie heißen Sie?", tip: { en: "Sie (always with a capital S) is the polite you, for adults you don't know well.", de: "Sie (immer groß) ist die höfliche Anrede für Erwachsene, die man nicht gut kennt." } },
       { who: 1, hz: "Ich heiße Daniel Smith. Freut mich!", en: "My name is Daniel Smith. Nice to meet you!", de: "Ich heiße Daniel Smith. Freut mich!" },
@@ -28,7 +28,7 @@ window.DIALOGUES.de = [
   },
   {
     id: "de-family", icon: "👨‍👩‍👧", topic: { en: "Family", de: "Familie" },
-    people: [{ hz: "Sara" }, { hz: "Jonas" }],
+    people: [{ hz: "Sara", g: "f" }, { hz: "Jonas", g: "m" }],
     lines: [
       { who: 0, hz: "Wer ist das auf dem Foto?", en: "Who is that in the photo?", de: "Wer ist das auf dem Foto?" },
       { who: 1, hz: "Das ist meine Familie. Das sind meine Eltern.", en: "That's my family. Those are my parents.", de: "Das ist meine Familie. Das sind meine Eltern." },
@@ -41,7 +41,7 @@ window.DIALOGUES.de = [
   },
   {
     id: "de-cafe", icon: "☕", topic: { en: "At the café", de: "Im Café" },
-    people: [{ hz: "Kellner" }, { hz: "Mia" }],
+    people: [{ hz: "Kellner", g: "m" }, { hz: "Mia", g: "f" }],
     lines: [
       { who: 0, hz: "Guten Tag! Was möchten Sie trinken?", en: "Hello! What would you like to drink?", de: "Guten Tag! Was möchten Sie trinken?" },
       { who: 1, hz: "Ich hätte gern einen Kaffee mit Milch, bitte.", en: "I'd like a coffee with milk, please.", de: "Ich hätte gern einen Kaffee mit Milch, bitte.", tip: { en: "Ich hätte gern … and Ich möchte … are the polite ways to order. Ich will … sounds blunt.", de: "Ich hätte gern … und Ich möchte … sind höflich. Ich will … klingt unhöflich direkt." } },
@@ -55,7 +55,7 @@ window.DIALOGUES.de = [
   },
   {
     id: "de-shop", icon: "🛍️", topic: { en: "Shopping", de: "Einkaufen" },
-    people: [{ hz: "Verkäuferin" }, { hz: "Ben" }],
+    people: [{ hz: "Verkäuferin", g: "f" }, { hz: "Ben", g: "m" }],
     lines: [
       { who: 0, hz: "Guten Tag! Kann ich Ihnen helfen?", en: "Hello! Can I help you?", de: "Guten Tag! Kann ich Ihnen helfen?", tip: { en: "helfen takes the dative: Ihnen, dir, mir – not Sie, dich, mich.", de: "helfen steht mit Dativ: Ihnen, dir, mir – nicht Sie, dich, mich." } },
       { who: 1, hz: "Ja, bitte. Ich suche eine Jacke.", en: "Yes, please. I'm looking for a jacket.", de: "Ja, bitte. Ich suche eine Jacke." },
@@ -69,7 +69,7 @@ window.DIALOGUES.de = [
   },
   {
     id: "de-time", icon: "🕒", topic: { en: "Time and plans", de: "Uhrzeit und Pläne" },
-    people: [{ hz: "Lisa" }, { hz: "Max" }],
+    people: [{ hz: "Lisa", g: "f" }, { hz: "Max", g: "m" }],
     lines: [
       { who: 0, hz: "Entschuldigung, wie spät ist es?", en: "Excuse me, what time is it?", de: "Entschuldigung, wie spät ist es?" },
       { who: 1, hz: "Es ist halb vier.", en: "It's half past three.", de: "Es ist halb vier.", tip: { en: "halb vier means half TO four, so 3:30 – not 4:30!", de: "halb vier heißt eine halbe Stunde vor vier, also 3:30 Uhr." } },

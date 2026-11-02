@@ -40,7 +40,8 @@ struct DialogueScreen: View {
                     }
                 }
             }
-            .onDisappear { store.speaker.stop(); store.mic.cancel() }
+            .onAppear { store.speaker.dialogueGenders = d.people.map(\.gender) }
+            .onDisappear { store.speaker.stop(); store.mic.cancel(); store.speaker.dialogueGenders = [] }
         }
     }
     func tab(_ key: String, _ label: String, _ done: Bool) -> some View {

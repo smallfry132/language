@@ -912,6 +912,25 @@
     const pool = courseVoices().filter((v) => exact.test(v.lang) && !robotic(v) && (!main || v.voiceURI !== main.voiceURI));
     return pool.find((v) => /Premium|Enhanced|Erweitert|Natural|Neural|Google|Online/i.test(v.name + " " + v.voiceURI)) || pool[0] || null;
   }
+  // A voice's gender from its name (browsers don't tell): 1 = man, 2 = woman, 0 = not known. Apple, Google and
+  // Microsoft voices of the course languages
+  const MALE_VOICES = /\b(Li-?mu|Han|Yun\w*|Kangkang|Otoya|Hattori|Ichiro|Keita|Daichi|Naoki|Minsu|Injoon|Hyunsu|Bongjin|Gook|NamMinh|Nam ?Minh|Markus|Martin|Yannick|Viktor|Conrad|Killian|Florian|Kasper|Ralf|Stefan|Jonas|Jorge|Juan|Diego|Carlos|Alvaro|Pablo|Raul|Enrique|Jaime|Eddy|Reed|Rocko|Grandpa|Daniel|Thomas|Fred|Albert|Ralph|Bruce)\b/i;
+  const FEMALE_VOICES = /\b(Ting-?Ting|Lili|Lilian|Yu-?shu|Shasha|Meijia|Mei-?Jia|Sinji|Xiaoxiao|Xiaoyi|Huihui|Yaoyao|Kyoko|O-?ren|Nanami|Mizuki|Ayumi|Haruka|Yuna|Sora|Suhyun|Sun-?Hi|Heami|SunHi|Linh|HoaiMy|Hoai ?My|Anna|Petra|Helena|Katja|Amala|Hedda|Vicki|Marlene|Sandy|Shelley|Grandma|M[oó]nica|Paulina|Marisol|Elvira|Helena|Laura|Lucia|Conchita|Penelope|Isabela|Samantha|Karen|Victoria|Moira|Tessa)\b/i;
+  const voiceGender = (v) => (!v ? 0 : MALE_VOICES.test(v.name) ? 1 : FEMALE_VOICES.test(v.name) ? 2 : 0);
+  // The voice of a person in a dialogue (the iPhone app's VoicePick.person): the main voice for whoever matches it,
+  // else a voice of the person's gender, else the main voice pitched down for a man or up for a woman
+  function personVoice(who, people) {
+    const main = TTS.voice, mg = voiceGender(main), g = people && people[who] ? ({ m: 1, f: 2 }[people[who].g] || 0) : 0;
+    if (!g || !mg) { if (who !== 1) return { voice: null, cents: 0 }; const v2 = secondVoice(); return { voice: v2, cents: v2 ? 0 : -250 }; }
+    const og = people.length === 2 ? ({ m: 1, f: 2 }[people[1 - Math.min(who, 1)].g] || 0) : 0, same = og === g && who === 1, nudge = g === 1 ? -150 : 150;
+    const exact = new RegExp("^" + C.tts.replace("-", "[-_]"), "i");
+    const pool = courseVoices().filter((v) => exact.test(v.lang) && !robotic(v) && (!main || v.voiceURI !== main.voiceURI) && voiceGender(v) === g)
+      .sort((a, b) => /Premium|Enhanced|Natural|Neural|Online/i.test(b.name) - /Premium|Enhanced|Natural|Neural|Online/i.test(a.name));
+    if (mg === g) return same ? { voice: pool[0] || null, cents: pool.length ? 0 : nudge } : { voice: null, cents: 0 };
+    if (same && pool.length >= 2) return { voice: pool[1], cents: 0 };
+    if (pool.length) return { voice: pool[0], cents: same ? nudge : 0 };
+    return { voice: null, cents: (g === 1 ? -350 : 300) + (same ? nudge : 0) };
+  }
   let currentUtterance = null; // keep a reference: Safari garbage-collects utterances mid-speech otherwise
   function speak(text, opts) {
     if (!TTS.available) { toast(t("noTts")); return; }
@@ -921,14 +940,14 @@
       if (!TTS.voice) pickVoice();
       const u = new SpeechSynthesisUtterance(text);
       u.lang = C.tts;
-      // The second person of a dialogue: another voice of the language, or the same one a little lower
-      const second = opts && opts.who === 1 && S.settings.twoVoices !== false;
-      const v2 = second ? secondVoice() : null, voice = (opts && opts.voice) || v2 || TTS.voice;
+      // A person of a dialogue: a voice that fits them (a man's or a woman's), or the main one pitched
+      const person = opts && opts.who !== undefined && S.settings.twoVoices !== false && (opts.who === 1 || opts.people) ? personVoice(opts.who, opts.people) : null;
+      const voice = (opts && opts.voice) || (person && person.voice) || TTS.voice;
       if (voice) { try { u.voice = voice; } catch (e) { /* stale voice object: fall back to lang-based selection */ } }
       u.rate = (opts && opts.rate) || S.settings.rate;
       // A pitch set for this voice (Me → Voice); browsers allow no equaliser on the system voices
       const tune = voice && S.settings.voiceTune && S.settings.voiceTune[voice.voiceURI];
-      u.pitch = (tune && tune.pitch ? tune.pitch : 1) * (second && !v2 ? 0.82 : 1);
+      u.pitch = Math.min(2, Math.max(0.1, (tune && tune.pitch ? tune.pitch : 1) * (person && person.cents ? Math.pow(2, person.cents / 1200) : 1)));
       if (opts && opts.onend) u.onend = opts.onend;
       currentUtterance = u;
       // iOS drops an utterance queued in the same tick as cancel(); defer minimally
@@ -2935,7 +2954,7 @@
     const opt = () => ({ hz: zhPf ? !!S.settings.dlgHz : true, tr: S.settings.dlgTr !== false, slow: !!S.settings.dlgSlow, py: S.settings.dlgPy !== false && C.id !== "vi" && !C.gender });
     const nameOf = (who) => (zhPf ? esc(d.people[who].py) : d.people[who].hz);
     // Each person speaks with their own voice (Me → Voice → Two voices in dialogues)
-    const say = (l, onend) => speak(l.hz, { rate: opt().slow ? 0.55 : S.settings.rate, onend, who: l.who });
+    const say = (l, onend) => speak(l.hz, { rate: opt().slow ? 0.55 : S.settings.rate, onend, who: l.who, people: d.people });
     // A chat bubble (style canvas): the other person on the left with an avatar, you on the right in the dark bubble;
     // the reading line above, the translation under it, Play and 0.75×
     function bubble(l, k, extra, mine) {
@@ -2970,7 +2989,7 @@
       const w = e.target.closest(".w");
       if (w) { const hit = lookupPy(w.dataset.w); if (hit) { toast(`${hit.py} · ${hit.hz} · ${tr(hit)}`); speak(hit.hz); } return; }
       const pb = e.target.closest("[data-play],[data-slow]");
-      if (pb) { const l = d.lines[+(pb.dataset.play ?? pb.dataset.slow)]; speak(l.hz, { rate: pb.dataset.slow !== undefined ? 0.6 : S.settings.rate, who: l.who }); return; }
+      if (pb) { const l = d.lines[+(pb.dataset.play ?? pb.dataset.slow)]; speak(l.hz, { rate: pb.dataset.slow !== undefined ? 0.6 : S.settings.rate, who: l.who, people: d.people }); return; }
       const b = e.target.closest(".bubble"); if (b && !e.target.closest("button")) say(d.lines[+b.dataset.line]);
     };
     let redraw;
@@ -3068,7 +3087,7 @@
           </div>`;
         $$("[data-reply]").forEach((b) => (b.onclick = () => {
           const x = replies[+b.dataset.reply];
-          if (x.hz === l.hz) { chosen = true; wrongPick = null; speak(l.hz, { rate: 0.75, who: l.who }); } else wrongPick = +b.dataset.reply;
+          if (x.hz === l.hz) { chosen = true; wrongPick = null; speak(l.hz, { rate: 0.75, who: l.who, people: d.people }); } else wrongPick = +b.dataset.reply;
           redraw();
         }));
         $("#t-hint").onclick = () => { if (chosen) hint++; else wrongPick = replies.findIndex((x) => x.hz !== l.hz); redraw(); };

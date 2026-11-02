@@ -3,7 +3,7 @@ window.DIALOGUES = window.DIALOGUES || {};
 window.DIALOGUES.es = [
   {
     id: "es-greet", icon: "👋", topic: { en: "Greetings", de: "Begrüßung" },
-    people: [{ hz: "Lucía" }, { hz: "Pablo" }],
+    people: [{ hz: "Lucía", g: "f" }, { hz: "Pablo", g: "m" }],
     lines: [
       { who: 0, hz: "¡Hola, Pablo! ¿Qué tal?", en: "Hi, Pablo! How are you?", de: "Hallo, Pablo! Wie geht's?", tip: { en: "Spanish opens questions and exclamations with ¿ and ¡.", de: "Spanisch beginnt Fragen und Ausrufe mit ¿ und ¡." } },
       { who: 1, hz: "Muy bien, gracias. ¿Y tú?", en: "Very well, thanks. And you?", de: "Sehr gut, danke. Und dir?" },
@@ -15,7 +15,7 @@ window.DIALOGUES.es = [
   },
   {
     id: "es-name", icon: "🙂", topic: { en: "What's your name?", de: "Wie heißt du?" },
-    people: [{ hz: "Carmen" }, { hz: "Tom" }],
+    people: [{ hz: "Carmen", g: "f" }, { hz: "Tom", g: "m" }],
     lines: [
       { who: 0, hz: "Buenos días. ¿Cómo se llama usted?", en: "Good morning. What's your name?", de: "Guten Morgen. Wie heißen Sie?", tip: { en: "usted is the polite “you”; it takes the same verb form as he/she: se llama.", de: "usted ist das höfliche „Sie“; das Verb steht wie bei er/sie: se llama." } },
       { who: 1, hz: "Me llamo Tom. ¿Y usted?", en: "My name is Tom. And you?", de: "Ich heiße Tom. Und Sie?" },
@@ -28,7 +28,7 @@ window.DIALOGUES.es = [
   },
   {
     id: "es-family", icon: "👨‍👩‍👧", topic: { en: "Family", de: "Familie" },
-    people: [{ hz: "Sofía" }, { hz: "Diego" }],
+    people: [{ hz: "Sofía", g: "f" }, { hz: "Diego", g: "m" }],
     lines: [
       { who: 0, hz: "¿Tienes hermanos, Diego?", en: "Do you have any brothers or sisters, Diego?", de: "Hast du Geschwister, Diego?", tip: { en: "hermanos means brothers, but also brothers and sisters together.", de: "hermanos heißt Brüder, aber auch Geschwister." } },
       { who: 1, hz: "Sí, tengo una hermana. Se llama Ana.", en: "Yes, I have a sister. Her name is Ana.", de: "Ja, ich habe eine Schwester. Sie heißt Ana." },
@@ -40,7 +40,7 @@ window.DIALOGUES.es = [
   },
   {
     id: "es-cafe", icon: "☕", topic: { en: "At the café", de: "Im Café" },
-    people: [{ hz: "Camarero" }, { hz: "Elena" }],
+    people: [{ hz: "Camarero", g: "m" }, { hz: "Elena", g: "f" }],
     lines: [
       { who: 0, hz: "Buenas tardes. ¿Qué desea tomar?", en: "Good afternoon. What would you like?", de: "Guten Tag. Was möchten Sie trinken?", tip: { en: "tomar (to take) is the usual verb for having food or drinks.", de: "tomar (nehmen) ist das übliche Verb für Essen und Getränke." } },
       { who: 1, hz: "Un café con leche, por favor.", en: "A white coffee, please.", de: "Einen Milchkaffee, bitte." },
@@ -53,7 +53,7 @@ window.DIALOGUES.es = [
   },
   {
     id: "es-shop", icon: "🛍️", topic: { en: "How much is it?", de: "Wie viel kostet das?" },
-    people: [{ hz: "Marta" }, { hz: "Vendedor" }],
+    people: [{ hz: "Marta", g: "f" }, { hz: "Vendedor", g: "m" }],
     lines: [
       { who: 0, hz: "Perdone, ¿cuánto cuesta esta camiseta?", en: "Excuse me, how much is this T-shirt?", de: "Entschuldigung, wie viel kostet dieses T-Shirt?" },
       { who: 1, hz: "Cuesta quince euros.", en: "It costs fifteen euros.", de: "Es kostet fünfzehn Euro." },
@@ -66,7 +66,7 @@ window.DIALOGUES.es = [
   },
   {
     id: "es-time", icon: "🕒", topic: { en: "What time is it?", de: "Wie spät ist es?" },
-    people: [{ hz: "Javier" }, { hz: "Isabel" }],
+    people: [{ hz: "Javier", g: "m" }, { hz: "Isabel", g: "f" }],
     lines: [
       { who: 0, hz: "Isabel, ¿qué hora es?", en: "Isabel, what time is it?", de: "Isabel, wie spät ist es?" },
       { who: 1, hz: "Son las cinco y media.", en: "It's half past five.", de: "Es ist halb sechs.", tip: { en: "Times use son las (it's), but one o'clock is es la una.", de: "Uhrzeiten mit son las (es ist), aber ein Uhr heißt es la una." } },

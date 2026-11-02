@@ -112,9 +112,14 @@ public struct Dialogue: Codable, Identifiable, Sendable {
     public struct Person: Codable, Sendable {
         public let hz: String
         public let py: String
+        /// "m" or "f": the person speaks with a man's or a woman's voice
+        public let g: String?
+        /// 1 = man, 2 = woman, 0 = not known (AVSpeechSynthesisVoice's order)
+        public var gender: Int { g == "m" ? 1 : g == "f" ? 2 : 0 }
         public init(from d: Decoder) throws {
             let c = try d.container(keyedBy: CodingKeys.self)
             hz = try c.decode(String.self, forKey: .hz); py = try c.decodeIfPresent(String.self, forKey: .py) ?? ""
+            g = try c.decodeIfPresent(String.self, forKey: .g)
         }
     }
     public struct Line: Codable, Hashable, Sendable {

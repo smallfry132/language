@@ -33,13 +33,39 @@ public enum VoicePick {
     /// voice: the same voice speaks lower (samePitchDrop). Chinese voices of another region speak another standard
     /// (Taiwan), so Chinese only takes the exact language.
     public static func second(main: VoiceInfo?, among voices: [VoiceInfo], language: String) -> VoiceInfo? {
-        let pool = voices.filter { $0.rank > 0 && $0.id != main?.id }
-        let exact = pool.filter { $0.language == language }
-        let cand = !exact.isEmpty || language.hasPrefix("zh") ? exact : pool.filter { $0.language.prefix(2) == language.prefix(2) }
+        let cand = candidates(main: main, among: voices, language: language)
         let mg = main?.gender ?? 0
         let other = { (v: VoiceInfo) -> Bool in mg != 0 && v.gender != 0 && v.gender != mg }
         return cand.sorted { a, b in other(a) != other(b) ? other(a) : a.rank > b.rank }.first
     }
     /// The pitch drop in cents for the second person when there is no second voice
     public static let samePitchDrop = -250.0
+
+    /// Good voices besides the main one: the exact language, else the same language of another region (never for Chinese)
+    static func candidates(main: VoiceInfo?, among voices: [VoiceInfo], language: String) -> [VoiceInfo] {
+        let pool = voices.filter { $0.rank > 0 && $0.id != main?.id }
+        let exact = pool.filter { $0.language == language }
+        return !exact.isEmpty || language.hasPrefix("zh") ? exact : pool.filter { $0.language.prefix(2) == language.prefix(2) }
+    }
+
+    /// The voice of a person in a dialogue, so that a man speaks with a man's voice and a woman with a woman's.
+    /// gender and otherGender: 1 = man, 2 = woman, 0 = not known. The main voice is kept for whoever matches it;
+    /// otherwise the best installed voice of the person's gender; with none, the main voice pitched down for a man
+    /// or up for a woman. Two people of the same gender get two voices (or the second one a little lower/higher).
+    /// Returns the voice id (nil = the main voice) and a pitch shift in cents.
+    public static func person(gender g: Int, who: Int, otherGender og: Int, main: VoiceInfo?, among voices: [VoiceInfo], language: String) -> (id: String?, cents: Double) {
+        let mg = main?.gender ?? 0
+        // Gender not known (of the person or of the main voice): the second person just sounds different
+        guard g != 0, mg != 0 else {
+            guard who == 1 else { return (nil, 0) }
+            let v = second(main: main, among: voices, language: language)
+            return (v?.id, v == nil ? samePitchDrop : 0)
+        }
+        let same = og == g && who == 1, nudge = g == 1 ? -150.0 : 150.0
+        let pool = candidates(main: main, among: voices, language: language).filter { $0.gender == g }.sorted { $0.rank > $1.rank }
+        if mg == g { return same ? (pool.first?.id, pool.isEmpty ? nudge : 0) : (nil, 0) }
+        if same && pool.count >= 2 { return (pool[1].id, 0) }
+        if let v = pool.first { return (v.id, same ? nudge : 0) }
+        return (nil, (g == 1 ? -350 : 300) + (same ? nudge : 0))
+    }
 }

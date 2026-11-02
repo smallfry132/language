@@ -712,7 +712,7 @@ struct SayWord: View {
     @State private var i = 0
     @State private var correct = 0
     @State private var spoken: Spoken?
-    @State private var selfOK: Bool?
+    @State private var selfScore: Double?
     @State private var mistakes: [Word] = []
     @State private var why: [String: String] = [:]
     @State private var skipped = 0
@@ -720,49 +720,103 @@ struct SayWord: View {
     var body: some View {
         let w = list[i]
         let pitch = w.py.split(separator: " ").count <= 2 && Lingo.pyParts(w.py).filter { !$0.sep }.count <= 4
-        Page {
-            ProgressHeader(i: i, n: list.count, extra: "✓ \(correct)")
-            CardBox(padding: 22) {
-                VStack(spacing: 10) {
-                    WordPicture(word: w, size: 72)
-                    WordHero(word: w, size: 60)
-                    Text(store.tr(w)).font(.title3).multilineTextAlignment(.center)
+        VStack(spacing: 0) {
+            Page {
+                ProgressHeader(i: i, n: list.count, extra: "✓ \(correct)")
+                // Say the word (round 2): the word with its tones-right box, then the feedback
+                CardBox {
                     HStack(spacing: 12) {
-                        Button { store.speaker.say(w.hz) } label: { Label(store.t("playModel"), systemImage: "speaker.wave.2.fill") }.buttonStyle(.bordered).tint(.ink)
-                        MicButton(key: "w\(i)", target: w.hz, py: w.py, pitch: pitch) { spoken = $0; selfOK = nil }
-                    }.padding(.top, 6)
-                }.frame(maxWidth: .infinity)
+                        if let p = store.words.picture(w.id) { Text(p).scaledFont(40).accessibilityHidden(true) }
+                        VStack(alignment: .leading, spacing: 2) {
+                            reading(w)
+                            Text(sub(w)).font(.subheadline).foregroundStyle(Color.ink2)
+                        }
+                        Spacer(minLength: 4)
+                        if let box = scoreBox { box }
+                    }
+                }
                 if let s = spoken {
-                    Divider()
-                    SpokenResult(hz: w.hz, py: w.py, spoken: s) { selfOK = $0 }.id(s.ms)
+                    if s.tones != nil {
+                        HStack(spacing: 14) {
+                            legend(Color.tone(2), dashed: false, store.t("model"))
+                            legend(Color.ink, dashed: true, store.t("you"))
+                        }.font(.caption).foregroundStyle(Color.ink2)
+                    }
+                    SpokenResult(hz: w.hz, py: w.py, spoken: s) { selfScore = $0 }.id(s.ms)
+                } else {
+                    VStack(spacing: 8) {
+                        Button { store.speaker.say(w.hz) } label: { Label(store.t("playModel"), systemImage: "play.fill") }.buttonStyle(.bordered).tint(.ink)
+                        Text(store.t("sayHint")).font(.footnote).foregroundStyle(Color.ink2)
+                    }.frame(maxWidth: .infinity).padding(.vertical, 18)
                 }
             }
-            if spoken != nil {
-                HStack {
-                    Button { spoken = nil } label: { Label(store.t("again"), systemImage: "arrow.counterclockwise") }.buttonStyle(.secondary)
-                    Button(store.t("next")) { next() }.buttonStyle(.primary)
-                }
-            } else {
-                // No microphone at hand: move on without grading the word
+            // Skip · the big microphone · Next
+            HStack(spacing: 12) {
                 Button(store.t("skip")) { store.mic.cancel(); skipped += 1; advance() }.buttonStyle(.secondary)
+                MicButton(key: "w\(i)", target: w.hz, py: w.py, pitch: pitch, big: true) { spoken = $0; selfScore = nil }
+                Button(store.t("next") + " →") { next() }.buttonStyle(spoken != nil ? AnyButtonStyle(.primary) : AnyButtonStyle(.secondary))
             }
+            .padding(.horizontal, 16).padding(.vertical, 10)
+            .background(Color.paper)
         }
+        .background(Color.paper)
         .onDisappear { store.mic.cancel() }
     }
+    var scoreBox: AnyView? {
+        guard let s = spoken else { return nil }
+        let big: String, small: String
+        if let t = s.tones, !t.none { let sc = t.syllables.filter { $0.ok != nil }; big = "\(sc.filter { $0.ok == true }.count) / \(sc.count)"; small = store.t("tonesRightShort") }
+        else if let h = s.heard { big = "\(Int((h.score * 100).rounded()))%"; small = store.t("heardShort") }
+        else { return nil }
+        return AnyView(VStack(spacing: 0) {
+            Text(big).font(.title3.weight(.bold)).foregroundStyle(Color.accent)
+            Text(small).font(.caption2).foregroundStyle(Color.ink2)
+        }.padding(.horizontal, 10).padding(.vertical, 8).overlay(RoundedRectangle(cornerRadius: max(2, Look.current.radius - 4)).stroke(Color.accent, lineWidth: 1.5)))
+    }
+    @ViewBuilder func reading(_ w: Word) -> some View {
+        switch store.course.id {
+        case "zh": if store.pyFirst { PinyinText(py: w.py, size: 32, weight: .bold) } else { Text(w.hz).hanziFont(34) }
+        case "vi": VietText(text: w.hz, size: 32, weight: .heavy).lineLimit(2).minimumScaleFactor(0.6)
+        default: Text(w.hz).hanziFont(34).lineLimit(2).minimumScaleFactor(0.6)
+        }
+    }
+    func sub(_ w: Word) -> String {
+        switch store.course.id {
+        case "zh": return (store.pyFirst ? w.hz : w.py) + " · " + store.tr(w)
+        case "vi": return store.tr(w)
+        default: return w.py + " · " + store.tr(w)
+        }
+    }
+    func legend(_ c: Color, dashed: Bool, _ label: String) -> some View {
+        HStack(spacing: 6) {
+            Path { p in p.move(to: CGPoint(x: 0, y: 2)); p.addLine(to: CGPoint(x: 18, y: 2)) }
+                .stroke(c, style: StrokeStyle(lineWidth: 3, dash: dashed ? [4, 3] : [])).frame(width: 18, height: 4)
+            Text(label)
+        }
+    }
     func advance() {
-        spoken = nil; selfOK = nil
+        spoken = nil; selfScore = nil
         if i + 1 >= list.count { done(SessionResult(correct: correct, total: list.count - skipped, mistakes: mistakes, why: why)) } else { i += 1 }
     }
     func next() {
         let w = list[i]
-        let ok = selfOK ?? ((spoken?.score ?? 0) >= 0.8)
-        store.answer(w, ok: ok)
+        guard spoken != nil else { store.mic.cancel(); skipped += 1; advance(); return } // nothing said yet: like Skip
+        let score = selfScore ?? (spoken?.score ?? 0), ok = score >= 0.8
+        store.update { $0.grade(w.id, ok ? 2 : score > 0 ? 1 : 0); $0.recordAnswer(ok) }
+        store.marks.append(ok)
         if ok { correct += 1 } else {
             mistakes.append(w)
             why[w.id] = store.t(spoken?.tones?.syllables.contains { $0.ok == false } == true ? "whyTones" : "whyNotHeard")
         }
         advance()
     }
+}
+
+/// A button style chosen at run time
+struct AnyButtonStyle: ButtonStyle {
+    private let make: (Configuration) -> AnyView
+    init<S: ButtonStyle>(_ s: S) { make = { AnyView(s.makeBody(configuration: $0)) } }
+    func makeBody(configuration: Configuration) -> some View { make(configuration) }
 }
 
 /// Match six words with their meanings against the clock

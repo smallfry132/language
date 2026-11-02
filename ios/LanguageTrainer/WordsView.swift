@@ -6,7 +6,7 @@ import LanguageCore
 
 struct WordsView: View {
     @Environment(Store.self) var store
-    @ScaledMetric private var tileWidth: CGFloat = 104 // tiles get wider (fewer columns) with larger text
+    @ScaledMetric private var tileWidth: CGFloat = 160 // two columns on a phone; wider (fewer columns) with larger text
     @State private var q = ""
     @State private var statusFilter = "all"
     @State private var cat = "all"
@@ -33,53 +33,53 @@ struct WordsView: View {
     }
     var themed: Bool { !store.words.themes.isEmpty }
 
-    /// Topic → group → words, keeping only the words that pass the filters
-    func sections(_ list: [Word]) -> [(theme: Theme, groups: [(name: String, words: [Word])])] {
+    /// Topics in learning order with the words that pass the filters (numbered as in the topic chips)
+    func topicSections(_ list: [Word]) -> [(n: Int, theme: Theme, words: [Word])] {
         let pass = Set(list.map(\.id))
-        return store.words.themes.filter { cat == "all" || $0.id == cat }.compactMap { t in
-            let gs = store.words.groups(of: t).map { ($0.name.get(store.state.lang), $0.words.filter { pass.contains($0.id) }) }.filter { !$0.1.isEmpty }
-            return gs.isEmpty ? nil : (t, gs)
+        return store.words.themes.enumerated().filter { cat == "all" || $0.element.id == cat }.compactMap { k, t in
+            let ws = store.words.groups(of: t).flatMap { $0.words }.filter { pass.contains($0.id) }
+            return ws.isEmpty ? nil : (k + 1, t, ws)
         }
     }
-    /// The sections flattened into groups; the first group of a topic carries the topic's title
-    func groupSections(_ list: [Word]) -> [(id: String, topic: String?, name: String, words: [Word])] {
-        sections(list).flatMap { sec in
-            sec.groups.enumerated().map { k, g in
-                ("\(sec.theme.id)-\(k)", k == 0 ? "\(sec.theme.icon)  \(sec.theme.name.get(store.state.lang))" : nil, g.name, g.words)
-            }
-        }
-    }
-    func grid(_ words: [Word]) -> some View {
-        LazyVGrid(columns: [GridItem(.adaptive(minimum: min(tileWidth, 320)), spacing: 10)], spacing: 10) {
-            ForEach(words) { w in Button { open = w } label: { Tile(w: w) }.buttonStyle(.plain) }
-        }
-    }
+    var columns: [GridItem] { [GridItem(.adaptive(minimum: min(tileWidth, 320)), spacing: 8)] }
 
-    /// As on the style canvas: what you are looking at, then New · Learning · Due today (tap to filter)
+    /// As on the round-2 canvas: New · Learning · Due (tap to filter) and Review
     @ViewBuilder var header: some View {
         let ws = store.words.selected, now = nowMs()
         let counts = (new: ws.filter { store.status($0.id) == .new }.count, learning: ws.filter { store.status($0.id) == .learning }.count,
                       due: ws.filter { store.state.isDue($0.id, now: now) }.count)
-        HStack(spacing: 8) {
+        HStack(spacing: 6) {
             stat(counts.new, store.t("new"), "new", Color.tone(4))
             stat(counts.learning, store.t("learning"), "learning", Color.tone(2))
-            stat(counts.due, store.t("dueNow"), "due", Color.accent)
+            stat(counts.due, store.t("due"), "due", Color.accent, hot: counts.due > 0)
+            if counts.due > 0 {
+                NavigationLink(value: Route.mode(.flash)) {
+                    Text(store.t("review")).font(.subheadline.weight(.bold)).padding(.horizontal, 14).frame(maxHeight: .infinity)
+                        .background(Color.action, in: RoundedRectangle(cornerRadius: max(2, Look.current.radius - 2))).foregroundStyle(Color.onAction)
+                }
+                .buttonStyle(.plain).simultaneousGesture(TapGesture().onEnded { SetupPrefs.shared.pools = ["due"]; SetupPrefs.shared.mins = 0 })
+            }
+        }.fixedSize(horizontal: false, vertical: true)
+        HStack(spacing: 8) {
+            Image(systemName: "magnifyingglass").foregroundStyle(Color.ink2)
+            TextField(store.t("search"), text: $q).textInputAutocapitalization(.never).autocorrectionDisabled()
+                .accessibilityLabel(store.t("searchWords"))
+            if !q.isEmpty { Button { q = "" } label: { Image(systemName: "xmark.circle.fill").foregroundStyle(Color.ink3) }.accessibilityLabel(store.t("close")) }
         }
-        if counts.due > 0 {
-            NavigationLink(value: Route.mode(.flash)) { Text(store.t("reviewCards", min(counts.due, 150))) }
-                .buttonStyle(.primary).simultaneousGesture(TapGesture().onEnded { SetupPrefs.shared.pool = "due" })
-        }
+        .padding(.horizontal, 12).frame(height: 44)
+        .background(Color.elevated, in: RoundedRectangle(cornerRadius: max(4, Look.current.radius)))
+        .overlay(RoundedRectangle(cornerRadius: max(4, Look.current.radius)).stroke(Color.line))
     }
-    func stat(_ n: Int, _ label: String, _ key: String, _ c: Color) -> some View {
-        let on = statusFilter == key, r = Look.current.radius
+    func stat(_ n: Int, _ label: String, _ key: String, _ c: Color, hot: Bool = false) -> some View {
+        let on = statusFilter == key, r = max(2, Look.current.radius - 2)
         return Button { statusFilter = on ? "all" : key; limit = 240 } label: {
             VStack(alignment: .leading, spacing: 0) {
-                Text("\(n)").font(.title3.weight(.bold)).monospacedDigit().foregroundStyle(Look.toneColors || key == "due" ? c : Color.ink)
-                Text(label).font(.caption).foregroundStyle(Color.ink).lineLimit(1)
+                Text("\(n)").font(.headline).monospacedDigit().foregroundStyle(Look.toneColors || key == "due" ? c : Color.ink)
+                Text(label).font(.caption2).foregroundStyle(Color.ink).lineLimit(1)
             }
-            .padding(.horizontal, 10).padding(.vertical, 8).frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 8).padding(.vertical, 6).frame(maxWidth: .infinity, alignment: .leading)
             .background(Color.elevated, in: RoundedRectangle(cornerRadius: r))
-            .overlay(RoundedRectangle(cornerRadius: r).stroke(on ? Color.accent : Color.line, lineWidth: on ? 1.5 : 1))
+            .overlay(RoundedRectangle(cornerRadius: r).stroke(on || hot ? Color.accent : Color.line, lineWidth: on || hot ? 1.5 : 1))
         }.buttonStyle(.plain).accessibilityAddTraits(on ? .isSelected : [])
     }
 
@@ -87,121 +87,154 @@ struct WordsView: View {
         let list = filtered
         Page {
             header
-            LevelChips()
             ChipRow {
-                ForEach([("all", "all"), ("due", "due"), ("new", "new"), ("learning", "learning"), ("known", "known"), ("favs", "favorites")], id: \.0) { k, l in
-                    ChipButton(label: (k == "favs" ? "★ " : "") + store.t(l), active: statusFilter == k) { statusFilter = k; limit = 240 }
+                ForEach(store.course.levels, id: \.self) { l in
+                    ChipButton(label: store.course.levelName(l), active: store.levels.contains(l)) {
+                        var lv = store.levels
+                        if lv.contains(l) { if lv.count == 1 { return }; lv.removeAll { $0 == l } } else { lv.append(l) }
+                        store.update { $0.courses[$0.course, default: CourseState()].levels = lv.sorted() }
+                    }
+                }
+                Rectangle().fill(Color.line).frame(width: 1, height: 24)
+                ForEach([("all", store.t("all")), ("new", "□ " + store.t("new")), ("learning", "◧ " + store.t("learning")), ("known", "■ " + store.t("known")), ("favs", "★")], id: \.0) { k, l in
+                    ChipButton(label: l, active: statusFilter == k) { statusFilter = k; limit = 240 }.accessibilityLabel(k == "favs" ? store.t("favorites") : l)
                 }
             }
-            TopicChips(selection: $cat)
+            ChipRow {
+                ChipButton(label: store.t("allTopics"), active: cat == "all") { cat = "all" }
+                if themed {
+                    ForEach(Array(store.words.themes.enumerated()), id: \.offset) { k, t in ChipButton(label: "\(k + 1) \(t.name.get(store.state.lang))", active: cat == t.id) { cat = t.id } }
+                } else {
+                    ForEach(Library.shared.categoryOrder.filter { c in store.words.selected.contains { $0.cat == c } }, id: \.self) { c in ChipButton(label: store.catName(c), active: cat == c) { cat = c } }
+                }
+            }
             Text(store.t("wordsCount", list.count, store.words.selected.count)).font(.footnote).foregroundStyle(Color.ink3)
             if list.isEmpty { Text("🔍  " + store.t("noResults")).foregroundStyle(Color.ink2).frame(maxWidth: .infinity).padding(.top, 30) }
             if themed {
-                // One lazy grid with a section per group. A lazy grid inside a lazy stack leaves tiles blank
+                // One lazy grid with a section per topic. A lazy grid inside a lazy stack leaves tiles blank
                 // until they have been scrolled past (a SwiftUI bug), so nothing here is nested.
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: min(tileWidth, 320)), spacing: 10)], alignment: .leading, spacing: 10) {
-                    ForEach(groupSections(list), id: \.id) { g in
+                LazyVGrid(columns: columns, alignment: .leading, spacing: 8) {
+                    ForEach(topicSections(list), id: \.theme.id) { sec in
                         Section {
-                            ForEach(g.words) { w in Button { open = w } label: { Tile(w: w) }.buttonStyle(.plain) }
+                            ForEach(sec.words) { w in Button { open = w } label: { Tile(w: w) }.buttonStyle(.plain) }
                         } header: {
-                            VStack(alignment: .leading, spacing: 0) {
-                                if let topic = g.topic {
-                                    Text(topic).font(.title3.weight(.bold)).padding(.top, 14).accessibilityAddTraits(.isHeader)
+                            VStack(spacing: 6) {
+                                HStack(alignment: .firstTextBaseline) {
+                                    Text("\(sec.n) · \(sec.theme.name.get(store.state.lang))").font(.subheadline.weight(.bold)).accessibilityAddTraits(.isHeader)
+                                    Spacer()
+                                    Text(store.t("wordsInOrder", sec.words.count)).font(.caption).foregroundStyle(Color.ink2)
                                 }
-                                SectionTitle(text: g.name)
-                            }
+                                Rectangle().fill(Color.ink).frame(height: 2)
+                            }.padding(.top, 12)
                         }
                     }
                 }
             } else {
-                grid(Array(list.prefix(limit)))
+                LazyVGrid(columns: columns, spacing: 8) {
+                    ForEach(Array(list.prefix(limit))) { w in Button { open = w } label: { Tile(w: w) }.buttonStyle(.plain) }
+                }
                 if list.count > limit {
                     Button(store.t("showMore", min(240, list.count - limit), list.count - limit)) { limit += 240 }.buttonStyle(.secondary)
                 }
             }
         }
         .onChange(of: store.course.id) { cat = "all" }
-        .searchable(text: $q, prompt: store.t("search"))
-        .textInputAutocapitalization(.never)
+        .onAppear { if open == nil, let id = Launch.value("-word") { open = store.word(id) ?? store.words.selected.first { $0.hz == id } } } // screenshots
+        .toolbar(.hidden, for: .navigationBar)
         .sheet(item: $open) { w in WordDetail(w: w).presentationDetents([.medium, .large]) }
     }
 }
 
+/// One word as a compact tile (round 2): picture (or its first character), the word as you read it, the rest small,
+/// the status as a shape
 struct Tile: View {
     @Environment(Store.self) var store
-    @Environment(\.dynamicTypeSize) var dynamicType
     let w: Word
     var body: some View {
-        let st = store.status(w.id)
-        VStack(spacing: 4) {
-            HStack {
-                // Status by shape as well as colour: ✓ known, half-filled learning, empty new
-                Image(systemName: st == .known ? "checkmark.circle.fill" : st == .learning ? "circle.lefthalf.filled" : "circle")
-                    .font(.caption2).foregroundStyle(st == .known ? Color.good : st == .learning ? Color.gold : Color.ink3)
-                Spacer()
-                if store.state.favs.contains(WordRef(w.id)) { Text("★").font(.caption2).foregroundStyle(Color.gold) }
+        let st = store.status(w.id), r = max(2, Look.current.radius - 2)
+        HStack(spacing: 10) {
+            Group {
+                if let p = store.words.picture(w.id) { Text(p).font(.system(size: 24)) }
+                else { Text(String(w.hz.prefix(1))).hanziFont(20).foregroundStyle(Color.ink3) }
             }
-            if let p = store.words.picture(w.id) { Text(p).scaledFont(26).accessibilityHidden(true) }
-            if store.pyFirst {
-                PinyinText(py: w.py, size: w.py.count > 10 ? 15 : 19, weight: .semibold).lineLimit(1).minimumScaleFactor(0.6)
-                Text(w.hz).font(.caption).foregroundStyle(Color.ink3)
-            } else {
-                if store.course.id == "vi" { VietText(text: w.hz, size: w.hz.count >= 9 ? 16 : 20).lineLimit(1).minimumScaleFactor(0.5) }
-                else { Text(w.hz).hanziFont(w.hz.count >= 3 ? 20 : 28).lineLimit(1).minimumScaleFactor(0.5) }
-                if store.showsReading(w) {
-                    // Japanese: the kana reading, or the rōmaji when the word is written in kana already
-                    let ja = store.course.id == "ja"
-                    Pron(py: ja ? (w.kana != nil && w.kana != w.hz ? w.kana! : (w.romaji ?? w.py)) : w.py, size: 12).lineLimit(1)
-                }
+            .frame(width: 44, height: 44)
+            .background(Color.paper, in: RoundedRectangle(cornerRadius: max(2, r - 2)))
+            .overlay(RoundedRectangle(cornerRadius: max(2, r - 2)).stroke(Color.line))
+            VStack(alignment: .leading, spacing: 1) {
+                main
+                Text(sub).font(.caption).foregroundStyle(Color.ink2).lineLimit(1)
             }
-            Text(store.tr(w)).font(.caption2).foregroundStyle(Color.ink2).lineLimit(dynamicType.isAccessibilitySize ? 5 : 2).multilineTextAlignment(.center)
-            Spacer(minLength: 0)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            StatusShape(status: st)
         }
-        .padding(10).frame(maxWidth: .infinity, minHeight: 112)
-        .background(Color.elevated, in: RoundedRectangle(cornerRadius: 14))
-        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.ink.opacity(0.06)))
+        .padding(8).frame(minHeight: 72)
+        .background(Color.elevated, in: RoundedRectangle(cornerRadius: r))
+        .overlay(RoundedRectangle(cornerRadius: r).stroke(Color.line))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel([w.hz, w.py, store.tr(w), store.t(st.rawValue), store.state.favs.contains(WordRef(w.id)) ? store.t("favorites") : ""].filter { !$0.isEmpty }.joined(separator: ", "))
         .accessibilityAddTraits(.isButton)
     }
+    @ViewBuilder var main: some View {
+        switch store.course.id {
+        case "zh": if store.pyFirst { PinyinText(py: w.py, size: 16, weight: .bold).lineLimit(1).minimumScaleFactor(0.6) } else { Text(w.hz).hanziFont(18).lineLimit(1) }
+        case "vi": VietText(text: w.hz, size: 16, weight: .semibold).lineLimit(1).minimumScaleFactor(0.6)
+        default: Text(w.hz).hanziFont(18).lineLimit(1).minimumScaleFactor(0.6)
+        }
+    }
+    var sub: String {
+        let reading: String? = !store.showsReading(w) ? nil : store.course.id == "zh" ? (store.pyFirst ? w.hz : w.py)
+            : store.course.id == "ja" ? (w.kana != nil && w.kana != w.hz ? w.kana! : (w.romaji ?? w.py)) : store.course.id == "ko" ? w.py : nil
+        return [reading ?? (store.course.id == "zh" && store.pyFirst ? w.hz : nil), store.tr(w)].compactMap { $0 }.joined(separator: " · ")
+    }
 }
 
+/// The word sheet (round 2): picture, word, favourite; Say it like; example; status; add to a lesson
 struct WordDetail: View {
     @Environment(Store.self) var store
-    @Environment(\.dismiss) var dismiss
     let w: Word
     var body: some View {
         let st = store.status(w.id), fav = store.state.favs.contains(WordRef(w.id))
-        let lessons = store.state.lessons(course: store.course.id)
+        let lessons = store.state.lessons(course: store.course.id), last = lessons.last
         ScrollView {
-            VStack(spacing: 12) {
-                if let p = store.words.picture(w.id) { Text(p).scaledFont(72).accessibilityHidden(true) }
-                WordHero(word: w, size: 64)
-                Text(store.tr(w)).font(.title3).multilineTextAlignment(.center)
-                if let t2 = store.tr2(w) { Text(t2).foregroundStyle(Color.ink3) }
-                HStack(spacing: 6) {
-                    pill(store.t(st.rawValue), st == .known ? .good : st == .learning ? .gold : .ink2)
-                    if let th = store.words.theme(of: w.id) { pill("\(th.icon) \(th.name.get(store.state.lang))", .ink2) }
-                    else { pill("\(Library.shared.categories[w.cat]?.icon ?? "") \(store.catName(w.cat))", .ink2) }
-                    pill(store.course.levelName(w.lvl) + (store.course.id == "zh" && Int(w.id) != nil ? " · #\(w.id)" : ""), .ink2)
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .top, spacing: 12) {
+                    if let p = store.words.picture(w.id) {
+                        Text(p).font(.system(size: 40)).frame(width: 72, height: 72)
+                            .background(Color.paper, in: RoundedRectangle(cornerRadius: max(2, Look.current.radius - 2)))
+                            .overlay(RoundedRectangle(cornerRadius: max(2, Look.current.radius - 2)).stroke(Color.line))
+                            .accessibilityLabel(store.tr(w))
+                    }
+                    VStack(alignment: .leading, spacing: 2) {
+                        switch store.course.id {
+                        case "zh": if store.pyFirst { PinyinText(py: w.py, size: 34, weight: .bold) } else { Text(w.hz).hanziFont(36) }
+                        case "vi": VietText(text: w.hz, size: 34, weight: .heavy)
+                        default: Text(w.hz).hanziFont(36)
+                        }
+                        Text(readingLine).font(.subheadline).foregroundStyle(Color.ink2)
+                    }
+                    Spacer(minLength: 4)
+                    SquareButton(icon: fav ? "star.fill" : "star", label: store.t("favorite"), on: fav) {
+                        store.update { if fav { $0.favs.removeAll { $0.id == w.id } } else { $0.favs.append(WordRef(w.id)) } }
+                    }
                 }
-                SpeakButton(text: w.hz)
-                if let ex = w.ex { ExampleBox(word: w, ex: ex) }
-                HStack {
-                    Button { store.update { st == .known ? $0.resetWord(w.id) : $0.markKnown(w.id) } } label: {
-                        Text(st == .known ? "↺ " + store.t("resetWord") : "✓ " + store.t("markKnown")).lineLimit(1).minimumScaleFactor(0.7)
-                    }.buttonStyle(SecondaryButtonStyle(tint: st == .known ? .ink : .good))
-                    Button { store.update { if fav { $0.favs.removeAll { $0.id == w.id } } else { $0.favs.append(WordRef(w.id)) } } } label: {
-                        Text(fav ? "★ " + store.t("unfav") : "☆ " + store.t("fav")).lineLimit(1)
-                    }.buttonStyle(SecondaryButtonStyle(tint: fav ? .gold : .ink))
+                Text(metaLine).font(.footnote).foregroundStyle(Color.ink2)
+                SayLike(word: w)
+                if let ex = w.ex { ExampleLine(word: w, ex: ex) }
+                CapsLabel(text: store.t("status"))
+                SegBar(options: [("new", store.t("new")), ("learning", store.t("learning")), ("known", store.t("known"))], selected: st.rawValue) { k in
+                    store.update { if k == "new" { $0.resetWord(w.id) } else if k == "learning" { $0.markLearning(w.id) } else { $0.markKnown(w.id) } }
                 }
-                if st != .learning { Button("📝 " + store.t("markLearning")) { store.update { $0.markLearning(w.id) } }.buttonStyle(.secondary) }
-                if !lessons.isEmpty {
-                    SectionTitle(text: store.t("addToLesson"))
-                    ChipRow {
-                        ForEach(lessons, id: \.id) { l in
-                            let has = l.lesson.words.contains(WordRef(w.id))
-                            ChipButton(label: (has ? "✓ " : "+ ") + l.lesson.name, active: has) { store.update { $0.toggleLessonWord(l.id, w.id) } }
+                if let last {
+                    let has = last.lesson.words.contains(WordRef(w.id))
+                    Button { store.update { $0.toggleLessonWord(last.id, w.id) } } label: {
+                        Text(has ? "✓ " + store.t("inLesson", last.lesson.name) : "＋ " + store.t("addToLessonX", last.lesson.name)).lineLimit(1).minimumScaleFactor(0.7)
+                    }.buttonStyle(SecondaryButtonStyle(tint: .accent))
+                    if lessons.count > 1 {
+                        WrapLayout(spacing: 6) {
+                            ForEach(lessons.dropLast().reversed(), id: \.id) { l in
+                                let on = l.lesson.words.contains(WordRef(w.id))
+                                ChipButton(label: (on ? "✓ " : "+ ") + l.lesson.name, active: on) { store.update { $0.toggleLessonWord(l.id, w.id) } }
+                            }
                         }
                     }
                 }
@@ -211,8 +244,18 @@ struct WordDetail: View {
         .background(Color.paper)
         .onAppear { if store.state.settings.autoSpeak { store.speaker.say(w.hz) } }
     }
-    func pill(_ s: String, _ c: Color) -> some View {
-        Text(s).font(.caption.weight(.medium)).padding(.horizontal, 9).padding(.vertical, 4).background(c.opacity(0.12), in: Capsule()).foregroundStyle(c)
+    var readingLine: String {
+        switch store.course.id {
+        case "zh": return (store.pyFirst ? w.hz : w.py) + " · " + store.tr(w)
+        case "ja": return (w.romaji ?? w.py) + " · " + store.tr(w)
+        default: return w.py + " · " + store.tr(w)
+        }
+    }
+    var metaLine: String {
+        var parts = [store.course.levelName(w.lvl)]
+        if let th = store.words.theme(of: w.id) { parts.append(th.name.get(store.state.lang)) }
+        if let t2 = store.tr2(w) { parts.append(t2) }
+        return parts.joined(separator: " · ")
     }
 }
 

@@ -8,7 +8,8 @@ import LanguageCore
 struct DialogueScreen: View {
     @Environment(Store.self) var store
     let id: String
-    @State private var mode = Launch.value("-dlgmode") ?? "listen"
+    @State private var mode: String
+    init(id: String, start: String? = nil) { self.id = id; _mode = State(initialValue: start ?? Launch.value("-dlgmode") ?? "listen") }
 
     var body: some View {
         if let d = store.dialogues.first(where: { $0.id == id }) {
@@ -128,6 +129,14 @@ struct Bubble<Extra: View>: View {
                 }
                 if (c == "ko" || c == "ja") && store.dialogueReading { Text(line.py).font(.caption).foregroundStyle(sub) }
                 if s.dlgTr != false { Text(line.tr(store.state.lang)).font(.caption).foregroundStyle(sub) }
+                if let tip = line.tip {
+                    // A short tip for this line (round 2), inline under the translation
+                    (Text(store.t("tipTitle")).bold().foregroundColor(right ? nil : Color.accent) + Text(" · " + tip.get(store.state.lang)))
+                        .font(.caption).foregroundStyle(sub)
+                        .padding(.horizontal, 8).padding(.vertical, 6).frame(maxWidth: .infinity, alignment: .leading)
+                        .overlay(RoundedRectangle(cornerRadius: max(2, Look.current.radius - 6)).strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [3, 3])).foregroundStyle(right ? Color.onAction.opacity(0.35) : Color.line))
+                        .padding(.top, 4)
+                }
                 HStack(spacing: 6) {
                     small(Label(store.t("play"), systemImage: "play.fill"), dark: right) { store.speaker.say(line.hz, rate: store.state.settings.rate) }
                     small(Text("0.75×"), dark: right) { store.speaker.say(line.hz, rate: 0.6) }
@@ -256,7 +265,7 @@ struct DialogueRead: View {
                 Bubble(d: d, line: l, mine: false, highlight: res[k].map { _ in score(k) >= 0.8 ? Color.good : Color.gold }) {
                     VStack(alignment: .leading, spacing: 8) {
                         MicButton(key: "line\(k)", target: l.hz, py: l.py) { r in res[k] = r; selfOK[k] = nil; finishIfDone() }
-                        if let r = res[k] { SpokenResult(hz: l.hz, py: l.py, spoken: r) { selfOK[k] = $0; finishIfDone() }.id(r.ms) }
+                        if let r = res[k] { SpokenResult(hz: l.hz, py: l.py, spoken: r) { selfOK[k] = $0 >= 1; finishIfDone() }.id(r.ms) }
                     }.padding(.top, 4)
                 }
             }

@@ -106,8 +106,10 @@ final class Store {
     private func saveDevice() { if let d = try? JSONEncoder().encode(device) { UserDefaults.standard.set(d, forKey: Self.deviceKey) } }
 
     func grade(_ id: String, _ q: Int) { update { $0.grade(id, q) } }
-    func recordAnswer(_ ok: Bool) { update { $0.recordAnswer(ok) } }
-    func answer(_ w: Word, ok: Bool) { update { $0.grade(w.id, ok ? 2 : 0); $0.recordAnswer(ok) } }
+    func recordAnswer(_ ok: Bool) { marks.append(ok); update { $0.recordAnswer(ok) } }
+    func answer(_ w: Word, ok: Bool) { marks.append(ok); update { $0.grade(w.id, ok ? 2 : 0); $0.recordAnswer(ok) } }
+    /// The answers of the current practice round in order, for the cells of the result screen
+    var marks: [Bool] = []
     func toast(_ s: String) {
         toastText = s
         Task { try? await Task.sleep(for: .seconds(2)); if toastText == s { toastText = nil } }

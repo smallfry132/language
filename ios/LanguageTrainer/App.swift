@@ -82,7 +82,9 @@ struct RootView: View {
         case .lesson(let id): LessonEditor(path: path(tab), lid: id)
         case .lessonPractice(let id): FlowScreen(lessonId: id)
         case .dialogue(let id): DialogueScreen(id: id)
-        case .dialogues: DialoguesScreen(path: path(tab))
+        case .dialogues: DialoguesScreen()
+        case .dialogueTurn(let id): DialogueScreen(id: id, start: "turn")
+        case .myLessons: LessonsScreen(path: path(tab))
         case .sounds: SoundChart()
         case .soundDrill: SoundDrillScreen()
         case .progress: StatsView()
@@ -102,6 +104,8 @@ struct RootView: View {
         case "session": p.append(Route.today)
         case "mode": if let m = parts.count > 2 ? Mode(rawValue: parts[2]) : nil { p.append(Route.mode(m)) }
         case "dialogue": if parts.count > 2 { p.append(Route.dialogue(parts[2])) }
+        case "lessons": p.append(Route.myLessons)
+        case "dialogues": p.append(Route.dialogues)
         case "lesson": if let id = store.state.lessons(course: store.course.id).last?.id { p.append(Route.lesson(id)) }
         case "sounds": p.append(Route.sounds)
         case "drill": p.append(Route.soundDrill)

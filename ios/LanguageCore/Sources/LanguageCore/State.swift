@@ -118,6 +118,8 @@ public struct DialogueProgress: SyncEntry, Equatable {
     public var gone: Int?
     public init() {}
     public static func tombstone(_ t: Double) -> DialogueProgress { var d = DialogueProgress(); d.gone = 1; d.t = t; return d }
+    /// Listen, read aloud and role play all done
+    public var done: Bool { listen != nil && read != nil && turn != nil }
     enum K: String, CodingKey { case listen, read, turn, t, gone }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: K.self)
@@ -159,7 +161,9 @@ public struct Settings: Codable, Equatable {
     public var toneColors: Bool?
     /// Chosen voice per course. Voices differ per device, so this is never synced.
     public var voices: [String: String]?
-    enum K: String, CodingKey { case rate, autoSpeak, tilePinyin, quizSize, dailyGoal, theme, newPerDay, f0base, dlgHz, dlgTr, dlgSlow, dlgPy, voices, readingLayer, maxReviews, toneColors }
+    /// Vietnamese accent for the pronunciation notes: "n" (Northern, default) or "s" (Southern)
+    public var viAccent: String?
+    enum K: String, CodingKey { case rate, autoSpeak, tilePinyin, quizSize, dailyGoal, theme, newPerDay, f0base, dlgHz, dlgTr, dlgSlow, dlgPy, voices, readingLayer, maxReviews, toneColors, viAccent }
     public init() {}
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: K.self)
@@ -169,6 +173,7 @@ public struct Settings: Codable, Equatable {
         voices = c.get(.voices, nil as [String: String]?)
         readingLayer = c.get(.readingLayer, nil as String?)
         maxReviews = c.get(.maxReviews, nil as Int?); toneColors = c.get(.toneColors, nil as Bool?)
+        viAccent = c.get(.viAccent, nil as String?)
     }
     /// The settings that sync (without the device's voices)
     public var synced: Settings { var s = self; s.voices = nil; return s }

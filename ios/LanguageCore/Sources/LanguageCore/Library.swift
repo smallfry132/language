@@ -136,6 +136,9 @@ public struct SoundRow: Codable, Sendable {
     public let cells: [SoundCell]
     public let match: SoundMatch?
     public let note: LocalText?
+    /// Tile groups (Vietnamese initials): the meaning of the example word, and whether North and South differ
+    public let gloss: LocalText?
+    public let ns: Bool?
 }
 public struct SoundGroup: Codable, Identifiable, Sendable {
     public let id: String
@@ -143,6 +146,8 @@ public struct SoundGroup: Codable, Identifiable, Sendable {
     public let head: [String]?
     public let rows: [SoundRow]
     public let kana: Bool?
+    /// Shown as a grid of tiles (one word per letter) instead of the chart
+    public let tiles: Bool?
 }
 public struct SoundDrill: Codable, Identifiable, Sendable {
     public let id: String

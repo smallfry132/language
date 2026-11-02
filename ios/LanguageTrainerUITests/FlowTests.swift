@@ -35,7 +35,8 @@ final class FlowTests: XCTestCase {
             if app.textFields.firstMatch.exists {                                           // type with the tone tiles
                 if app.buttons["Next"].exists { app.buttons["Next"].tap(); continue }
                 let f = app.textFields.firstMatch
-                f.tap(); f.typeText("ni3hao3")
+                // One syllable at a time: the field rewrites itself when a tone number arrives
+                f.tap(); for part in ["ni3", "hao3"] { f.typeText(part); RunLoop.current.run(until: Date().addingTimeInterval(0.4)) }
                 XCTAssertEqual(f.value as? String, "nǐhǎo", "tone numbers become marks while typing")
                 app.buttons["Check"].tap(); continue
             }
@@ -53,21 +54,30 @@ final class FlowTests: XCTestCase {
         // Lessons are further down on Learn: scroll until the button is clear of the dock
         for _ in 0..<6 where !newLesson.isHittable || newLesson.frame.maxY > app.frame.height - 140 { app.swipeUp(velocity: .slow) }
         newLesson.tap()
-        let search = app.textFields["Search pinyin, meaning or characters…"]
+        let search = app.textFields["lesson-search"]
         if !search.waitForExistence(timeout: 3) { print("TREE", app.debugDescription) }
         XCTAssertTrue(search.exists)
         search.tap(); search.typeText("chá")
         app.buttons.matching(NSPredicate(format: "label CONTAINS 'Add'")).firstMatch.tap()
+        // Type my own: a word that is not in the list becomes your own word
+        app.buttons["Type my own"].tap()
+        let own = app.textFields["own-q"]
+        XCTAssertTrue(own.waitForExistence(timeout: 3))
+        own.tap(); own.typeText("ao4di4li4")
+        XCTAssertEqual(own.value as? String, "àodìlì")
         let py = app.textFields["Pinyin (ni3hao3 → nǐhǎo)"]
-        py.tap(); py.typeText("hao3chi1")
-        XCTAssertEqual(py.value as? String, "hǎochī")
+        XCTAssertTrue(py.waitForExistence(timeout: 3))
+        XCTAssertEqual(py.value as? String, "àodìlì", "the typed pinyin is filled in")
         let hz = app.textFields["Characters (needed for audio)"]
-        hz.tap(); hz.typeText("好吃")
+        hz.tap(); hz.typeText("奥地利")
         let en = app.textFields["Meaning"]
-        en.tap(); en.typeText("tasty")
+        en.tap(); en.typeText("Austria")
         app.buttons["own-add"].tap()
-        XCTAssertTrue(text("tasty").waitForExistence(timeout: 2))
+        XCTAssertTrue(text("Austria").waitForExistence(timeout: 2))
         XCTAssertTrue(text("tea").exists)
+        // A list word typed in is offered with its reading
+        own.tap(); own.typeText("laoshi")
+        XCTAssertTrue(text("teacher").waitForExistence(timeout: 2))
         app.navigationBars.buttons.firstMatch.tap()
         XCTAssertTrue(text("2 words").waitForExistence(timeout: 3))
     }
@@ -98,7 +108,7 @@ final class FlowTests: XCTestCase {
         for _ in 0..<8 {
             list.swipeUp(velocity: .slow)
             // Every tile on screen has its content
-            let onScreen = app.buttons.allElementsBoundByIndex.filter { $0.frame.height > 90 && $0.frame.height < 200 && $0.isHittable && list.frame.contains($0.frame) }
+            let onScreen = app.buttons.allElementsBoundByIndex.filter { $0.frame.height > 60 && $0.frame.height < 200 && $0.isHittable && list.frame.contains($0.frame) }
             XCTAssertFalse(onScreen.isEmpty, "some tiles are on screen")
             for t in onScreen.prefix(12) { XCTAssertFalse(t.label.isEmpty, "a tile without content at \(t.frame)") }
         }

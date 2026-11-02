@@ -422,9 +422,7 @@ struct LearnView: View {
                     }.contentShape(Rectangle())
                 }.buttonStyle(.plain)
             }
-            if lessons.count > 3 {
-                NavigationLink(value: Route.dialogues) { Text(store.t("allLessons") + " →").font(.caption.weight(.semibold)).foregroundStyle(Color.ink) }.buttonStyle(.plain)
-            }
+            NavigationLink(value: Route.myLessons) { Text(store.t("allLessons") + " →").font(.caption.weight(.semibold)).foregroundStyle(Color.ink).frame(minHeight: 32) }.buttonStyle(.plain)
         }
         .padding(.top, 12)
         .overlay(alignment: .top) { Rectangle().fill(Color.ink).frame(height: 2) }

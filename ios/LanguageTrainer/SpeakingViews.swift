@@ -62,8 +62,9 @@ struct SpokenResult: View {
     let hz: String
     let py: String
     let spoken: Spoken
-    @State private var selfRated: Bool?
-    var onSelfRate: ((Bool) -> Void)?
+    @State private var selfRated: Double?
+    /// Without a recogniser you rate yourself: 0 not yet, 0.6 close, 1 got it
+    var onSelfRate: ((Double) -> Void)?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -84,11 +85,12 @@ struct SpokenResult: View {
                 }
             } else if spoken.tones == nil {
                 // No recogniser: listen to yourself next to the model and rate it
-                Text(store.t("rateSelf")).font(.subheadline).foregroundStyle(Color.ink2)
-                if selfRated == nil {
-                    HStack {
-                        Button(store.t("rateAgain")) { selfRated = false; onSelfRate?(false) }.buttonStyle(SecondaryButtonStyle(tint: .bad))
-                        Button(store.t("rateGood")) { selfRated = true; onSelfRate?(true) }.buttonStyle(SecondaryButtonStyle(tint: .good))
+                Text(store.t("rateSelfQ")).font(.subheadline).foregroundStyle(Color.ink2)
+                HStack(spacing: 8) {
+                    ForEach([(0.0, "notYet"), (0.6, "closeEnough"), (1.0, "gotIt")], id: \.0) { v, k in
+                        Button(store.t(k)) { selfRated = v; onSelfRate?(v) }
+                            .buttonStyle(SecondaryButtonStyle(tint: selfRated == v ? .accent : .ink))
+                            .overlay { if selfRated == v { RoundedRectangle(cornerRadius: max(Look.current.radius, 2) + 2).stroke(Color.accent, lineWidth: 2) } }
                     }
                 }
             }
@@ -101,7 +103,7 @@ struct SpokenResult: View {
     }
 }
 
-/// Your pitch (solid) over the tone shape (dashed), one column per syllable
+/// The model's tone shape (solid, in the tone colour) and your pitch (dashed), one column per syllable
 struct PitchChart: View {
     @Environment(Store.self) var store
     let result: Pitch.Result
@@ -149,12 +151,12 @@ struct PitchChart: View {
             if let shape = s.shape {
                 var p = Path()
                 for (j, v) in shape.enumerated() { let pt = CGPoint(x: x(j, 5), y: y(v)); j == 0 ? p.move(to: pt) : p.addLine(to: pt) }
-                ctx.stroke(p, with: .color(Color.tone(s.want)), style: StrokeStyle(lineWidth: 3, lineCap: .round, dash: [6, 6]))
+                ctx.stroke(p, with: .color(Color.tone(s.want)), style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
             }
             if s.levels.count > 1 {
                 var p = Path()
                 for (j, v) in s.levels.enumerated() { let pt = CGPoint(x: x(j, s.levels.count), y: y(v)); j == 0 ? p.move(to: pt) : p.addLine(to: pt) }
-                ctx.stroke(p, with: .color(.ink), style: StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
+                ctx.stroke(p, with: .color(.ink), style: StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round, dash: [6, 5]))
             } else if let v = s.levels.first {
                 ctx.fill(Path(ellipseIn: CGRect(x: x(0, 1) - 3, y: y(v) - 3, width: 6, height: 6)), with: .color(.ink))
             }

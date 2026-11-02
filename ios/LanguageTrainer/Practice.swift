@@ -22,45 +22,96 @@ enum Route: Hashable {
     case lessonPractice(String)
     case dialogue(String)
     case dialogues
+    case dialogueTurn(String)
+    case myLessons
     case sounds
     case soundDrill
     case progress
 }
 
+/// Practice (round 2): Listen · Speak · Read · Write, each with its word in the language and a note; rows with a short
+/// hint, what is waiting (due words, best speed, dialogues done) and NEW for the newest modes
 struct PracticeHome: View {
     @Environment(Store.self) var store
-    struct Row { let route: Route; let key: String }
-    var skills: [(id: String, icon: String, rows: [Row])] {
-        let c = store.course, pics = store.words.selected.contains { store.words.picture($0.id) != nil }
-        return [
-            ("listen", "ear", [Row(route: .mode(.listen), key: "modeListen")] + (pics ? [Row(route: .mode(.listenPic), key: "modeListenPic")] : []) + (c.toneOptions != nil ? [Row(route: .mode(.tones), key: "modeTones")] : []) + [Row(route: .soundDrill, key: "soundDrill")]),
-            ("speak", "mic", [Row(route: .mode(.say), key: "modeSay")] + (store.dialogues.isEmpty ? [] : [Row(route: .dialogues, key: "dialoguesRead")]) + [Row(route: .sounds, key: "soundChart")]),
-            ("read", "book", [Row(route: .mode(.choose), key: "modeChoose")] + (pics ? [Row(route: .mode(.picture), key: "modePicture")] : []) + [Row(route: .mode(.flash), key: "modeFlash"), Row(route: .mode(.quiz), key: "modeQuiz"), Row(route: .mode(.match), key: "modeMatch")]),
-            ("write", "pencil", [Row(route: .mode(.type), key: "modeType")] + (c.id == "ja" ? [] : [Row(route: .mode(.typer), key: "modeTyper")]) + [Row(route: .mode(.numbers), key: "modeNumbers")])
+    struct Row { let route: Route; let key: String; let sub: String; var isNew = false }
+    static let skillWord: [String: [(String, String)]] = [
+        "zh": [("tīng", "听"), ("shuō", "说"), ("dú", "读"), ("xiě", "写")], "vi": [("Nghe", ""), ("Nói", ""), ("Đọc", ""), ("Viết", "")],
+        "ja": [("kiku", "聞く"), ("hanasu", "話す"), ("yomu", "読む"), ("kaku", "書く")], "ko": [("deutgi", "듣기"), ("malhagi", "말하기"), ("ilkgi", "읽기"), ("sseugi", "쓰기")]
+    ]
+    var skills: [(id: String, rows: [Row])] {
+        let c = store.course, pics = store.words.selected.contains { store.words.picture($0.id) != nil }, dl = store.dialogues
+        let free = dl.randomElement().map { Route.dialogueTurn($0.id) }
+        let all: [(String, [Row?])] = [
+            ("listen", [Row(route: .mode(.listen), key: "modeListen", sub: "listen"), pics ? Row(route: .mode(.listenPic), key: "modeListenPic", sub: "listenPic") : nil,
+                        c.toneOptions != nil ? Row(route: .mode(.tones), key: "modeTones", sub: "tones") : nil, Row(route: .soundDrill, key: "soundDrill", sub: "soundDrill")]),
+            ("speak", [Row(route: .mode(.say), key: "modeSay", sub: "say"), dl.isEmpty ? nil : Row(route: .dialogues, key: "dialogues", sub: "dialogues"),
+                       free.map { Row(route: $0, key: "modeFree", sub: "freePlay", isNew: true) }, Row(route: .sounds, key: "soundChart", sub: "soundChart")]),
+            ("read", [Row(route: .mode(.choose), key: "modeChoose", sub: "choose"), pics ? Row(route: .mode(.picture), key: "modePicture", sub: "picture") : nil,
+                      Row(route: .mode(.flash), key: "modeFlash", sub: "flash"), Row(route: .mode(.quiz), key: "modeQuiz", sub: "quiz"), Row(route: .mode(.match), key: "modeMatch", sub: "match")]),
+            ("write", [Row(route: .mode(.type), key: "modeType", sub: "type"), c.id == "ja" ? nil : Row(route: .mode(.typer), key: "modeTyper", sub: "typer"), Row(route: .mode(.numbers), key: "modeNumbers", sub: "numbers")])
         ]
+        return all.map { ($0.0, $0.1.compactMap { $0 }) }.filter { !$0.1.isEmpty }
+    }
+    func meta(_ r: Route, due: Int) -> String {
+        switch r {
+        case .mode(.listen), .mode(.flash): return due > 0 ? store.t("nDue", due) : ""
+        case .mode(.typer): if let b = store.state.typer?[store.course.id], b > 0 { return store.t("bestWpm", b) }; return ""
+        case .dialogues: return "\(store.dialogues.filter { store.state.dialogue($0.id).done }.count) / \(store.dialogues.count)"
+        default: return ""
+        }
+    }
+    @ViewBuilder func word(_ k: Int) -> some View {
+        let w = Self.skillWord[store.course.id]?[k] ?? ("", "")
+        if store.course.id == "zh" { if store.pyFirst { PinyinText(py: w.0, size: 14, weight: .bold) } else { Text(w.1).hanziFont(15) } }
+        else { Text(w.1.isEmpty ? w.0 : w.1).hanziFont(14, .semibold).foregroundStyle(Color.ink2) }
     }
     var body: some View {
+        let due = store.words.selected.filter { store.state.isDue($0.id) }.count
+        let pw: (String, String) = ["zh": ("Liànxí", "练习"), "vi": ("Luyện tập", ""), "ja": ("Renshū", "練習"), "ko": ("Yeonseup", "연습")][store.course.id] ?? ("", "")
         Page {
-            let due = store.words.selected.filter { store.state.isDue($0.id) }.count
-            if due > 0 { Text(store.t("dueInToday", due)).font(.subheadline).foregroundStyle(Color.accent) }
-            ForEach(skills, id: \.id) { sk in
-                HStack(alignment: .top, spacing: 12) {
-                    Image(systemName: sk.icon).font(.title3).foregroundStyle(Color.accent).frame(width: 28)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(store.t("skill_" + sk.id)).font(.title3.weight(.semibold))
-                        Text(store.t("skill_" + sk.id + "Desc")).font(.footnote).foregroundStyle(Color.ink2)
+            VStack(alignment: .leading, spacing: 2) {
+                CapsLabel(text: store.t("practiceEyebrow"))
+                HStack(alignment: .firstTextBaseline) {
+                    if store.course.id == "zh" { PinyinText(py: pw.0, size: 26, weight: .bold); Text(pw.1).hanziFont(18).foregroundStyle(Color.ink2) }
+                    else { Text(pw.1.isEmpty ? pw.0 : pw.1).hanziFont(26, .bold) }
+                    Spacer()
+                    if store.course.id == "vi" {
+                        let south = store.state.settings.viAccent == "s"
+                        Button { store.update { $0.settings.viAccent = south ? "n" : "s" } } label: {
+                            Text("\(store.t("accentLabel")) · \(store.t(south ? "accentS" : "accentN"))").font(.caption.weight(.semibold))
+                                .padding(.horizontal, 12).frame(height: 34).background(Color.elevated, in: Capsule()).overlay(Capsule().stroke(Color.line))
+                        }.buttonStyle(.plain).foregroundStyle(Color.ink)
+                    }
+                }
+            }
+            ForEach(Array(skills.enumerated()), id: \.element.id) { _, sk in
+                let k = ["listen", "speak", "read", "write"].firstIndex(of: sk.id) ?? 0
+                VStack(spacing: 0) {
+                    HStack(alignment: .firstTextBaseline, spacing: 6) {
+                        Text(store.t("skill_" + sk.id)).font(.headline)
+                        word(k)
+                        Spacer()
+                        Text(store.t("skillNote_" + sk.id)).font(.caption).foregroundStyle(Color.ink2)
+                    }.padding(.bottom, 6)
+                    Rectangle().fill(store.course.id == "vi" ? Color.line : Color.ink).frame(height: 2)
+                    ForEach(Array(sk.rows.enumerated()), id: \.offset) { _, r in
+                        NavigationLink(value: r.route) {
+                            HStack(spacing: 10) {
+                                VStack(alignment: .leading, spacing: 1) {
+                                    HStack(spacing: 6) { Text(store.t(r.key)).font(.body.weight(.medium)).foregroundStyle(Color.ink); if r.isNew { NewBadge() } }
+                                    Text(store.t("sub_" + r.sub)).font(.caption).foregroundStyle(Color.ink2).multilineTextAlignment(.leading)
+                                }
+                                Spacer(minLength: 8)
+                                Text(meta(r.route, due: due)).font(.caption).foregroundStyle(Color.ink2)
+                                Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(Color.ink2)
+                            }.padding(.vertical, 9).frame(minHeight: 52).contentShape(Rectangle())
+                        }.buttonStyle(.plain)
+                        Rectangle().fill(Color.line).frame(height: 1)
                     }
                 }.padding(.top, 14)
-                VStack(spacing: 0) {
-                    ForEach(Array(sk.rows.enumerated()), id: \.offset) { k, r in
-                        NavigationLink(value: r.route) {
-                            ListRow(title: store.t(r.key), sub: store.t(r.key + "Desc"))
-                        }.buttonStyle(.plain)
-                        if k < sk.rows.count - 1 { Divider().padding(.leading, 16) }
-                    }
-                }.background(Color.elevated, in: RoundedRectangle(cornerRadius: 16))
             }
         }
+        .toolbar(.hidden, for: .navigationBar)
     }
 }
 
@@ -120,17 +171,25 @@ struct PracticeScreen: View {
     enum Phase { case setup, run(UUID, [Word]), result(SessionResult) }
     @State private var phase = Phase.setup
     @State private var prefs = SetupPrefs.shared
+    @State private var started = Date()
 
     var body: some View {
         Group {
             switch phase {
             case .setup:
                 if [.match, .tones, .numbers].contains(mode) { Color.paper.onAppear { begin() } }
-                else { SetupView(mode: mode, prefs: prefs) { begin() }.onAppear { if Launch.has("-autostart") { begin() } } }
+                else { SetupView(mode: mode, prefs: prefs) { begin() }.onAppear {
+                    if Launch.has("-autostart") { begin() }
+                    if Launch.has("-result") { // screenshots: a finished round with three mistakes
+                        let ws = Array(store.words.selected.prefix(10)), wrong = Array(ws.suffix(3))
+                        store.marks = ws.map { !wrong.contains($0) }
+                        phase = .result(SessionResult(correct: 7, total: 10, mistakes: wrong, why: Dictionary(uniqueKeysWithValues: wrong.map { ($0.id, store.t("whyPicked", store.tr(ws[0]))) })))
+                    }
+                } }
             case .run(let id, let list):
                 exercise(mode, list, direction: prefs.direction) { phase = .result($0) }.id(id)
             case .result(let r):
-                ResultView(result: r, again: { begin() }, back: { dismiss() })
+                ResultView(result: r, mode: mode, seconds: Int(Date().timeIntervalSince(started)), retry: r.mistakes.isEmpty || [.match, .tones, .numbers, .typer].contains(mode) ? nil : { run(r.mistakes.shuffled()) }, again: { begin() }, back: { dismiss() })
             }
         }
         .navigationTitle(store.t(mode.key))
@@ -148,38 +207,54 @@ struct PracticeScreen: View {
         default:
             var pool = prefs.pool(store)
             if [.picture, .listenPic].contains(mode) { pool = pool.filter { store.words.picture($0.id) != nil } }
-            list = prefs.pool == "due" ? Array(pool.prefix(prefs.count)) : Array(pool.shuffled().prefix(prefs.count))
+            let take = prefs.take(mode, available: pool.count)
+            list = prefs.pools == ["due"] ? Array(pool.prefix(take)) : Array(pool.shuffled().prefix(take))
         }
-        if mode == .typer { list = Array(store.words.selected.shuffled().prefix(prefs.count)) }
+        if mode == .typer { list = Array(store.words.selected.shuffled().prefix(prefs.count == SetupPrefs.all ? 20 : prefs.count)) }
         if list.isEmpty && mode != .numbers { phase = .setup; return }
-        phase = .run(UUID(), list)
+        run(list)
     }
+    func run(_ list: [Word]) { store.marks = []; started = Date(); phase = .run(UUID(), list) }
 }
 
 @Observable @MainActor
 final class SetupPrefs {
     static let shared = SetupPrefs()
-    var pool = "due"
+    static let all = 9999
+    /// Which words: several at once (due, lessons, learning, favourites) or all
+    var pools: [String] = ["due"]
     var cat = "all"
-    var count = 10
+    var count = 20
+    /// Round length by time (5, 10, 15 minutes); 0 = by count
+    var mins = 0
     var direction = QuizDirection.hzTr
     var typerContent = "mixed"
-
+    /// Rough seconds per item, for "≈ N min" and rounds by time
+    static func secs(_ m: Mode) -> Int {
+        switch m { case .flash: 10; case .type: 15; case .say: 20; case .choose: 12; default: 8 }
+    }
+    func take(_ m: Mode, available n: Int) -> Int {
+        min(n, mins > 0 ? max(1, Int((Double(mins * 60) / Double(Self.secs(m))).rounded())) : count)
+    }
     func pool(_ store: Store) -> [Word] {
         let base = store.words.selected
-        var list = cat == "all" ? base : inTopic(base, store)
-        let all = { (l: [Word]) in self.cat == "all" ? l : self.inTopic(l, store) }
-        switch pool {
-        case "due":
-            let due = list.filter { store.state.isDue($0.id) }, fresh = list.filter { store.status($0.id) == .new }
-            list = due + fresh.shuffled()
-            if list.isEmpty { list = all(base) }
-        case "lessons": list = all(store.words.lessonWords(store.state))
-        case "favs": list = list.filter { store.state.favs.contains(WordRef($0.id)) }
-        case "learning": list = list.filter { store.status($0.id) == .learning }
-        default: break
+        let topic = { (l: [Word]) in self.cat == "all" ? l : self.inTopic(l, store) }
+        func one(_ p: String) -> [Word] {
+            let list = topic(base)
+            switch p {
+            case "due":
+                let due = list.filter { store.state.isDue($0.id) }, fresh = list.filter { store.status($0.id) == .new }
+                return due + fresh.shuffled()
+            case "lessons": return topic(store.words.lessonWords(store.state))
+            case "favs": return list.filter { store.state.favs.contains(WordRef($0.id)) }
+            case "learning": return list.filter { store.status($0.id) == .learning }
+            default: return list
+            }
         }
-        return list
+        var seen = Set<String>(), out: [Word] = []
+        for p in (pools.contains("all") ? ["all"] : pools) { for w in one(p) where seen.insert(w.id).inserted { out.append(w) } }
+        if out.isEmpty && pools.contains("due") { return topic(base) }
+        return out
     }
     /// The words of the chosen topic (or category, for courses without topics)
     func inTopic(_ l: [Word], _ store: Store) -> [Word] {
@@ -188,61 +263,108 @@ final class SetupPrefs {
     }
 }
 
+/// Exercise setup (round 2): the chip rows always open, How many or By time, direction as segments,
+/// and a bar at the bottom with the matching words, the round and Start
 struct SetupView: View {
     @Environment(Store.self) var store
     let mode: Mode
     @Bindable var prefs: SetupPrefs
     let start: () -> Void
+    @State private var allTopics = false
 
-    var counts: [Int] { mode == .flash ? [10, 20, 40, 150] : mode == .say ? [5, 10, 20] : [10, 20, 40] }
+    var counts: [Int] { mode == .flash ? [10, 20, 40] : mode == .say ? [5, 10, 20] : [10, 20, 30] }
     var available: Int {
         let p = prefs.pool(store)
         return [.picture, .listenPic].contains(mode) ? p.filter { store.words.picture($0.id) != nil }.count : p.count
     }
+    var skill: String? { ["listen": [Mode.listen, .listenPic, .tones], "speak": [.say], "read": [.choose, .picture, .flash, .quiz, .match], "write": [.type, .typer, .numbers]].first { $0.value.contains(mode) }?.key }
 
     var body: some View {
-        let n = available
+        let n = available, take = prefs.take(mode, available: n)
+        let mins = max(1, Int((Double(take * SetupPrefs.secs(mode)) / 60).rounded()))
         Page {
-            CardBox {
-                Text(store.t(mode.key)).font(.title2.weight(.bold))
-                Text(store.t(mode.key + "Desc")).foregroundStyle(Color.ink2)
-                if mode == .typer { Text(store.t("typerIntro")).font(.footnote).foregroundStyle(Color.ink2) }
-                if mode != .typer { Text(store.t("wordsCount", min(n, prefs.count), n)).font(.footnote).foregroundStyle(Color.ink3) }
-                if mode == .typer, let best = store.state.typer?[store.course.id], best > 0 {
-                    Text("\(store.t("typerBest")): \(best) \(store.t("wpm"))").font(.footnote).foregroundStyle(Color.ink2)
+            Text((skill.map { store.t("skill_" + $0) + " · " } ?? "") + store.t("setUpRound")).font(.footnote).foregroundStyle(Color.ink2)
+            section("levels") { LevelChips() }
+            if mode == .typer {
+                section("typerContent") {
+                    WrapLayout(spacing: 6) { ForEach(["words", "sentences", "mixed"], id: \.self) { k in ChipButton(label: store.t("typer" + k.capitalized), active: prefs.typerContent == k) { prefs.typerContent = k } } }
                 }
-                Button(store.t("start"), action: start).buttonStyle(.primary)
-                    .disabled(mode != .typer && n < ([.flash, .type, .say].contains(mode) ? 1 : 4))
-                DisclosureGroup(store.t("adjust")) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        SectionTitle(text: store.t("levels"))
-                        LevelChips()
-                        if mode == .typer {
-                            SectionTitle(text: store.t("typerContent"))
-                            ChipRow { ForEach(["words", "sentences", "mixed"], id: \.self) { k in ChipButton(label: store.t("typer" + k.capitalized), active: prefs.typerContent == k) { prefs.typerContent = k } } }
-                        } else {
-                            SectionTitle(text: store.t("whichWords"))
-                            let pools = [("due", "dueWords")] + (store.words.lessonWords(store.state).isEmpty ? [] : [("lessons", "lessonsPool")]) + [("all", "allWords"), ("learning", "learningOnly"), ("favs", "favsOnly")]
-                            ChipRow { ForEach(pools, id: \.0) { k, l in ChipButton(label: store.t(l), active: prefs.pool == k) { prefs.pool = k } } }
-                            SectionTitle(text: store.t(store.words.themes.isEmpty ? "category" : "topics"))
-                            TopicChips(selection: $prefs.cat)
+                if let best = store.state.typer?[store.course.id], best > 0 { Text("\(store.t("typerBest")): \(best) \(store.t("wpm"))").font(.footnote).foregroundStyle(Color.ink2) }
+            } else {
+                section("whichWords") {
+                    let due = store.words.selected.filter { store.state.isDue($0.id) }.count
+                    let pools = [("due", store.t("dueWords") + (due > 0 ? " · \(due)" : ""))] + (store.words.lessonWords(store.state).isEmpty ? [] : [("lessons", store.t("lessonsPool"))])
+                        + [("all", store.t("allWords")), ("learning", store.t("learningOnly")), ("favs", store.t("favsOnly"))]
+                    WrapLayout(spacing: 6) {
+                        ForEach(pools, id: \.0) { k, l in ChipButton(label: l, active: prefs.pools.contains(k)) { togglePool(k) } }
+                    }
+                }
+                section(store.words.themes.isEmpty ? "category" : "topics") { topics }
+            }
+            section("howMany") {
+                SegBar(options: counts.map { ("\($0)", "\($0)") } + [("\(SetupPrefs.all)", store.t("allN", n))], selected: prefs.mins == 0 ? "\(prefs.count)" : nil) { prefs.count = Int($0) ?? 10; prefs.mins = 0 }
+                if mode != .typer {
+                    HStack(spacing: 6) {
+                        Text(store.t("orByTime")).font(.footnote).foregroundStyle(Color.ink2)
+                        NewBadge()
+                        ForEach([5, 10, 15], id: \.self) { m in
+                            Button("\(m)") { prefs.mins = prefs.mins == m ? 0 : m }.font(.footnote.weight(prefs.mins == m ? .heavy : .regular))
+                                .underline(prefs.mins == m).foregroundStyle(prefs.mins == m ? Color.ink : Color.ink2).frame(minWidth: 30, minHeight: 36)
                         }
-                        SectionTitle(text: store.t("howMany"))
-                        ChipRow { ForEach(counts, id: \.self) { c in ChipButton(label: c == 150 ? store.t("all") : "\(c)", active: prefs.count == c) { prefs.count = c } } }
-                        if mode == .quiz {
-                            SectionTitle(text: store.t("direction"))
-                            let dirs: [QuizDirection] = store.pyFirst ? [.hzTr, .trHz] : [.hzTr, .trHz, .hzPy, .pyHz]
-                            ChipRow { ForEach(dirs, id: \.self) { d in ChipButton(label: store.t("dir" + d.rawValue.prefix(1).uppercased() + d.rawValue.dropFirst()), active: prefs.direction == d) { prefs.direction = d } } }
-                        }
-                    }.padding(.top, 6)
-                }.tint(Color.ink2)
+                        Text(store.t("minShort")).font(.footnote).foregroundStyle(Color.ink2)
+                    }
+                }
+            }
+            if mode == .quiz {
+                let dirs: [QuizDirection] = store.pyFirst ? [.hzTr, .trHz] : [.hzTr, .trHz, .hzPy, .pyHz]
+                section("direction") {
+                    SegBar(options: dirs.map { ($0.rawValue, store.t("dir" + $0.rawValue.prefix(1).uppercased() + $0.rawValue.dropFirst())) }, selected: prefs.direction.rawValue) { prefs.direction = QuizDirection(rawValue: $0) ?? .hzTr }
+                }
             }
         }
+        .safeAreaInset(edge: .bottom) {
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(store.t("wordsMatch", n)).font(.subheadline.weight(.bold))
+                    if mode != .typer { Text(store.t("perRound", take, mins)).font(.caption).foregroundStyle(Color.ink2) }
+                }
+                Spacer()
+                Button(store.t("start"), action: start).buttonStyle(.primary).frame(width: 130).accessibilityIdentifier("Start")
+                    .disabled(mode != .typer && n < ([.flash, .type, .say].contains(mode) ? 1 : 4))
+            }
+            .padding(.horizontal, 16).padding(.vertical, 10)
+            .background(Color.elevated.ignoresSafeArea(edges: .bottom))
+            .overlay(alignment: .top) { Rectangle().fill(Color.line).frame(height: 1) }
+        }
         .onAppear {
-            if !counts.contains(prefs.count) { prefs.count = counts[0] }
-            if prefs.pool == "lessons" && store.words.lessonWords(store.state).isEmpty { prefs.pool = "due" }
+            if !counts.contains(prefs.count) && prefs.count != SetupPrefs.all { prefs.count = counts[1] }
+            if store.words.lessonWords(store.state).isEmpty { prefs.pools.removeAll { $0 == "lessons" }; if prefs.pools.isEmpty { prefs.pools = ["due"] } }
             if store.pyFirst && [.hzPy, .pyHz].contains(prefs.direction) { prefs.direction = .hzTr }
         }
+    }
+    @ViewBuilder var topics: some View {
+        let opts: [(String, String)] = store.words.themes.isEmpty
+            ? Library.shared.categoryOrder.filter { c in store.words.selected.contains { $0.cat == c } }.map { ($0, store.catName($0)) }
+            : store.words.themes.map { ($0.id, $0.name.get(store.state.lang)) }
+        let shown = allTopics || opts.prefix(6).contains(where: { $0.0 == prefs.cat }) == false && prefs.cat != "all" ? opts : Array(opts.prefix(6))
+        WrapLayout(spacing: 6) {
+            ChipButton(label: store.t("all"), active: prefs.cat == "all") { prefs.cat = "all" }
+            ForEach(shown, id: \.0) { k, l in ChipButton(label: l, active: prefs.cat == k) { prefs.cat = k } }
+            if shown.count < opts.count { ChipButton(label: "+ \(opts.count - shown.count)", active: false) { allTopics = true } }
+        }
+    }
+    func togglePool(_ k: String) {
+        var cur = prefs.pools
+        if k == "all" { cur = ["all"] }
+        else if cur.contains(k) { if cur.count > 1 { cur.removeAll { $0 == k } } }
+        else { cur.removeAll { $0 == "all" }; cur.append(k) }
+        prefs.pools = cur
+    }
+    func section<C: View>(_ title: String, @ViewBuilder content: () -> C) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            CapsLabel(text: store.t(title))
+            content()
+        }.padding(.top, 6)
     }
 }
 
@@ -262,25 +384,74 @@ struct LevelChips: View {
     }
 }
 
+/// Result (round 2): the score, one cell per answer (a wrong one is an outlined ✕, never colour alone),
+/// the mistakes with what you picked, Retry mistakes · Done
 struct ResultView: View {
     @Environment(Store.self) var store
     let result: SessionResult
+    var mode: Mode?
+    var seconds = 0
+    var retry: (() -> Void)?
     let again: () -> Void
     let back: () -> Void
+    @State private var marks: [Bool] = []
     var body: some View {
+        let pct = result.total > 0 ? Int((Double(result.correct) / Double(result.total) * 100).rounded()) : 100
         Page {
-            CardBox(padding: 24) {
-                VStack(spacing: 6) {
-                    Text("\(result.total > 0 ? Int((Double(result.correct) / Double(result.total) * 100).rounded()) : 100)%").scaledFont(56, .heavy)
-                    Text(store.t("resultScore", result.correct, result.total) + (result.extra.map { " · " + $0 } ?? "")).foregroundStyle(Color.ink2).multilineTextAlignment(.center)
-                    if result.mistakes.isEmpty { Text("🎉 " + store.t("perfect")).padding(.top, 8) }
-                }.frame(maxWidth: .infinity)
-                if !result.mistakes.isEmpty { MistakeList(words: result.mistakes) }
+            CapsLabel(text: (mode.map { store.t($0.key) + " · " } ?? "") + store.t("result"))
+            HStack(alignment: .firstTextBaseline, spacing: 0) {
+                Text("\(result.correct)").scaledFont(64, .heavy)
+                Text("/\(result.total)").scaledFont(28, .bold).foregroundStyle(Color.ink2)
             }
-            Button(store.t("playAgain"), action: again).buttonStyle(.primary)
-            Button(store.t("backToTrain"), action: back).buttonStyle(.secondary)
+            Text("\(pct)%" + (seconds > 0 ? " · " + fmtTime(Double(seconds) * 1000) + " " + store.t("minShort") : "") + (result.extra.map { " · " + $0 } ?? ""))
+                .font(.subheadline).foregroundStyle(Color.ink2)
+            if !marks.isEmpty && marks.count <= 60 {
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 4), count: 10), spacing: 4) {
+                    ForEach(Array(marks.enumerated()), id: \.offset) { _, ok in
+                        RoundedRectangle(cornerRadius: max(1, Look.current.radius / 2)).fill(ok ? Color.ink : Color.clear).aspectRatio(1, contentMode: .fit)
+                            .overlay { if !ok { RoundedRectangle(cornerRadius: max(1, Look.current.radius / 2)).stroke(Color.accent, lineWidth: 1.5); Text("✕").font(.caption2.weight(.bold)).foregroundStyle(Color.accent) } }
+                    }
+                }
+                .accessibilityElement().accessibilityLabel(store.t("resultCells", result.correct, result.total - result.correct))
+            }
+            if result.mistakes.isEmpty {
+                Text(store.t("perfect")).foregroundStyle(Color.ink2).padding(.vertical, 8)
+            } else {
+                VStack(spacing: 6) {
+                    HStack(alignment: .firstTextBaseline) {
+                        Text(store.t("mistakesN", result.mistakes.count)).font(.subheadline.weight(.bold))
+                        Spacer()
+                        Text(store.t("addedToReviews")).font(.caption).foregroundStyle(Color.ink2)
+                    }
+                    Rectangle().fill(Color.ink).frame(height: 2)
+                }.padding(.top, 8)
+                ForEach(result.mistakes) { w in
+                    HStack(spacing: 10) {
+                        Text("✕").font(.caption.weight(.bold)).foregroundStyle(Color.accent).frame(width: 24, height: 24)
+                            .overlay(RoundedRectangle(cornerRadius: 4).stroke(Color.accent, lineWidth: 1.5))
+                        VStack(alignment: .leading, spacing: 1) {
+                            HStack(spacing: 6) {
+                                WordLine(word: w, size: 16)
+                                if store.course.id == "zh" && store.pyFirst { Text(w.hz).hanziFont(15).foregroundStyle(Color.ink2) }
+                                else if store.course.id == "zh" { PinyinText(py: w.py, size: 14) }
+                            }
+                            Text(store.tr(w) + (result.why[w.id].map { " · " + $0 } ?? "")).font(.footnote).foregroundStyle(Color.ink2)
+                        }
+                        Spacer()
+                        SquareButton(icon: "speaker.wave.2", label: store.t("play") + " " + w.hz) { store.speaker.say(w.hz) }
+                    }
+                    .padding(.vertical, 6)
+                    Divider()
+                }
+            }
+            if let retry { Button(store.t("retryMistakes"), action: retry).buttonStyle(SecondaryButtonStyle(tint: .accent)).padding(.top, 10) }
+            else { Button(store.t("playAgain"), action: again).buttonStyle(.secondary).padding(.top, 10) }
+            Button(store.t("done"), action: back).buttonStyle(.primary)
         }
-        .onAppear { store.update { $0.stats.sessions += 1 }; checkGoal(store) }
+        .onAppear {
+            marks = store.marks.count == result.total ? store.marks : Array(repeating: true, count: result.correct) + Array(repeating: false, count: max(0, result.total - result.correct))
+            store.update { $0.stats.sessions += 1 }; checkGoal(store)
+        }
     }
 }
 

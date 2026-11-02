@@ -14,8 +14,9 @@ struct SoundChart: View {
             let g = data.groups[min(group, data.groups.count - 1)]
             let sep = store.course.id == "ja" ? "、" : store.course.id == "zh" ? "，" : ", "
             Page {
-                if let intro = data.intro { Text(intro.get(store.state.lang)).font(.footnote).foregroundStyle(Color.ink2) }
+                if let intro = data.intro, g.tiles != true { Text(intro.get(store.state.lang)).font(.footnote).foregroundStyle(Color.ink2) }
                 ChipRow { ForEach(Array(data.groups.enumerated()), id: \.offset) { k, x in ChipButton(label: x.name.get(store.state.lang), active: k == group) { group = k; picked = nil } } }
+                if g.tiles == true { tiles(g) } else {
                 Toggle(isOn: $slow) { Label(store.t("slow"), systemImage: "tortoise") }.font(.subheadline).tint(.accent)
                 if let head = g.head, !head.isEmpty {
                     HStack(spacing: 6) {
@@ -50,10 +51,46 @@ struct SoundChart: View {
                         if picked?.row == ri { examples(r, cell: picked?.cell.map { r.cells[$0] }, kana: g.kana == true) }
                     }
                 }
+                }
                 NavigationLink(value: Route.soundDrill) { Label(store.t("listenPick"), systemImage: "headphones") }.buttonStyle(.primary).padding(.top, 10)
             }
             .navigationTitle(store.t("sounds")).navigationBarTitleDisplayMode(.inline)
         }
+    }
+
+    /// Vietnamese initials (round 2): one tile per letter with a word, N/S where North and South differ
+    @ViewBuilder func tiles(_ g: SoundGroup) -> some View {
+        let south = store.state.settings.viAccent == "s"
+        Text(store.t("tapTile") + " · " + store.t(south ? "voiceSouth" : "voiceNorth")).font(.footnote).foregroundStyle(Color.ink2)
+        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
+            ForEach(Array(g.rows.enumerated()), id: \.offset) { _, r in
+                let w = r.cells.first?.t ?? "", ns = r.ns == true, rad = max(4, Look.current.radius - 4)
+                Button { speakSound(store, w, slow: false) } label: {
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(alignment: .top) {
+                            Text(r.base).font(.title3.weight(.heavy)).lineLimit(1).minimumScaleFactor(0.6)
+                            Spacer(minLength: 0)
+                            if ns { Text("N/S").font(.system(size: 9, weight: .heavy)).padding(.horizontal, 4).padding(.vertical, 1).background(Color.ink, in: RoundedRectangle(cornerRadius: 3)).foregroundStyle(Color.paper) }
+                        }
+                        Spacer(minLength: 0)
+                        VietText(text: w, size: 14, weight: .semibold)
+                        Text(r.gloss?.get(store.state.lang) ?? "").font(.caption2).foregroundStyle(Color.ink2).lineLimit(1)
+                    }
+                    .padding(10).frame(maxWidth: .infinity, minHeight: 82, alignment: .leading)
+                    .background(Color.elevated, in: RoundedRectangle(cornerRadius: rad))
+                    .overlay(RoundedRectangle(cornerRadius: rad).stroke(ns ? Color.ink : Color.line, lineWidth: ns ? 1.5 : 1))
+                    .foregroundStyle(Color.ink)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("\(r.base), \(w), \(r.gloss?.get(store.state.lang) ?? "")")
+            }
+        }
+        note((Text("N/S").bold() + Text(" · " + store.t("nsNote"))))
+        note(Text(LocalizedStringKey(store.t("telexNote").replacingOccurrences(of: "<b>", with: "**").replacingOccurrences(of: "</b>", with: "**"))))
+    }
+    func note(_ t: Text) -> some View {
+        t.font(.footnote).foregroundStyle(Color.ink2).padding(12).frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color.sunken, in: RoundedRectangle(cornerRadius: max(4, Look.current.radius - 4)))
     }
 
     @ViewBuilder func examples(_ r: SoundRow, cell: SoundCell?, kana: Bool) -> some View {

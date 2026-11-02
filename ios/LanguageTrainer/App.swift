@@ -48,6 +48,7 @@ struct RootView: View {
             if (paths[tab] ?? NavigationPath()).isEmpty && !keyboard { Dock(tab: $tab, paths: $paths) }
         }
         .id(store.course.id) // a new look: everything is drawn afresh
+        .environment(\.openRoute) { r in var p = paths[tab] ?? NavigationPath(); p.append(r); paths[tab] = p }
         .overlay(alignment: .bottom) {
             if let msg = store.toastText {
                 Text(msg).font(.subheadline.weight(.medium)).padding(.horizontal, 16).padding(.vertical, 10)
@@ -99,6 +100,9 @@ struct RootView: View {
         case .sounds: SoundChart()
         case .soundDrill: SoundDrillScreen()
         case .progress: StatsView()
+        case .families: FamiliesScreen()
+        case .family(let id): FamilyScreen(id: id)
+        case .familyQuiz(let id): FamilyQuiz(familyId: id)
         }
     }
 
@@ -135,6 +139,7 @@ struct RootView: View {
         case "sounds": p.append(Route.sounds)
         case "drill": p.append(Route.soundDrill)
         case "progress": p.append(Route.progress)
+        case "families": p.append(Route.families); if parts.count > 2 { if let k = Int(parts[2]) { p.append(Route.family(k)) } else if parts[2] == "quiz" { p.append(Route.familyQuiz(nil)) } }
         default: break
         }
         paths[t] = p

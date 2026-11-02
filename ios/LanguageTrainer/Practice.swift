@@ -27,6 +27,9 @@ enum Route: Hashable {
     case sounds
     case soundDrill
     case progress
+    case families
+    case family(Int)
+    case familyQuiz(Int?)
 }
 
 /// Practice (round 2): Listen · Speak · Read · Write, each with its word in the language and a note; rows with a short
@@ -46,7 +49,7 @@ struct PracticeHome: View {
                         c.toneOptions != nil ? Row(route: .mode(.tones), key: "modeTones", sub: "tones") : nil, Row(route: .soundDrill, key: "soundDrill", sub: "soundDrill")]),
             ("speak", [Row(route: .mode(.say), key: "modeSay", sub: "say"), dl.isEmpty ? nil : Row(route: .dialogues, key: "dialogues", sub: "dialogues"),
                        free.map { Row(route: $0, key: "modeFree", sub: "freePlay", isNew: true) }, Row(route: .sounds, key: "soundChart", sub: "soundChart")]),
-            ("read", [Row(route: .mode(.choose), key: "modeChoose", sub: "choose"), pics ? Row(route: .mode(.picture), key: "modePicture", sub: "picture") : nil,
+            ("read", [store.words.families.isEmpty ? nil : Row(route: .families, key: "modeFamilies", sub: "families", isNew: true), Row(route: .mode(.choose), key: "modeChoose", sub: "choose"), pics ? Row(route: .mode(.picture), key: "modePicture", sub: "picture") : nil,
                       Row(route: .mode(.flash), key: "modeFlash", sub: "flash"), Row(route: .mode(.quiz), key: "modeQuiz", sub: "quiz"), Row(route: .mode(.match), key: "modeMatch", sub: "match")]),
             ("write", [Row(route: .mode(.type), key: "modeType", sub: "type"), c.id == "ja" ? nil : Row(route: .mode(.typer), key: "modeTyper", sub: "typer"), Row(route: .mode(.numbers), key: "modeNumbers", sub: "numbers"), c.id == "zh" ? Row(route: .mode(.trace), key: "modeTrace", sub: "trace", isNew: true) : nil])
         ]

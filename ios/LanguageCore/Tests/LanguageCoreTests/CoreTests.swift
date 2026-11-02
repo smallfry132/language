@@ -358,3 +358,22 @@ final class MinimalPairTests: XCTestCase {
         XCTAssertNil(Lingo.heardHint(target: "おばあさん", kana: "おばあさん", heard: "おばあさん", course: "ja"))
     }
 }
+
+final class FamilyTests: XCTestCase {
+    func testChineseFamiliesResolve() {
+        var s = AppState(); s.course = "zh"
+        let fs = CourseWords(state: s).families
+        XCTAssertFalse(fs.isEmpty)
+        let big = fs.first { $0.items.map(\.hz) == ["大", "小"] }
+        XCTAssertEqual(big?.whole?.hz, "大小")
+        XCTAssertEqual(big?.kind, "pair")
+        XCTAssertTrue(big?.items.allSatisfy { !$0.isFamilyOnly } ?? false)
+        // Every Chinese set in the data keeps at least two words
+        XCTAssertEqual(fs.count, Library.shared.families["zh"]?.count)
+        // 长 is read cháng here, not zhǎng
+        XCTAssertEqual(fs.first { $0.whole?.hz == "长短" }?.items.first?.py, "cháng")
+    }
+    func testAllCoursesHaveFamilies() {
+        for c in ["vi", "ja", "ko"] { var s = AppState(); s.course = c; XCTAssertGreaterThan(CourseWords(state: s).families.count, 10, c) }
+    }
+}

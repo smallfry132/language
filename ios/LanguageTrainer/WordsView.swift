@@ -219,6 +219,7 @@ struct WordDetail: View {
                 }
                 Text(metaLine).font(.footnote).foregroundStyle(Color.ink2)
                 SayLike(word: w)
+                FamilySection(word: w)
                 if let ex = w.ex { ExampleLine(word: w, ex: ex) }
                 CapsLabel(text: store.t("status"))
                 SegBar(options: [("new", store.t("new")), ("learning", store.t("learning")), ("known", store.t("known"))], selected: st.rawValue) { k in

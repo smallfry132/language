@@ -175,6 +175,8 @@ public final class Library: @unchecked Sendable {
     public let pictures: [String: String]
     /// "Say it" tips per course (tips.json)
     public let tips: SayTips
+    /// Word families per course (families.json)
+    public let families: [String: [FamilyData]]
     private let index: [String: Word]
 
     private init() {
@@ -196,6 +198,7 @@ public final class Library: @unchecked Sendable {
         strings = load("strings", Strings.self)
         themes = load("themes", [String: [Theme]].self)
         pictures = load("pictures", [String: [String: String]].self).values.reduce(into: [:]) { $0.merge($1) { a, _ in a } }
+        families = Bundle.module.url(forResource: "families", withExtension: "json", subdirectory: "Data").flatMap { try? Data(contentsOf: $0) }.flatMap { try? JSONDecoder().decode([String: [FamilyData]].self, from: $0) } ?? [:]
         tips = SayTips(json: Bundle.module.url(forResource: "tips", withExtension: "json", subdirectory: "Data").flatMap { try? Data(contentsOf: $0) })
         index = Dictionary(words.values.flatMap { $0 }.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
     }

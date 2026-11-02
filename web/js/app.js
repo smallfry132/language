@@ -3017,18 +3017,16 @@
       const w = want[i];
       if (w === 5) return { text: x.text, want: w, lv, ok: null };
       const mean = (a) => a.reduce((s, v) => s + v, 0) / a.length;
-      // Height counts little when every syllable is a 1st tone (医生 yīshēng): there is only the guessed voice range to
-      // compare with, and level is what makes a 1st tone. Elsewhere height still tells a high fall from a low dip.
-      const heightW = want.every((x) => x === 1 || x === 5) ? 0.1 : 0.3;
-      const dist = (tpl) => { const ms = mean(pts), mt = mean(tpl); return pts.reduce((s, v, j) => s + ((v - ms) - (tpl[j] - mt)) ** 2, 0) / 5 + heightW * (ms - mt) ** 2; };
+      const dist = (tpl) => { const ms = mean(pts), mt = mean(tpl); return pts.reduce((s, v, j) => s + ((v - ms) - (tpl[j] - mt)) ** 2, 0) / 5 + 0.3 * (ms - mt) ** 2; };
       const ds = { 1: dist(TONE_SHAPES[1]), 2: dist(TONE_SHAPES[2]), 3: Math.min(dist(TONE_SHAPES[3]), i === n - 1 ? dist(TONE3_END) : Infinity), 4: dist(TONE_SHAPES[4]) };
-      let got = +Object.keys(ds).reduce((a, b) => (ds[b] < ds[a] ? b : a));
-      // A level line that is not down at the bottom of the voice is a 1st tone, whatever the guessed range says
-      if (w === 1 && Math.max(...pts) - Math.min(...pts) < 0.9 && mean(pts) >= 2.0) got = 1;
-      // Near misses count, but a 1st tone has to stay level: a clear rise or fall is never one
-      const ok = got === w || (ds[w] <= ds[got] + 0.35 && (w !== 1 || Math.abs(pts[4] - pts[0]) <= 1.2));
+      // A 1st tone is decided by its shape: level (on the smoothed five points: under about 1.6 semitones of movement, under 0.8 of dip) and not
+      // down at the bottom of the voice. Height alone can't decide it: it depends on the guessed voice range.
+      const range = Math.max(...pts) - Math.min(...pts), dip = (pts[0] + pts[4]) / 2 - Math.min(pts[1], pts[2], pts[3]);
+      const isLevel = range < 0.45 && dip < 0.22, firstTone = isLevel && mean(pts) >= 2.0;
+      const got = firstTone ? 1 : [2, 3, 4].reduce((a, b) => (ds[b] < ds[a] ? b : a));
+      const ok = w === 1 ? firstTone : got === w || (ds[w] <= ds[got] + 0.35 && !firstTone);
       const slope = pts[4] - pts[0], m = mean(pts);
-      const tip = ok ? "" : w === 1 ? (Math.abs(slope) > 1.2 ? "tipFlat" : "tipHigher") : w === 2 ? "tipRise" : w === 3 ? "tipLower" : "tipFall";
+      const tip = ok ? "" : w === 1 ? (isLevel ? "tipHigher" : "tipFlat") : w === 2 ? "tipRise" : w === 3 ? "tipLower" : "tipFall";
       return { text: x.text, want: w, got, ok, lv, tip, m };
     });
     const scored = res.filter((r) => r.ok !== null);

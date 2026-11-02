@@ -182,15 +182,27 @@ final class PitchTests: XCTestCase {
         XCTAssertEqual(r.syllables.first?.tip, "tipFall")
     }
     func testLowButLevelFirstTonesCount() {
-        // 医生 yīshēng said level, but lower than the voice range the app had learned (base 240 Hz, voice at ~190 Hz)
-        let low: [Double] = [-1, -1, -1]
-        for base in [200.0, 240.0, 260.0] {
-            let r = Pitch.check(py: "yīshēng", frames: Pitch.track(voice([low, low])), f0base: base)
-            XCTAssertEqual(r.score, 1, "base \(base): got \(r.syllables.map { $0.got ?? 0 })")
+        // 医生 yīshēng said level, but lower than the voice range the app had learned
+        for (base, line) in [(200.0, [-1.0, -1, -1]), (240.0, [-1.0, -1, -1]), (260.0, [-1.0, -1, -1]), (240.0, [-1.0, -0.5, -1.2]),
+                           (200.0, [-1.0, -0.6, -1.3, -0.8, -1.5, -1.1, -1.6]),  // wobble of ±0.4 semitones, drifting down
+                           (240.0, [0, -0.4, -0.8, -1.2]), (200.0, [1, 1.3, 0.9, 1.2, 0.8])] {
+            let r = Pitch.check(py: "yīshēng", frames: Pitch.track(voice([line, line])), f0base: base)
+            XCTAssertEqual(r.score, 1, "base \(base) \(line): got \(r.syllables.map { $0.got ?? 0 })")
         }
-        // A falling syllable is still not a 1st tone
-        let r = Pitch.check(py: "yī", frames: Pitch.track(voice([fall])), f0base: 200)
-        XCTAssertEqual(r.syllables.first?.ok, false, "got \(String(describing: r.syllables.first?.got)) levels \(r.syllables.first?.levels.map { Int($0 * 10) } ?? [])")
+    }
+    func testThirdToneIsNeverAFirstTone() {
+        // The other direction: a dip on a 1st-tone word is wrong, whatever the learned voice range
+        let dips: [[Double]] = [[-3, -6, -5], [-1, -4, -3], [0, -3, -1], [-2, -5, -2], [2, -2, -1]]
+        for base in [180.0, 200.0, 240.0] {
+            for d in dips {
+                let r = Pitch.check(py: "yīshēng", frames: Pitch.track(voice([d, d])), f0base: base)
+                XCTAssertEqual(r.score, 0, "base \(base) dip \(d): got \(r.syllables.map { $0.got ?? 0 })")
+                let one = Pitch.check(py: "yī", frames: Pitch.track(voice([d])), f0base: base)
+                XCTAssertEqual(one.syllables.first?.ok, false, "yī base \(base) dip \(d)")
+            }
+            // nor is a rise or a fall
+            for c in [rise, fall] { XCTAssertEqual(Pitch.check(py: "yī", frames: Pitch.track(voice([c])), f0base: base).syllables.first?.ok, false, "\(c)") }
+        }
     }
     func testSilence() {
         XCTAssertTrue(Pitch.check(py: "mā", frames: Pitch.track([Float](repeating: 0, count: 16000)), f0base: nil).none)

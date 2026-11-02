@@ -154,6 +154,13 @@ struct SayLike: View {
                     if let k = word.kana, k != word.hz { Text(k).hanziFont(14).foregroundStyle(Color.ink2) }
                     Text(word.hz).hanziFont(40)
                 }
+            case "de", "es":
+                // the stressed Spanish syllable, or the word with its article; then gender and plural
+                VStack(alignment: .leading, spacing: 2) {
+                    if store.course.id == "es", !(word.articleSplit?.noun ?? word.hz).contains(" ") { Text(Lingo.esStress(word.articleSplit?.noun ?? word.hz)).font(.title2.weight(.bold)) }
+                    else { GenderText(word: word, size: 22) }
+                    if let g = word.g { Text(([store.t("gender_" + g)] + (word.plural.map { [store.t("plural") + ": " + $0] } ?? [])).joined(separator: " · ")).font(.footnote).foregroundStyle(Color.ink2) }
+                }
             default: ToneContours(text: word.hz)
             }
             HStack(spacing: 10) {
@@ -198,6 +205,7 @@ struct WordLine: View {
         case "zh":
             if store.pyFirst { PinyinText(py: word.py, size: size, weight: .bold) } else { Text(word.hz).hanziFont(size + 2) }
         case "vi": VietText(text: word.hz, size: size, weight: .semibold)
+        case "de", "es": GenderText(word: word, size: size)
         default: Text(word.hz).hanziFont(size + 2)
         }
     }

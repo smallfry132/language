@@ -11,8 +11,8 @@ struct Onboarding: View {
     @State private var step = Launch.has("-obstep2") ? 2 : 1
     @State private var micOn = false
 
-    static let glyph = ["zh": "中", "ja": "日", "ko": "ㅎㅏ", "vi": "Việt"]
-    static let go = ["zh": "开始", "ja": "始めよう", "ko": "시작", "vi": "Bắt đầu"]
+    static let glyph = ["zh": "中", "ja": "日", "ko": "ㅎㅏ", "vi": "Việt", "de": "De", "es": "Es"]
+    static let go = ["zh": "开始", "ja": "始めよう", "ko": "시작", "vi": "Bắt đầu", "de": "Los geht’s", "es": "¡Vamos!"]
 
     var body: some View {
         NavigationStack {

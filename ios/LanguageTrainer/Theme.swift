@@ -3,7 +3,7 @@ import LanguageCore
 
 /* Colours and small building blocks shared by all screens.
  * One look per language, from the style canvas: Ink Grid (Chinese), Quiet Ruby (Japanese), Block Builder (Korean),
- * Tone Color (Vietnamese). Each sets the palette, the corners, the font for words and the tab labels; the screens
+ * Tone Color (Vietnamese), and Klar (German) and Sol (Spanish). Each sets the palette, the corners, the font for words and the tab labels; the screens
  * only use the named colours below. Every text colour meets 4.5:1 in light and dark; with Increase Contrast they
  * move further toward black or white. */
 
@@ -39,7 +39,18 @@ struct Look {
         action: (0x0F2A24, 0xC5F27A), onAction: (0xC5F27A, 0x0F2A24), accent: (0x0F2A24, 0xC5F27A), radius: 14,
         wordFont: { _, w in w == .heavy || w == .black ? "BeVietnamPro-ExtraBold" : w.isBold ? "BeVietnamPro-SemiBold" : "BeVietnamPro-Regular" },
         tabs: ["Học", "Tập", "Từ", "Tôi"])
-    static func of(_ course: String) -> Look { ["zh": inkGrid, "ja": quietRuby, "ko": blockBuilder, "vi": toneColor][course] ?? inkGrid }
+    /// German (Klar: paper, ink, amber) and Spanish (Sol: sand, terracotta); the dock uses symbols (tabs empty)
+    static let klar = Look(id: "de",
+        paper: (0xF6F6F3, 0x141414), elevated: (0xFFFFFF, 0x1F1F1E), sunken: (0xECECE7, 0x0D0D0D), line: (0xDEDDD8, 0x363634),
+        ink: (0x161616, 0xF0EFEC), ink2: (0x54524E, 0xB4B2AD), ink3: (0x6A6864, 0x95938E),
+        action: (0x161616, 0xF0EFEC), onAction: (0xFFFFFF, 0x141414), accent: (0xB7791F, 0xE6AA46), radius: 6,
+        wordFont: { _, _ in nil }, tabs: [])
+    static let sol = Look(id: "es",
+        paper: (0xFBF6EF, 0x1A1410), elevated: (0xFFFFFF, 0x251D17), sunken: (0xF1E7D9, 0x120E0B), line: (0xEADFCF, 0x3C3027),
+        ink: (0x2B1D14, 0xF4ECE2), ink2: (0x6B5848, 0xC2B3A2), ink3: (0x7A6656, 0xA29282),
+        action: (0xC4572B, 0xE88056), onAction: (0xFFFFFF, 0x1A1410), accent: (0xC4572B, 0xE88056), radius: 14,
+        wordFont: { _, _ in nil }, tabs: [])
+    static func of(_ course: String) -> Look { ["zh": inkGrid, "ja": quietRuby, "ko": blockBuilder, "vi": toneColor, "de": klar, "es": sol][course] ?? inkGrid }
     /// The look of the course on screen. Set by the Store when the course changes; read when colours are drawn.
     static var current = inkGrid
     /// Tone colours on pinyin and Vietnamese (Me → Colour by tone)
@@ -98,6 +109,15 @@ extension Color {
     }
     /// Mandarin tones 1–4 and neutral (5)
     static func tone(_ n: Int) -> Color { contour([1: .level, 2: .rising, 3: .dipping, 4: .falling][n] ?? .light) }
+    /// German and Spanish nouns by gender: der/el blue, die/la red, das green (always shown with the article)
+    static func gender(_ g: String) -> Color {
+        let isEs = Look.current.id == "es"
+        switch g {
+        case "m": return isEs ? dynamic(0x2459A8, 0x86A9F0) : dynamic(0x1D5BBF, 0x7FA6FF)
+        case "f": return isEs ? dynamic(0xB5283E, 0xF08A96) : dynamic(0xC62828, 0xF07A6E)
+        default: return dynamic(0x2E7D32, 0x6BCB77)
+        }
+    }
     /// Vietnamese tones: ngang, huyền, sắc, hỏi, ngã, nặng (1–6)
     static func viTone(_ n: Int) -> Color { contour([1: .level, 2: .falling, 3: .rising, 4: .dipping, 5: .broken][n] ?? .light) }
 }
@@ -191,6 +211,19 @@ struct VietText: View {
     }
 }
 
+/// German and Spanish: the article in its gender's colour, the noun in ink (der Tisch); other words plain
+struct GenderText: View {
+    let word: Word
+    var size: CGFloat = 17
+    var weight: Font.Weight = .bold
+    var body: some View { SwiftUI.Text(Self.attributed(word)).scaledFont(size, weight) }
+    static func attributed(_ w: Word) -> AttributedString {
+        guard let (art, noun) = w.articleSplit, let g = w.g else { return AttributedString(w.hz) }
+        var a = AttributedString(art); a.foregroundColor = Look.toneColors ? Color.gender(g) : Color.ink
+        return a + AttributedString(" " + noun)
+    }
+}
+
 /// The pronunciation of a word as the course shows it: coloured pinyin for Chinese, plain text otherwise
 struct Pron: View {
     @Environment(Store.self) var store
@@ -211,6 +244,7 @@ struct WordFace: View {
         let long = store.course.script == .cjk ? word.hz.count >= 4 : word.hz.count >= 12
         if store.pyFirst { PinyinText(py: word.py, size: size * 0.8, weight: .semibold) }
         else if store.course.id == "vi" { VietText(text: word.hz, size: long ? size * 0.7 : size * 0.85, weight: .heavy) }
+        else if store.course.gender { GenderText(word: word, size: long ? size * 0.6 : size * 0.75, weight: .bold) }
         else { SwiftUI.Text(word.hz).hanziFont(long ? size * 0.7 : size) }
     }
 }

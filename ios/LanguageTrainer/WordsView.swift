@@ -153,13 +153,16 @@ struct Tile: View {
     var body: some View {
         let st = store.status(w.id), r = max(2, Look.current.radius - 2)
         HStack(spacing: 10) {
-            Group {
-                if let p = store.words.picture(w.id) { Text(p).font(.system(size: 24)) }
-                else { Text(String(w.hz.prefix(1))).hanziFont(20).foregroundStyle(Color.ink3) }
+            // German and Spanish: no letter in the empty picture slot (it says nothing in Latin script), more room for the word
+            if store.words.picture(w.id) != nil || !store.course.gender {
+                Group {
+                    if let p = store.words.picture(w.id) { Text(p).font(.system(size: 24)) }
+                    else { Text(String(w.hz.prefix(1))).hanziFont(20).foregroundStyle(Color.ink3) }
+                }
+                .frame(width: 44, height: 44)
+                .background(Color.paper, in: RoundedRectangle(cornerRadius: max(2, r - 2)))
+                .overlay(RoundedRectangle(cornerRadius: max(2, r - 2)).stroke(Color.line))
             }
-            .frame(width: 44, height: 44)
-            .background(Color.paper, in: RoundedRectangle(cornerRadius: max(2, r - 2)))
-            .overlay(RoundedRectangle(cornerRadius: max(2, r - 2)).stroke(Color.line))
             VStack(alignment: .leading, spacing: 1) {
                 main
                 Text(sub).font(.caption).foregroundStyle(Color.ink2).lineLimit(1)
@@ -178,12 +181,13 @@ struct Tile: View {
         switch store.course.id {
         case "zh": if store.pyFirst { PinyinText(py: w.py, size: 16, weight: .bold).lineLimit(1).minimumScaleFactor(0.6) } else { Text(w.hz).hanziFont(18).lineLimit(1) }
         case "vi": VietText(text: w.hz, size: 16, weight: .semibold).lineLimit(1).minimumScaleFactor(0.6)
+        case "de", "es": GenderText(word: w, size: 16).lineLimit(2).minimumScaleFactor(0.8)
         default: Text(w.hz).hanziFont(18).lineLimit(1).minimumScaleFactor(0.6)
         }
     }
     var sub: String {
         let reading: String? = !store.showsReading(w) ? nil : store.course.id == "zh" ? (store.pyFirst ? w.hz : w.py)
-            : store.course.id == "ja" ? (w.kana != nil && w.kana != w.hz ? w.kana! : (w.romaji ?? w.py)) : store.course.id == "ko" ? w.py : nil
+            : store.course.id == "ja" ? (w.kana != nil && w.kana != w.hz ? w.kana! : (w.romaji ?? w.py)) : store.course.id == "ko" ? w.py : store.course.gender ? w.plural : nil
         return [reading ?? (store.course.id == "zh" && store.pyFirst ? w.hz : nil), store.tr(w)].compactMap { $0 }.joined(separator: " · ")
     }
 }
@@ -208,6 +212,7 @@ struct WordDetail: View {
                         switch store.course.id {
                         case "zh": if store.pyFirst { PinyinText(py: w.py, size: 34, weight: .bold) } else { Text(w.hz).hanziFont(36) }
                         case "vi": VietText(text: w.hz, size: 34, weight: .heavy)
+                        case "de", "es": GenderText(word: w, size: 32)
                         default: Text(w.hz).hanziFont(36)
                         }
                         Text(readingLine).font(.subheadline).foregroundStyle(Color.ink2)
@@ -249,6 +254,7 @@ struct WordDetail: View {
         switch store.course.id {
         case "zh": return (store.pyFirst ? w.hz : w.py) + " · " + store.tr(w)
         case "ja": return (w.romaji ?? w.py) + " · " + store.tr(w)
+        case "de", "es": return (w.plural.map { store.t("plural") + ": " + $0 + " · " } ?? "") + store.tr(w)
         default: return w.py + " · " + store.tr(w)
         }
     }

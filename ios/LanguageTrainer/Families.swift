@@ -20,6 +20,7 @@ struct FamilyReading: View {
         switch store.course.id {
         case "zh": PinyinText(py: word.py, size: size, weight: .bold)
         case "vi": VietText(text: word.hz, size: size, weight: .bold)
+        case "de", "es": GenderText(word: word, size: size >= 24 ? size * 0.85 : size)
         default: Text(word.hz).hanziFont(size - 2)
         }
     }

@@ -34,6 +34,7 @@ struct LearnView: View {
                     case "ja": verticalWord(w)
                     case "ko": buildThePhrase(w)
                     case "vi": toneWord(w)
+                    case "de", "es": plainWord(w)
                     default: gridWord(w)
                     }
                 }
@@ -73,7 +74,7 @@ struct LearnView: View {
                     Text(tr).font(.subheadline).foregroundStyle(Color.ink2)
                 default:
                     Text(g.text).hanziFont(course == "ko" ? 32 : 34, course == "ja" ? .bold : .regular)
-                    Text("\(g.reading) · \(tr)").font(.subheadline).foregroundStyle(Color.ink2)
+                    Text(g.reading.isEmpty ? tr : "\(g.reading) · \(tr)").font(.subheadline).foregroundStyle(Color.ink2)
                 }
             }
             Spacer()
@@ -148,11 +149,11 @@ struct LearnView: View {
 
     /// "Continue" in the language: 继续, 続ける, 계속, Tiếp tục
     var continueLabel: String {
-        let native = ["zh": "继续", "ja": "続ける", "ko": "계속", "vi": "Tiếp tục"][course]
+        let native = ["zh": "继续", "ja": "続ける", "ko": "계속", "vi": "Tiếp tục", "de": "Weiter", "es": "Seguir"][course]
         return store.t("continue") + (native.map { " · " + $0 } ?? "")
     }
     /// The session's title in the language, then in yours
-    var sessionTitleNative: String { ["zh": "今天的课", "ja": "今日のレッスン", "ko": "오늘의 공부", "vi": "Bài hôm nay"][course] ?? "" }
+    var sessionTitleNative: String { ["zh": "今天的课", "ja": "今日のレッスン", "ko": "오늘의 공부", "vi": "Bài hôm nay", "de": "Heute", "es": "Hoy"][course] ?? "" }
 
     @ViewBuilder func lessonCard(_ p: (due: [Word], fresh: [Word], unseen: Int)) -> some View {
         let plan = TodaySession.plan(store)
@@ -197,6 +198,9 @@ struct LearnView: View {
         case "vi":
             content.foregroundStyle(Color.dynamic(0xFAFAF7, 0xFAFAF7, text: false)).padding(16).frame(maxWidth: .infinity, alignment: .leading)
                 .background(Color.dynamic(0x0F2A24, 0x1D3A33, text: false), in: RoundedRectangle(cornerRadius: 18))
+        case "de", "es":
+            content.padding(16).frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.elevated, in: RoundedRectangle(cornerRadius: Look.current.radius + 2)).overlay(RoundedRectangle(cornerRadius: Look.current.radius + 2).stroke(Color.line))
         default:
             content.padding(16).frame(maxWidth: .infinity, alignment: .leading)
                 .background(Color.elevated, in: Rectangle()).overlay(Rectangle().stroke(Color.line))
@@ -236,6 +240,27 @@ struct LearnView: View {
                 SpeakButton(text: w.hz, small: true)
             }
             .padding(16).background(Color.elevated).overlay(Rectangle().stroke(Color.line)).foregroundStyle(Color.ink)
+        }.buttonStyle(.card)
+    }
+
+    /// German and Spanish: the picture, the word with its article in the gender colour, the meaning
+    func plainWord(_ w: Word) -> some View {
+        Button { openWord = w } label: {
+            HStack(alignment: .center, spacing: 16) {
+                if let p = store.words.picture(w.id) {
+                    Text(p).font(.system(size: 40)).frame(width: 72, height: 72)
+                        .background(Color.paper, in: RoundedRectangle(cornerRadius: Look.current.radius)).accessibilityHidden(true)
+                }
+                VStack(alignment: .leading, spacing: 3) {
+                    CapsLabel(text: store.t("wordOfDay"))
+                    GenderText(word: w, size: 26)
+                    Text(store.tr(w)).font(.subheadline.weight(.medium)).lineLimit(2)
+                }
+                Spacer(minLength: 0)
+                SpeakButton(text: w.hz, small: true)
+            }
+            .padding(16).background(Color.elevated, in: RoundedRectangle(cornerRadius: Look.current.radius + 2))
+            .overlay(RoundedRectangle(cornerRadius: Look.current.radius + 2).stroke(Color.line)).foregroundStyle(Color.ink)
         }.buttonStyle(.card)
     }
 
@@ -323,7 +348,7 @@ struct LearnView: View {
     // MARK: Review · Listen · Speak
 
     func quickTiles(due: Int) -> some View {
-        let labels: [String: [String]] = ["zh": ["复习", "听", "说"], "ja": ["復習", "聞く", "話す"], "ko": ["복습", "듣기", "말하기"]]
+        let labels: [String: [String]] = ["zh": ["复习", "听", "说"], "ja": ["復習", "聞く", "話す"], "ko": ["복습", "듣기", "말하기"], "de": ["Karten", "Hören", "Sprechen"], "es": ["Repasar", "Escuchar", "Hablar"]]
         let l = store.pyFirst ? ["fùxí", "tīng", "shuō"] : labels[course] ?? ["↺", "♪", "◎"]
         let tiles: [(String, String, Route)] = [
             (l[0], store.t("stepReview") + (due > 0 ? " · \(due)" : ""), .mode(.flash)),
@@ -337,7 +362,7 @@ struct LearnView: View {
                 NavigationLink(value: tile.2) {
                     VStack(alignment: .leading, spacing: 0) {
                         if store.pyFirst { PinyinText(py: tile.0, size: 17, weight: .bold) }
-                        else { Text(tile.0).hanziFont(24).foregroundStyle(hot ? Color.accent : Color.ink) }
+                        else { Text(tile.0).hanziFont(24).lineLimit(1).minimumScaleFactor(0.55).foregroundStyle(hot ? Color.accent : Color.ink) }
                         Spacer(minLength: 8)
                         Text(tile.1).font(.caption).foregroundStyle(Color.ink).lineLimit(2)
                     }
@@ -518,6 +543,8 @@ enum Greeting {
         case "zh": return [("早上好", "zǎoshang hǎo"), ("下午好", "xiàwǔ hǎo"), ("晚上好", "wǎnshang hǎo")].map { ($0.0, $0.1, en, de) }[part]
         case "ja": return [("おはよう", "ohayō"), ("こんにちは", "konnichiwa"), ("こんばんは", "konbanwa")].map { ($0.0, $0.1, en, de) }[part]
         case "ko": return [("좋은 아침이에요", "joeun achimieyo"), ("안녕하세요", "annyeonghaseyo"), ("좋은 저녁이에요", "joeun jeonyeogieyo")].map { ($0.0, $0.1, en, de) }[part]
+        case "de": return [("Guten Morgen", ""), ("Guten Tag", ""), ("Guten Abend", "")].map { ($0.0, $0.1, en, de) }[part]
+        case "es": return [("Buenos días", ""), ("Buenas tardes", ""), ("Buenas noches", "")].map { ($0.0, $0.1, en, de) }[part]
         default: return [("Chào buổi sáng", ""), ("Chào buổi chiều", ""), ("Chào buổi tối", "")].map { ($0.0, $0.1, en, de) }[part]
         }
     }

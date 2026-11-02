@@ -62,6 +62,8 @@ public enum PasteList {
         if hits.isEmpty && !latin.isEmpty && c == "ja" { hits = pool.filter { ($0.romaji.map(Lingo.stripJa) ?? "") == Lingo.stripJa(latin) } }
         if hits.isEmpty && !latin.isEmpty && c == "ko" { hits = pool.filter { Lingo.stripKo($0.py) == Lingo.stripKo(latin) } }
         if hits.isEmpty && c == "vi" { hits = pool.filter { Lingo.stripVi($0.hz) == Lingo.stripVi(raw) } }
+        // German and Spanish: with or without the article, umlauts or accents (Strasse → die Straße)
+        if hits.isEmpty && (c == "de" || c == "es") { let q = Lingo.stripLatin(raw); hits = pool.filter { Lingo.stripLatin($0.hz) == q || Lingo.stripLatin($0.articleSplit?.noun ?? "") == q } }
         if hits.isEmpty && !latin.isEmpty {
             var m = latin.lowercased(); if m.hasPrefix("to ") { m.removeFirst(3) }
             hits = pool.filter { meanings($0.en).contains(m) || meanings($0.de ?? "").contains(m) }
@@ -78,7 +80,7 @@ public enum PasteList {
             ownPy = Lingo.numToMarks(pyLike.joined(separator: " "))
             if ownPy.isEmpty && native.isEmpty { ownPy = latin }
             ownEn = native.isEmpty && pyLike.isEmpty ? "" : parts.filter { !pyLike.contains($0) }.joined(separator: " ")
-        } else if c == "vi" { ownHz = raw }
+        } else if c == "vi" || c == "de" || c == "es" { ownHz = raw }
         else { ownHz = native.isEmpty ? latin : native; ownPy = native.isEmpty ? "" : latin }
 
         // Not one word, but each part is

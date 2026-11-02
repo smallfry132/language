@@ -117,6 +117,7 @@ struct ChooseWord: View {
             let n = Lingo.firstTone(x.hz, course: "vi")
             Text(ViTone.name(n)).font(.footnote.weight(.bold)).foregroundStyle(Look.toneColors ? Color.viTone(n) : Color.ink2)
         case "ja": Text((x.romaji ?? x.py) + (x.kana != nil && x.kana != x.hz ? " · " + x.hz : "")).font(.footnote.weight(.semibold)).foregroundStyle(Color.ink2)
+        case "de", "es": if let pl = x.plural { Text(pl).font(.footnote).foregroundStyle(Color.ink2) }
         default: Text(x.py).font(.footnote.weight(.semibold)).foregroundStyle(Color.ink2)
         }
     }

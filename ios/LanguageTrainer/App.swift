@@ -163,7 +163,11 @@ struct Dock: View {
                     tab = t
                 } label: {
                     VStack(spacing: 2) {
-                        Text(Look.current.tabs[k]).hanziFont(20, on ? .semibold : .regular).foregroundStyle(on ? Color.accent : Color.ink2)
+                        if Look.current.tabs.isEmpty { // German and Spanish: symbols instead of words in the language
+                            Image(systemName: ["sun.max", "target", "list.bullet", "person"][k]).font(.system(size: 19, weight: on ? .semibold : .regular)).foregroundStyle(on ? Color.accent : Color.ink2).frame(height: 22)
+                        } else {
+                            Text(Look.current.tabs[k]).hanziFont(20, on ? .semibold : .regular).foregroundStyle(on ? Color.accent : Color.ink2)
+                        }
                         Text(names[k]).font(.caption2.weight(on ? .bold : .regular)).foregroundStyle(on ? Color.ink : Color.ink2)
                     }
                     .frame(maxWidth: .infinity, minHeight: 50).contentShape(Rectangle())

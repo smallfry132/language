@@ -9,12 +9,12 @@ public enum Check {
         var digits = ""
         func flush() {
             guard !digits.isEmpty else { return }
-            if let n = Int(digits), n <= 99 { x += Numbers.written(n, course: course) + (course == "vi" ? " " : "") } else { x += digits }
+            if let n = Int(digits), n <= 99 { x += Numbers.written(n, course: course) + (["vi", "de", "es"].contains(course) ? " " : "") } else { x += digits }
             digits = ""
         }
         for c in s { if c.isASCII && c.isNumber { digits.append(c) } else { flush(); x.append(c) } }
         flush()
-        if course == "vi" {
+        if course == "vi" || course == "de" || course == "es" { // Latin letters: words are the units
             return x.precomposedStringWithCanonicalMapping.lowercased().split(whereSeparator: { !$0.isLetter }).map(String.init)
         }
         return x.unicodeScalars.filter { u in
@@ -110,6 +110,8 @@ public enum Check {
             return ok
         case "ko":
             return koTyped(v, hz: w.hz, roman: w.py)
+        case "de", "es":
+            return Lingo.latinTyped(v, w.hz, course: w.course)
         case "ja":
             let a = Lingo.stripJa(v), ro = Lingo.stripJa(w.romaji ?? "")
             return a == Lingo.stripJa(w.kana ?? "") || a == ro || a == Lingo.stripJa(w.hz) || a == ro.replacingOccurrences(of: "'", with: "")

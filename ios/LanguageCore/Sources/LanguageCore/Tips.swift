@@ -10,6 +10,9 @@ public struct SayTips: Sendable {
         public var long: LocalText?
         public var flat: LocalText?
         public var liaison: LocalText?
+        public var final: LocalText?
+        public var stress: LocalText?
+        public var gender: [String: LocalText] = [:]
     }
     public let courses: [String: Course]
 
@@ -27,6 +30,8 @@ public struct SayTips: Sendable {
                 }
                 for (k, v) in o["tone"] as? [String: Any] ?? [:] { if let n = Int(k), let t = text(v) { c.tone[n] = t } }
                 c.long = text(o["long"]); c.flat = text(o["flat"]); c.liaison = text(o["liaison"])
+                c.final = text(o["final"]); c.stress = text(o["stress"])
+                for (k, v) in o["gender"] as? [String: Any] ?? [:] { if let t = text(v) { c.gender[k] = t } }
                 out[id] = c
             }
         }
@@ -60,6 +65,15 @@ public struct SayTips: Sendable {
             if let p = w.pron { return (L(T.liaison).replacingOccurrences(of: "{0}", with: p), "") }
             let jamo = w.hz.compactMap { Lingo.koJamo($0) }.map { $0.i + $0.v + $0.f }.joined()
             return T.sound.first { jamo.contains($0.key) }.map { (L($0.text), "") }
+        case "de", "es":
+            // the trickiest sound of the noun; then German's final b/d/g or the gender, Spanish's stressed syllable
+            let word = w.articleSplit?.noun ?? w.hz, low = word.lowercased()
+            let hit = T.sound.first { $0.key == "sp" || $0.key == "st" ? low.hasPrefix($0.key) : low.contains($0.key) }
+            let gender = w.g.map { L(T.gender[$0]) } ?? ""
+            let extra: String
+            if w.course == "de" { extra = hit == nil && "bdg".contains(low.last ?? " ") ? L(T.final) : gender }
+            else { extra = !word.contains(" ") ? L(T.stress).replacingOccurrences(of: "{0}", with: Lingo.esStress(word)) : gender }
+            return (hit.map { L($0.text) } ?? "", extra)
         default: return nil
         }
     }

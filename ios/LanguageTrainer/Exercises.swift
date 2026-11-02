@@ -433,7 +433,9 @@ struct TypeWord: View {
             ProgressHeader(i: i, n: list.count, extra: "✓ \(correct)")
             if pick { pickerPrompt(w) } else {
                 VStack(spacing: 10) {
-                    if store.pyFirst {
+                    // Only Japanese shows the word (you type its reading); elsewhere the meaning is the prompt, as on the web
+                    if store.pyFirst || course != "ja" {
+                        if let p = store.words.picture(w.id), course != "zh" { Text(p).font(.system(size: 48)).accessibilityHidden(true) }
                         Text(store.tr(w)).font(.title2.weight(.semibold)).multilineTextAlignment(.center)
                         SpeakButton(text: w.hz, small: true)
                     } else {
@@ -558,7 +560,8 @@ struct TypeWord: View {
         case "zh": a += PinyinText.attributed(w.py)
         case "vi": a += VietText.attributed(w.hz)
         case "ja": a += AttributedString(w.py)
-        default: a += AttributedString("\(w.hz) [\(w.py)]")
+        case "de", "es": a += GenderText.attributed(w)
+        default: a += AttributedString(w.py.isEmpty ? w.hz : "\(w.hz) [\(w.py)]")
         }
         return a
     }
@@ -825,13 +828,14 @@ struct SayWord: View {
         switch store.course.id {
         case "zh": if store.pyFirst { PinyinText(py: w.py, size: 32, weight: .bold) } else { Text(w.hz).hanziFont(34) }
         case "vi": VietText(text: w.hz, size: 32, weight: .heavy).lineLimit(2).minimumScaleFactor(0.6)
+        case "de", "es": GenderText(word: w, size: 30).lineLimit(2).minimumScaleFactor(0.6)
         default: Text(w.hz).hanziFont(34).lineLimit(2).minimumScaleFactor(0.6)
         }
     }
     func sub(_ w: Word) -> String {
         switch store.course.id {
         case "zh": return (store.pyFirst ? w.hz : w.py) + " · " + store.tr(w)
-        case "vi": return store.tr(w)
+        case "vi", "de", "es": return store.tr(w)
         default: return w.py + " · " + store.tr(w)
         }
     }

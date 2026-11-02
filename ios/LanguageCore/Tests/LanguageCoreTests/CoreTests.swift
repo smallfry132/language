@@ -508,4 +508,39 @@ final class FamilyTests: XCTestCase {
         for _ in 0..<20 { if p.feed(rms: 0.0005, seconds: chunk) { end = true; break } } // quiet after it
         XCTAssertTrue(end)
     }
+
+    func testGermanAndSpanish() {
+        // Data: both courses load, nouns have gender and plural, the reading is empty
+        let de = Library.shared.words["de"] ?? [], es = Library.shared.words["es"] ?? []
+        XCTAssertGreaterThan(de.count, 500); XCTAssertGreaterThan(es.count, 500)
+        let tisch = de.first { $0.hz.hasPrefix("der ") }!
+        XCTAssertEqual(tisch.g, "m"); XCTAssertEqual(tisch.py, ""); XCTAssertNotNil(tisch.articleSplit)
+        // Typing: nouns need their article; umlauts as ae oe ue ss; Spanish accents optional, typed accents must be right
+        for (hz, v, ok) in [("die Straße", "die strasse", true), ("die Straße", "die Strasse", true), ("die Tür", "die tuer", true), ("die Tür", "die Tür", true),
+                            ("die Tür", "der Tür", false), ("die Tür", "Tür", false), ("schön", "schoen", true), ("schön", "schon", false)] {
+            XCTAssertEqual(Lingo.latinTyped(v, hz, course: "de"), ok, "\(hz) ← \(v)")
+        }
+        for (hz, v, ok) in [("el café", "el cafe", true), ("el café", "el café", true), ("el café", "el cafè", false), ("el año", "el ano", true),
+                            ("el año", "el año", true), ("la mesa", "el mesa", false), ("¿qué tal?", "que tal", true)] {
+            XCTAssertEqual(Lingo.latinTyped(v, hz, course: "es"), ok, "\(hz) ← \(v)")
+        }
+        // Numbers
+        XCTAssertEqual(Numbers.written(21, course: "de"), "einundzwanzig"); XCTAssertEqual(Numbers.written(1, course: "de"), "eins")
+        XCTAssertEqual(Numbers.written(30, course: "de"), "dreißig"); XCTAssertEqual(Numbers.written(31, course: "es"), "treinta y uno")
+        XCTAssertEqual(Numbers.written(16, course: "es"), "dieciséis"); XCTAssertEqual(Numbers.written(22, course: "es"), "veintidós")
+        // Spanish stress
+        for (w, x) in [("café", "ca-FÉ"), ("aeropuerto", "a-e-ro-PUER-to"), ("ciudad", "ciu-DAD"), ("país", "pa-ÍS"), ("casa", "CA-sa"),
+                       ("hablar", "ha-BLAR"), ("teléfono", "te-LÉ-fo-no"), ("hombre", "HOM-bre"), ("familia", "fa-MI-lia")] {
+            XCTAssertEqual(Lingo.esStress(w), x)
+        }
+        // Search ignores accents and umlauts
+        XCTAssertEqual(Lingo.norm("Straße", course: "de"), "strasse"); XCTAssertEqual(Lingo.norm("Café", course: "es"), "cafe")
+        // Tips: Spanish stress, German final consonant or gender
+        let cafe = es.first { $0.hz == "el café" }
+        if let cafe { XCTAssertTrue(Library.shared.tips.tip(for: cafe, lang: "en")?.tone.contains("ca-FÉ") ?? false) }
+        // Families resolve
+        var st = AppState(); st.course = "de"
+        let fam = CourseWords(state: st).families
+        XCTAssertTrue(fam.contains { $0.items.map(\.hz) == ["groß", "klein"] })
+    }
 }

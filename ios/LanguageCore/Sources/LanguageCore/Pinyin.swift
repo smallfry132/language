@@ -30,7 +30,7 @@ public enum Lingo {
         s.precomposedStringWithCanonicalMapping.lowercased().filter { !" \t\n'’-.,!?".contains($0) }
     }
     public static func norm(_ s: String, course: String) -> String {
-        course == "zh" ? stripTones(s) : course == "ja" ? stripJa(s) : course == "ko" ? stripKo(s) : stripVi(s)
+        course == "zh" ? stripTones(s) : course == "ja" ? stripJa(s) : course == "ko" ? stripKo(s) : course == "de" || course == "es" ? stripLatin(s) : stripVi(s)
     }
     /// Hangul syllable → its letters (initial, vowel, final) as compatibility jamo
     public static func koJamo(_ c: Character) -> (i: String, v: String, f: String)? {

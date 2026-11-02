@@ -191,6 +191,7 @@ extension CourseWords {
         switch course {
         case "zh": return Lingo.stripTones(w.py)
         case "vi": return Lingo.stripVi(w.hz).replacingOccurrences(of: " ", with: "")
+        case "de", "es": return Lingo.stripLatin(w.articleSplit?.noun ?? w.hz).replacingOccurrences(of: " ", with: "")
         case "ja": return Lingo.stripJa(w.romaji ?? w.py)
         default: return Lingo.stripKo(w.py)
         }

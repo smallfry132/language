@@ -62,7 +62,7 @@ struct DialogueToggles: View {
         HStack(spacing: 6) {
             if store.pyFirst {
                 toggle("汉", on: s.dlgHz == true, label: store.t("showHz")) { store.update { $0.settings.dlgHz = !(s.dlgHz == true) } }
-            } else if c != "vi" {
+            } else if c != "vi" && !store.course.gender {
                 toggle(["zh": "拼", "ja": "あ", "ko": "Aa"][c] ?? "Aa", on: s.dlgPy != false, label: store.t("readingLayer")) { store.update { $0.settings.dlgPy = !(s.dlgPy != false) } }
             }
             toggle(store.state.lang.uppercased(), on: s.dlgTr != false, label: store.t("showTr")) { store.update { $0.settings.dlgTr = !(s.dlgTr != false) } }
@@ -83,7 +83,7 @@ extension Store {
     var dialogueRate: Double { state.settings.dlgSlow == true ? 0.55 : state.settings.rate }
     func sayLine(_ text: String, then: (() -> Void)? = nil) { speaker.say(text, rate: dialogueRate, then: then) }
     /// The reading line with dialogue lines: on unless switched off in the header
-    var dialogueReading: Bool { state.settings.dlgPy != false && course.id != "vi" }
+    var dialogueReading: Bool { state.settings.dlgPy != false && course.id != "vi" && !course.gender }
 }
 
 /// The first character of a role's name in a small box, as the chat's avatar (服 for 服务员)

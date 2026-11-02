@@ -197,10 +197,10 @@ struct FlowDone: View {
         let sayPct = total(say) > 0 && (course == "zh" || course == "vi") ? Int((Double(correct(say)) / Double(total(say)) * 100).rounded()) : nil
         let mistakes = Array(results.flatMap { $0.1.mistakes }.reduce(into: [Word]()) { a, w in if !a.contains(where: { $0.id == w.id }) { a.append(w) } }.prefix(12))
         let why = results.reduce(into: [String: String]()) { a, r in a.merge(r.1.why) { x, _ in x } }
-        let seal = ["zh": ("完成", "Wánchéng!", "完成"), "ja": ("完了", "Kanryō!", "完了"), "ko": ("완료", "Wallyo!", "완료"), "vi": ("Xong", "Xong rồi!", "")][course] ?? ("完成", "Wánchéng!", "完成")
+        let seal = ["zh": ("完成", "Wánchéng!", "完成"), "ja": ("完了", "Kanryō!", "完了"), "ko": ("완료", "Wallyo!", "완료"), "vi": ("Xong", "Xong rồi!", ""), "de": ("Fertig", "Fertig!", ""), "es": ("Hecho", "¡Hecho!", "")][course] ?? ("完成", "Wánchéng!", "完成")
         Page {
             VStack(spacing: 16) {
-                SealStamp(text: seal.0, latin: course == "vi").padding(.top, 24)
+                SealStamp(text: seal.0, latin: ["vi", "de", "es"].contains(course)).padding(.top, 24)
                 VStack(spacing: 2) {
                     Text(seal.1).font(.system(size: 34, weight: .bold)).foregroundStyle(course == "zh" ? Color.tone(2) : Color.ink)
                     Text(seal.2.isEmpty ? store.t("sessionIsDone") : "\(seal.2) · \(store.t("sessionIsDone"))").font(.subheadline).foregroundStyle(Color.ink2)
@@ -261,6 +261,7 @@ struct FlowDone: View {
         switch store.course.id {
         case "zh": PinyinText(py: w.py, size: 14, weight: .bold)
         case "vi": VietText(text: w.hz, size: 14, weight: .bold)
+        case "de", "es": GenderText(word: w, size: 14)
         default: Text(w.hz).hanziFont(14, .bold)
         }
     }

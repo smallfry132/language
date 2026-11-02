@@ -38,15 +38,17 @@ public enum Numbers {
     public static func written(_ n: Int, course: String) -> String {
         if course == "ko" { return toKo(n, roman: false) }
         if course == "vi" { return toVi(n) }
+        if course == "de" { return toDe(n) }
+        if course == "es" { return toEs(n) }
         if course == "ja" { return toJa(n, pron: false) }
         if n <= 10 { return hz[n] }
         let tens = n / 10, ones = n % 10
         return (tens > 1 ? hz[tens] : "") + "十" + (ones > 0 ? hz[ones] : "")
     }
-    /// Pinyin or romaji ("" for Vietnamese, which is already written in Latin letters)
+    /// Pinyin or romaji ("" for Vietnamese, German and Spanish, which are already written in Latin letters)
     public static func spoken(_ n: Int, course: String) -> String {
         if course == "ko" { return toKo(n, roman: true) }
-        if course == "vi" { return "" }
+        if course == "vi" || course == "de" || course == "es" { return "" }
         if course == "ja" { return toJa(n, pron: true) }
         if n <= 10 { return py[n] }
         let tens = n / 10, ones = n % 10

@@ -65,7 +65,7 @@ final class Speaker: NSObject, AVSpeechSynthesizerDelegate {
         return r >= 40 ? .natural : r > 0 ? .basic : .robotic
     }
     /// Voices worth downloading, by course
-    static let suggested = ["zh": "Lilian, Tingting", "ko": "Yuna", "ja": "Kyoko, Otoya", "vi": "Linh"]
+    static let suggested = ["zh": "Lilian, Tingting", "ko": "Yuna", "ja": "Kyoko, Otoya", "vi": "Linh", "de": "Anna, Markus", "es": "Mónica, Jorge"]
     static func rank(_ v: AVSpeechSynthesisVoice) -> Int {
         let id = v.identifier.lowercased()
         if id.contains("eloquence") || id.contains("speech.synthesis") { return 0 } // robotic and novelty voices

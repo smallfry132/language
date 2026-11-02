@@ -122,7 +122,7 @@ final class Store {
     func answer(_ w: Word, ok: Bool) { let sk = currentSkill; marks.append(ok); update { $0.grade(w.id, ok ? 2 : 0); $0.recordAnswer(ok, skill: sk) } }
     /// The skill the current exercise trains (listen, speak, read, write), for the statistics; set by the screen that runs it
     var currentSkill: String?
-    static let modeSkill: [String: String] = ["listen": "listen", "listenPic": "listen", "tones": "listen", "say": "speak", "flash": "read", "quiz": "read", "picture": "read", "choose": "read", "match": "read", "type": "write", "typer": "write", "numbers": "write", "trace": "write"]
+    static let modeSkill: [String: String] = ["listen": "listen", "listenPic": "listen", "tones": "listen", "say": "speak", "flash": "read", "quiz": "read", "picture": "read", "choose": "read", "match": "read", "type": "write", "typer": "write", "numbers": "write", "trace": "write", "gender": "read"]
     static let flowSkill: [String: String] = ["review": "read", "listen": "listen", "speak": "speak", "write": "write"]
     /// No voice for this course on the device: listening is hidden, words keep their reading (-novoice pretends so)
     var noVoice: Bool { let _ = voiceCheck; return Launch.has("-novoice") || speaker.courseVoices().isEmpty }

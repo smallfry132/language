@@ -5,12 +5,12 @@ import LanguageCore
  * is folded into "Adjust". Results lead back here; in a guided session they lead to the next step. */
 
 enum Mode: String, CaseIterable, Hashable {
-    case flash, quiz, type, typer, listen, match, tones, numbers, say, picture, listenPic, choose, trace
+    case flash, quiz, type, typer, listen, match, tones, numbers, say, picture, listenPic, choose, trace, gender
     var key: String {
         switch self {
         case .flash: "modeFlash"; case .quiz: "modeQuiz"; case .type: "modeType"; case .typer: "modeTyper"; case .listen: "modeListen"
         case .match: "modeMatch"; case .tones: "modeTones"; case .numbers: "modeNumbers"; case .say: "modeSay"
-        case .picture: "modePicture"; case .listenPic: "modeListenPic"; case .choose: "modeChoose"; case .trace: "modeTrace"
+        case .picture: "modePicture"; case .listenPic: "modeListenPic"; case .choose: "modeChoose"; case .trace: "modeTrace"; case .gender: "modeGender"
         }
     }
 }
@@ -40,17 +40,19 @@ struct PracticeHome: View {
     struct Row { let route: Route; let key: String; let sub: String; var isNew = false }
     static let skillWord: [String: [(String, String)]] = [
         "zh": [("tīng", "听"), ("shuō", "说"), ("dú", "读"), ("xiě", "写")], "vi": [("Nghe", ""), ("Nói", ""), ("Đọc", ""), ("Viết", "")],
-        "ja": [("kiku", "聞く"), ("hanasu", "話す"), ("yomu", "読む"), ("kaku", "書く")], "ko": [("deutgi", "듣기"), ("malhagi", "말하기"), ("ilkgi", "읽기"), ("sseugi", "쓰기")]
+        "ja": [("kiku", "聞く"), ("hanasu", "話す"), ("yomu", "読む"), ("kaku", "書く")], "ko": [("deutgi", "듣기"), ("malhagi", "말하기"), ("ilkgi", "읽기"), ("sseugi", "쓰기")],
+        "de": [("Hören", ""), ("Sprechen", ""), ("Lesen", ""), ("Schreiben", "")], "es": [("Escuchar", ""), ("Hablar", ""), ("Leer", ""), ("Escribir", "")]
     ]
     var skills: [(id: String, rows: [Row])] {
         let c = store.course, pics = store.words.selected.contains { store.words.picture($0.id) != nil }, dl = store.dialogues
+        let sounds = Library.shared.sounds[c.id] != nil // German and Spanish have no sound chart
         let free = dl.randomElement().map { Route.dialogueTurn($0.id) }
         let all: [(String, [Row?])] = [
             ("listen", [Row(route: .mode(.listen), key: "modeListen", sub: "listen"), pics ? Row(route: .mode(.listenPic), key: "modeListenPic", sub: "listenPic") : nil,
-                        c.toneOptions != nil ? Row(route: .mode(.tones), key: "modeTones", sub: "tones") : nil, Row(route: .soundDrill, key: "soundDrill", sub: "soundDrill")]),
+                        c.toneOptions != nil ? Row(route: .mode(.tones), key: "modeTones", sub: "tones") : nil, sounds ? Row(route: .soundDrill, key: "soundDrill", sub: "soundDrill") : nil]),
             ("speak", [Row(route: .mode(.say), key: "modeSay", sub: "say"), dl.isEmpty ? nil : Row(route: .dialogues, key: "dialogues", sub: "dialogues"),
-                       free.map { Row(route: $0, key: "modeFree", sub: "freePlay", isNew: true) }, Row(route: .sounds, key: "soundChart", sub: "soundChart")]),
-            ("read", [store.words.families.isEmpty ? nil : Row(route: .families, key: "modeFamilies", sub: "families", isNew: true), Row(route: .mode(.choose), key: "modeChoose", sub: "choose"), pics ? Row(route: .mode(.picture), key: "modePicture", sub: "picture") : nil,
+                       free.map { Row(route: $0, key: "modeFree", sub: "freePlay", isNew: true) }, sounds ? Row(route: .sounds, key: "soundChart", sub: "soundChart") : nil]),
+            ("read", [c.gender ? Row(route: .mode(.gender), key: c.id == "es" ? "modeGenderEs" : "modeGender", sub: "gender", isNew: true) : nil, store.words.families.isEmpty ? nil : Row(route: .families, key: "modeFamilies", sub: "families", isNew: true), Row(route: .mode(.choose), key: "modeChoose", sub: "choose"), pics ? Row(route: .mode(.picture), key: "modePicture", sub: "picture") : nil,
                       Row(route: .mode(.flash), key: "modeFlash", sub: "flash"), Row(route: .mode(.quiz), key: "modeQuiz", sub: "quiz"), Row(route: .mode(.match), key: "modeMatch", sub: "match")]),
             ("write", [Row(route: .mode(.type), key: "modeType", sub: "type"), c.id == "ja" ? nil : Row(route: .mode(.typer), key: "modeTyper", sub: "typer"), Row(route: .mode(.numbers), key: "modeNumbers", sub: "numbers"), c.id == "zh" ? Row(route: .mode(.trace), key: "modeTrace", sub: "trace", isNew: true) : nil])
         ]
@@ -73,7 +75,7 @@ struct PracticeHome: View {
     static func needsVoice(_ r: Route) -> Bool { if case .mode(let m) = r { return [.listen, .listenPic, .tones].contains(m) }; return r == .soundDrill }
     var body: some View {
         let due = store.words.selected.filter { store.state.isDue($0.id) }.count
-        let pw: (String, String) = ["zh": ("Liànxí", "练习"), "vi": ("Luyện tập", ""), "ja": ("Renshū", "練習"), "ko": ("Yeonseup", "연습")][store.course.id] ?? ("", "")
+        let pw: (String, String) = ["zh": ("Liànxí", "练习"), "vi": ("Luyện tập", ""), "ja": ("Renshū", "練習"), "ko": ("Yeonseup", "연습"), "de": ("Üben", ""), "es": ("Practicar", "")][store.course.id] ?? ("", "")
         Page {
             VStack(alignment: .leading, spacing: 2) {
                 CapsLabel(text: store.t("practiceEyebrow"))
@@ -169,6 +171,7 @@ func exercise(_ mode: Mode, _ list: [Word], direction: QuizDirection = .hzTr, do
     case .typer: TyperRun(list: list, done: done)
     case .choose: ChooseWord(list: list, done: done)
     case .trace: TraceRun(list: list, done: done)
+    case .gender: GenderQuiz(list: list, done: done)
     }
 }
 
@@ -201,7 +204,7 @@ struct PracticeScreen: View {
                 ResultView(result: r, mode: mode, seconds: Int(Date().timeIntervalSince(started)), retry: r.mistakes.isEmpty || [.match, .tones, .numbers, .typer].contains(mode) ? nil : { run(r.mistakes.shuffled()) }, again: { begin() }, back: { dismiss() })
             }
         }
-        .navigationTitle(store.t(mode.key))
+        .navigationTitle(store.t(mode == .gender && store.course.id == "es" ? "modeGenderEs" : mode.key))
         .navigationBarTitleDisplayMode(.inline)
         .background(Color.paper)
         .onAppear { store.currentSkill = Store.modeSkill[mode.rawValue] }
@@ -222,6 +225,7 @@ struct PracticeScreen: View {
         default:
             var pool = prefs.pool(store)
             if [.picture, .listenPic].contains(mode) { pool = pool.filter { store.words.picture($0.id) != nil } }
+            if mode == .gender { pool = pool.filter { $0.g != nil } } // nouns with a gender
             let take = prefs.take(mode, available: pool.count)
             // Japanese and Korean: words that have a minimal pair come first in Choose the word
             if mode == .choose && ["ja", "ko"].contains(store.course.id) {
@@ -296,9 +300,9 @@ struct SetupView: View {
     var counts: [Int] { mode == .flash ? [10, 20, 40] : mode == .say ? [5, 10, 20] : [10, 20, 30] }
     var available: Int {
         let p = prefs.pool(store)
-        return [.picture, .listenPic].contains(mode) ? p.filter { store.words.picture($0.id) != nil }.count : p.count
+        return [.picture, .listenPic].contains(mode) ? p.filter { store.words.picture($0.id) != nil }.count : mode == .gender ? p.filter { $0.g != nil }.count : p.count
     }
-    var skill: String? { ["listen": [Mode.listen, .listenPic, .tones], "speak": [.say], "read": [.choose, .picture, .flash, .quiz, .match], "write": [.type, .typer, .numbers]].first { $0.value.contains(mode) }?.key }
+    var skill: String? { ["listen": [Mode.listen, .listenPic, .tones], "speak": [.say], "read": [.choose, .picture, .flash, .quiz, .match, .gender], "write": [.type, .typer, .numbers]].first { $0.value.contains(mode) }?.key }
 
     var body: some View {
         let n = available, take = prefs.take(mode, available: n)
@@ -558,7 +562,7 @@ struct NumberDrill: View {
             return .init(
                 play: { store.speaker.say(written) },
                 prompt: AnyView(VStack(spacing: 8) {
-                    Text(written).hanziFont(c == "vi" ? 34 : 52).multilineTextAlignment(.center)
+                    Text(written).hanziFont(Course.byId(c).script == .latin ? 32 : 52).multilineTextAlignment(.center)
                     Text(store.t("numPrompt")).foregroundStyle(Color.ink2)
                     SpeakButton(text: written, small: true)
                 }),

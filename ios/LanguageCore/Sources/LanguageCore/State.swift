@@ -205,7 +205,7 @@ public struct AppState: Codable, Equatable {
     public var stats = Stats()
     public var settings = Settings()
     public var course = "zh"
-    public var courses: [String: CourseState] = ["zh": CourseState(), "vi": CourseState(), "ja": CourseState(), "ko": CourseState()]
+    public var courses: [String: CourseState] = ["zh": CourseState(), "vi": CourseState(), "ja": CourseState(), "ko": CourseState(), "de": CourseState(), "es": CourseState()]
     public var lessons: [String: Lesson] = [:]
     public var custom: [String: CustomWord] = [:]
     public var dlg: [String: DialogueProgress] = [:]

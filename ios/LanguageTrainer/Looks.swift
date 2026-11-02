@@ -45,6 +45,9 @@ struct WordHero: View {
                 WordFace(word: word, size: size)
                 Text(word.py).font(.subheadline).foregroundStyle(Color.ink3)
                 ToneContours(text: word.hz)
+            case "de", "es":
+                WordFace(word: word, size: size)
+                if let pl = word.plural { Text("\(store.t("plural")): \(pl)").font(.subheadline).foregroundStyle(Color.ink2) }
             default:
                 WordFace(word: word, size: size)
                 Pron(py: word.py, size: 20)

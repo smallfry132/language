@@ -15,6 +15,17 @@ final class FlowTests: XCTestCase {
     func button(_ prefix: String) -> XCUIElement { app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", prefix)).firstMatch }
     func text(_ part: String) -> XCUIElement { app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", part)).firstMatch }
 
+    func testGermanArticleQuestion() {
+        // German: Der, die, das? — the noun without its article, three gender buttons; answering shows the word
+        launch(["-course", "de", "-route", "practice/mode/gender", "-autostart"])
+        let der = app.buttons["article-der"]
+        XCTAssertTrue(der.waitForExistence(timeout: 8))
+        XCTAssertTrue(app.buttons["article-die"].exists && app.buttons["article-das"].exists)
+        der.tap()
+        XCTAssertTrue(app.buttons["Next"].waitForExistence(timeout: 3))
+        XCTAssertFalse(der.isEnabled) // one answer per question
+    }
+
     func testTodaySessionRunsToTheEnd() {
         launch(["-goal", "500"]) // goal not reached: Learn more is offered after the session
         app.buttons["Continue"].tap()

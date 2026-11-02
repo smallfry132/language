@@ -30,12 +30,45 @@ final class Speaker: NSObject, AVSpeechSynthesizerDelegate {
     var voices: [String: String] = [:]   // chosen voice per course
     var rate = 0.85
     var muted = false
+    /// Dialogues: the second person speaks with another voice (or the same one lower)
+    var twoVoices = true
     private var player: AVAudioPlayer?
+
+    // Natural sound: the voice speaks at its own speed into buffers (write), and a high-quality time-stretch slows it
+    // afterwards, then an equaliser. Letting the synthesizer slow a Premium voice itself makes vowels tremble.
+    private let writer = AVSpeechSynthesizer()
+    private let engine = AVAudioEngine()
+    private let node = AVAudioPlayerNode()
+    private let stretch = AVAudioUnitTimePitch()
+    private let eq = AVAudioUnitEQ(numberOfBands: 3)
+    private var chainFormat: AVAudioFormat?
+    private var generation = 0          // a new say() or stop() makes older buffers and completions void
+    private var playing = false
+    /// Last render of the natural path: frames received and whether playback finished (for -soundcheck)
+    private(set) var lastRender = (frames: 0, finished: false, fallback: false, firstMs: 0)
 
     override init() {
         super.init()
         synth.delegate = self
         AudioSession.playback()
+        engine.attach(node); engine.attach(stretch); engine.attach(eq)
+        let bands: [(AVAudioUnitEQFilterType, Float)] = [(.lowShelf, 200), (.parametric, 2800), (.highShelf, 8000)]
+        for (b, (type, f)) in zip(eq.bands, bands) { b.filterType = type; b.frequency = f; b.bandwidth = 1.0; b.bypass = false; b.gain = 0 }
+    }
+
+    /// Natural sound on (default) or off, for this device
+    var natural: Bool {
+        get { UserDefaults.standard.object(forKey: "voice.natural") as? Bool ?? true }
+        set { UserDefaults.standard.set(newValue, forKey: "voice.natural") }
+    }
+    /// The equaliser and pitch of a voice on this device (voices differ per device, so this is never synced)
+    func tune(_ voiceId: String?) -> VoiceTune {
+        guard let id = voiceId, let d = UserDefaults.standard.data(forKey: "voice.tune." + id), let t = try? JSONDecoder().decode(VoiceTune.self, from: d) else { return .standard }
+        return t
+    }
+    func setTune(_ t: VoiceTune?, for voiceId: String) {
+        if let t, let d = try? JSONEncoder().encode(t) { UserDefaults.standard.set(d, forKey: "voice.tune." + voiceId) }
+        else { UserDefaults.standard.removeObject(forKey: "voice.tune." + voiceId) }
     }
 
     /// Voices for the course language, best first: premium, enhanced, the regular voice, its smallest version,
@@ -80,20 +113,146 @@ final class Speaker: NSObject, AVSpeechSynthesizerDelegate {
         return courseVoices().first ?? AVSpeechSynthesisVoice(language: course.tts)
     }
 
-    /// rate: 1 = normal speed (the web app's scale)
-    func say(_ text: String, rate r: Double? = nil, then: (() -> Void)? = nil) {
-        if synth.isSpeaking { synth.stopSpeaking(at: .immediate) }
+    static func info(_ v: AVSpeechSynthesisVoice) -> VoiceInfo {
+        VoiceInfo(id: v.identifier, language: v.language, rank: rank(v), gender: v.gender == .male ? 1 : v.gender == .female ? 2 : 0)
+    }
+    /// The second person's voice in dialogues; nil = the main voice, spoken lower
+    var secondVoice: AVSpeechSynthesisVoice? {
+        let all = courseVoices(), main = currentVoice
+        guard let pick = VoicePick.second(main: main.map(Self.info), among: all.map(Self.info), language: course.tts) else { return nil }
+        return all.first { $0.identifier == pick.id }
+    }
+
+    /// rate: 1 = normal speed (the web app's scale). who: the person in a dialogue (1 = the second, with their own voice)
+    func say(_ text: String, rate r: Double? = nil, who: Int = 0, then: (() -> Void)? = nil) {
+        stop()
         AudioSession.playback()
+        var voice = currentVoice, lower = false
+        if who == 1 && twoVoices { if let v2 = secondVoice { voice = v2 } else { lower = true } }
+        let scale = r ?? rate
+        if natural, let voice { sayNatural(text, voice: voice, scale: scale, lower: lower, then: then); return }
+        speakPlain(text, voice: voice, scale: scale, lower: lower, then: then)
+    }
+    private func speakPlain(_ text: String, voice: AVSpeechSynthesisVoice?, scale: Double, lower: Bool, then: (() -> Void)?) {
         let u = AVSpeechUtterance(string: text)
-        u.voice = currentVoice
-        let scale = Float(r ?? rate)
-        u.rate = max(AVSpeechUtteranceMinimumSpeechRate, min(AVSpeechUtteranceMaximumSpeechRate, AVSpeechUtteranceDefaultSpeechRate * scale))
+        u.voice = voice
+        u.rate = max(AVSpeechUtteranceMinimumSpeechRate, min(AVSpeechUtteranceMaximumSpeechRate, AVSpeechUtteranceDefaultSpeechRate * Float(scale)))
+        if lower { u.pitchMultiplier = 0.85 }
         if muted { u.volume = 0 }
         if let then { done[ObjectIdentifier(u)] = then }
         synth.speak(u)
     }
-    func stop() { done.removeAll(); synth.stopSpeaking(at: .immediate) }
-    var isSpeaking: Bool { synth.isSpeaking }
+
+    /// The voice speaks at its own speed into buffers; they play as they arrive through the stretch and the equaliser
+    private func sayNatural(_ text: String, voice: AVSpeechSynthesisVoice, scale: Double, lower: Bool, then: (() -> Void)?) {
+        let gen = generation
+        let t = tune(voice.identifier)
+        stretch.rate = Float(min(2, max(0.25, scale)))
+        stretch.pitch = Float(t.pitch + (lower ? VoicePick.samePitchDrop : 0))
+        eq.bands[0].gain = Float(t.bass); eq.bands[1].gain = Float(t.clarity); eq.bands[2].gain = Float(t.bright)
+        engine.mainMixerNode.outputVolume = muted ? 0 : 1
+        lastRender = (0, false, false, 0)
+        let started = Date()
+        let u = AVSpeechUtterance(string: text)
+        u.voice = voice
+        u.rate = AVSpeechUtteranceDefaultSpeechRate
+        var got = 0, ended = false
+        let fallback = { [weak self] in
+            guard let self, gen == self.generation else { return }
+            self.generation += 1 // the natural render is void from here on: only one of the two may speak
+            self.lastRender.fallback = true
+            self.writer.stopSpeaking(at: .immediate)
+            self.speakPlain(text, voice: voice, scale: scale, lower: lower, then: then)
+        }
+        // Some voices never deliver audio to write(): speak the plain way if nothing came. The first render after
+        // launch takes a while (the voice loads), so this waits long enough not to cut in on a slow start.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4) { if got == 0 && !ended { fallback() } }
+        writer.write(u) { [weak self] buffer in
+            guard let pcm = buffer as? AVAudioPCMBuffer else { return }
+            let copy = Self.floatCopy(pcm)
+            DispatchQueue.main.async {
+                guard let self, gen == self.generation, !ended else { return }
+                if pcm.frameLength == 0 { // the end
+                    ended = true
+                    if got == 0 { fallback(); return }
+                    self.finish(gen: gen, then: then)
+                    return
+                }
+                guard let copy else { return }
+                if got == 0 && !self.prepare(copy.format) { ended = true; fallback(); return }
+                if got == 0 { self.lastRender.firstMs = Int(Date().timeIntervalSince(started) * 1000) }
+                got += Int(copy.frameLength)
+                self.lastRender.frames = got
+                self.node.scheduleBuffer(copy)
+                if !self.node.isPlaying { self.node.play(); self.playing = true }
+            }
+        }
+    }
+    /// After the last buffer: a short silence whose end tells that everything was played
+    private func finish(gen: Int, then: (() -> Void)?) {
+        guard let f = chainFormat, let tail = AVAudioPCMBuffer(pcmFormat: f, frameCapacity: AVAudioFrameCount(f.sampleRate * 0.05)) else { return }
+        tail.frameLength = tail.frameCapacity // silence (zeroed)
+        node.scheduleBuffer(tail, completionCallbackType: .dataPlayedBack) { [weak self] _ in
+            DispatchQueue.main.async {
+                guard let self, gen == self.generation else { return }
+                self.playing = false
+                self.lastRender.finished = true
+                then?()
+            }
+        }
+    }
+    /// Connects the chain for this format (rebuilt only when the format changes) and starts the engine
+    private func prepare(_ f: AVAudioFormat) -> Bool {
+        if chainFormat != f {
+            if engine.isRunning { engine.stop() }
+            engine.disconnectNodeOutput(node); engine.disconnectNodeOutput(stretch); engine.disconnectNodeOutput(eq)
+            engine.connect(node, to: stretch, format: f)
+            engine.connect(stretch, to: eq, format: f)
+            engine.connect(eq, to: engine.mainMixerNode, format: f)
+            chainFormat = f
+        }
+        if !engine.isRunning { engine.prepare(); do { try engine.start() } catch { return false } }
+        return true
+    }
+    /// The synthesizer's buffer as 32-bit float, the format the effects take (it may come as 16-bit integers),
+    /// and as a copy (the synthesizer may reuse its buffers)
+    nonisolated static func floatCopy(_ b: AVAudioPCMBuffer) -> AVAudioPCMBuffer? {
+        guard b.frameLength > 0, let f = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: b.format.sampleRate, channels: b.format.channelCount, interleaved: false),
+              let out = AVAudioPCMBuffer(pcmFormat: f, frameCapacity: b.frameLength) else { return nil }
+        if b.format == f, let src = b.floatChannelData, let dst = out.floatChannelData {
+            for c in 0..<Int(f.channelCount) { dst[c].update(from: src[c], count: Int(b.frameLength)) }
+            out.frameLength = b.frameLength
+            return out
+        }
+        guard let conv = AVAudioConverter(from: b.format, to: f) else { return nil }
+        var fed = false
+        var err: NSError?
+        conv.convert(to: out, error: &err) { _, status in
+            if fed { status.pointee = .noDataNow; return nil }
+            fed = true; status.pointee = .haveData; return b
+        }
+        return err == nil && out.frameLength > 0 ? out : nil
+    }
+
+    func stop() {
+        generation += 1
+        done.removeAll()
+        synth.stopSpeaking(at: .immediate)
+        writer.stopSpeaking(at: .immediate)
+        if node.isPlaying { node.stop() }
+        playing = false
+    }
+    var isSpeaking: Bool { synth.isSpeaking || playing }
+
+    /// -soundcheck: renders the test phrase on the natural path (muted) and prints what happened
+    func soundCheck() {
+        muted = true
+        let report = { (label: String) in print("SOUNDCHECK \(label) frames=\(self.lastRender.frames) firstBuffer=\(self.lastRender.firstMs)ms finished=\(self.lastRender.finished) fallback=\(self.lastRender.fallback) format=\(self.chainFormat.map { "\($0.sampleRate) Hz \($0.channelCount) ch" } ?? "-")") }
+        say(course.testPhrase, rate: 0.8) {
+            report("cold")
+            self.say(self.course.testPhrase, rate: 0.6, who: 1) { report("warm, second person") }
+        }
+    }
 
     func play(_ wav: Data) {
         AudioSession.playback()

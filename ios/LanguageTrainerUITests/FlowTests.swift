@@ -85,6 +85,20 @@ final class FlowTests: XCTestCase {
         XCTAssertTrue(text("2 words").waitForExistence(timeout: 3))
     }
 
+    func testPasteListIntoNewLesson() {
+        launch(["-route", "learn/paste"])
+        let box = app.textViews["paste-text"]
+        XCTAssertTrue(box.waitForExistence(timeout: 5))
+        box.tap(); box.typeText("xie4xie, cha2\nwater")
+        let add = app.buttons["paste-add"]
+        XCTAssertTrue(add.waitForExistence(timeout: 5))
+        XCTAssertTrue(text("3 words to add").waitForExistence(timeout: 5), "xièxie, chá and water are found")
+        add.tap()
+        // The new lesson opens with the three words
+        XCTAssertTrue(text("thank you").waitForExistence(timeout: 5))
+        XCTAssertTrue(text("water").exists)
+    }
+
     func testDialogueTypedAnswer() {
         launch(["-route", "lessons/dialogue/zh-greet", "-dlgmode", "turn", "-dlgrole", "1"])
         let type = button("Type")

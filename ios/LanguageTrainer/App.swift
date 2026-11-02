@@ -103,6 +103,7 @@ struct RootView: View {
         case .families: FamiliesScreen()
         case .family(let id): FamilyScreen(id: id)
         case .familyQuiz(let id): FamilyQuiz(familyId: id)
+        case .paste(let lid): PasteScreen(path: path(tab), lid: lid)
         }
     }
 
@@ -134,6 +135,7 @@ struct RootView: View {
         case "mode": if let m = parts.count > 2 ? Mode(rawValue: parts[2]) : nil { p.append(Route.mode(m)) }
         case "dialogue": if parts.count > 2 { p.append(Route.dialogue(parts[2])) }
         case "lessons": p.append(Route.myLessons)
+        case "paste": p.append(Route.myLessons); p.append(Route.paste(nil))
         case "dialogues": p.append(Route.dialogues)
         case "lesson": if let id = store.state.lessons(course: store.course.id).last?.id { p.append(Route.lesson(id)) }
         case "sounds": p.append(Route.sounds)

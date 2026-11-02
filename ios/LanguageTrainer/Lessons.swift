@@ -40,6 +40,7 @@ struct LessonsScreen: View {
                         Text(store.t("noLessonsYet")).font(.headline)
                         Text(store.t("noLessonsText")).font(.subheadline).foregroundStyle(Color.ink2).multilineTextAlignment(.center)
                         Button("＋ " + store.t("firstLesson")) { path.append(Route.lesson(store.newLesson())) }.buttonStyle(.primary).padding(.top, 4)
+                        Button(store.t("pasteShort")) { path.append(Route.paste(nil)) }.buttonStyle(.secondary)
                     }.frame(maxWidth: .infinity)
                 }
             }
@@ -70,7 +71,10 @@ struct LessonsScreen: View {
             TipBox(title: store.t("afterClass"), text: store.t("afterClassText")).padding(.top, 6)
         }
         .navigationTitle(store.t("myLessons")).navigationBarTitleDisplayMode(.inline)
-        .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("＋ " + store.t("newShort")) { path.append(Route.lesson(store.newLesson())) } } }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) { Button { path.append(Route.paste(nil)) } label: { Image(systemName: "doc.on.clipboard") }.accessibilityLabel(store.t("pasteList")).accessibilityIdentifier("paste-list") }
+            ToolbarItem(placement: .topBarTrailing) { Button("＋ " + store.t("newShort")) { path.append(Route.lesson(store.newLesson())) } }
+        }
     }
 }
 
@@ -195,7 +199,9 @@ struct LessonEditor: View {
                     .font(.title3.weight(.semibold)).padding(12).background(Color.elevated, in: RoundedRectangle(cornerRadius: max(4, Look.current.radius)))
                     .overlay(RoundedRectangle(cornerRadius: max(4, Look.current.radius)).stroke(Color.line))
                     .onSubmit { rename() }
-                SegBar(options: [("list", store.t("pickFromList")), ("own", store.t("typeMyOwn"))], selected: add) { add = $0; query = "" }.padding(.top, 6)
+                SegBar(options: [("list", store.t("pickFromList")), ("own", store.t("typeMyOwn")), ("paste", store.t("pasteShort"))], selected: add) {
+                    if $0 == "paste" { path.append(Route.paste(lid)) } else { add = $0; query = "" }
+                }.padding(.top, 6)
                 if add == "list" { listAdd(l) } else { ownAdd(l) }
                 RuleHead(left: store.t("lessonWords", st.words.count), right: st.own > 0 ? store.t("ownTyped", st.own) : "", caps: false)
                 if st.words.isEmpty { Text(store.t("lessonNoWords")).font(.footnote).foregroundStyle(Color.ink2) }

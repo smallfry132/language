@@ -376,4 +376,28 @@ final class FamilyTests: XCTestCase {
     func testAllCoursesHaveFamilies() {
         for c in ["vi", "ja", "ko"] { var s = AppState(); s.course = c; XCTAssertGreaterThan(CourseWords(state: s).families.count, 10, c) }
     }
+    // Paste a list
+    func words(_ c: String) -> [Word] { var s = AppState(); s.course = c; return CourseWords(state: s).all }
+    func testPasteParse() {
+        XCTAssertEqual(PasteList.parse("1. nǐ hǎo\n2) xie4xie\n• shi\n老师 teacher\nwater, 喝；茶、3"), ["nǐ hǎo", "xie4xie", "shi", "老师 teacher", "water", "喝", "茶"])
+    }
+    func testPasteMatchChinese() {
+        let ws = words("zh")
+        let pieces = PasteList.parse("1. nǐ hǎo\n2. xie4xie\nshi\n老师 teacher\nwater, 喝").enumerated().map { PasteList.match($1, id: $0, words: ws, course: "zh") }
+        XCTAssertEqual(pieces[0].parts?.map(\.hz), ["你", "好"])
+        XCTAssertEqual(pieces[1].hits.map(\.hz), ["谢谢"])
+        XCTAssertGreaterThanOrEqual(pieces[2].hits.count, 3)
+        XCTAssertEqual(pieces[3].hits.first?.hz, "老师")
+        XCTAssertEqual(pieces[4].hits.first?.hz, "水")
+        XCTAssertEqual(pieces[5].hits.first?.hz, "喝")
+        // Not in the list: characters, reading and meaning read from the line
+        let own = PasteList.match("Àodìlì 奥地利 Austria", words: ws, course: "zh")
+        XCTAssertTrue(own.hits.isEmpty)
+        XCTAssertEqual(own.ownHz, "奥地利"); XCTAssertEqual(own.ownPy, "Àodìlì"); XCTAssertEqual(own.ownEn, "Austria")
+    }
+    func testPasteMatchOtherCourses() {
+        XCTAssertEqual(PasteList.match("cam on", words: words("vi"), course: "vi").hits.first?.hz, "cảm ơn")
+        XCTAssertEqual(PasteList.match("mizu", words: words("ja"), course: "ja").hits.first?.hz, "水")
+        XCTAssertEqual(PasteList.match("물", words: words("ko"), course: "ko").hits.first?.hz, "물")
+    }
 }

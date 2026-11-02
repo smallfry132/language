@@ -30,6 +30,7 @@ enum Route: Hashable {
     case families
     case family(Int)
     case familyQuiz(Int?)
+    case paste(String?)
 }
 
 /// Practice (round 2): Listen · Speak · Read · Write, each with its word in the language and a note; rows with a short

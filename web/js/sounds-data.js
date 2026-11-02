@@ -140,6 +140,26 @@ window.SOUNDS = {
   vi: {
     intro: { en: "Vietnamese has twelve vowels and six tones. Each row is one vowel; the cells run through the tones ngang, huyền, sắc, hỏi, ngã, nặng on a carrier syllable. Tap to hear; example words come from the vocabulary lists.", de: "Vietnamesisch hat zwölf Vokale und sechs Töne. Jede Zeile ist ein Vokal; die Zellen durchlaufen die Töne ngang, huyền, sắc, hỏi, ngã, nặng auf einer Trägersilbe. Tippe zum Anhören; die Beispielwörter stammen aus den Wortlisten." },
     groups: [
+      { id: "initials", tiles: true, name: { en: "Initials", de: "Anlaute" }, head: [], rows: [
+        { base: "b", cells: [{ t: "ba" }], gloss: { en: "three", de: "drei" }, match: { initial: "b" } },
+        { base: "c · k", cells: [{ t: "cá" }], gloss: { en: "fish", de: "Fisch" }, match: { initial: "c|k" } },
+        { base: "ch", cells: [{ t: "cha" }], gloss: { en: "father", de: "Vater" }, match: { initial: "ch" } },
+        { base: "d", cells: [{ t: "da" }], gloss: { en: "skin", de: "Haut" }, ns: true, match: { initial: "d" } },
+        { base: "đ", cells: [{ t: "đi" }], gloss: { en: "to go", de: "gehen" }, match: { initial: "đ" } },
+        { base: "g · gh", cells: [{ t: "gà" }], gloss: { en: "chicken", de: "Huhn" }, match: { initial: "g|gh" } },
+        { base: "gi", cells: [{ t: "gì" }], gloss: { en: "what", de: "was" }, ns: true, match: { initial: "gi" } },
+        { base: "kh", cells: [{ t: "khô" }], gloss: { en: "dry", de: "trocken" }, match: { initial: "kh" } },
+        { base: "ng · ngh", cells: [{ t: "ngủ" }], gloss: { en: "to sleep", de: "schlafen" }, match: { initial: "ng|ngh" } },
+        { base: "nh", cells: [{ t: "nhà" }], gloss: { en: "house", de: "Haus" }, match: { initial: "nh" } },
+        { base: "ph", cells: [{ t: "phở" }], gloss: { en: "noodle soup", de: "Nudelsuppe" }, match: { initial: "ph" } },
+        { base: "r", cells: [{ t: "rau" }], gloss: { en: "vegetables", de: "Gemüse" }, ns: true, match: { initial: "r" } },
+        { base: "s", cells: [{ t: "sữa" }], gloss: { en: "milk", de: "Milch" }, ns: true, match: { initial: "s" } },
+        { base: "th", cells: [{ t: "thư" }], gloss: { en: "letter", de: "Brief" }, match: { initial: "th" } },
+        { base: "tr", cells: [{ t: "trà" }], gloss: { en: "tea", de: "Tee" }, ns: true, match: { initial: "tr" } },
+        { base: "x", cells: [{ t: "xe" }], gloss: { en: "vehicle", de: "Fahrzeug" }, match: { initial: "x" } },
+        { base: "v", cells: [{ t: "về" }], gloss: { en: "to return", de: "zurückkehren" }, match: { initial: "v" } },
+        { base: "m", cells: [{ t: "mẹ" }], gloss: { en: "mother", de: "Mutter" }, match: { initial: "m" } }
+      ] },
       { id: "vowels", name: { en: "Vowels × tones", de: "Vokale × Töne" }, head: ["ngang", "huyền", "sắc", "hỏi", "ngã", "nặng"], rows: [
         { base: "a", cells: [{ t: "ma" }, { t: "mà" }, { t: "má" }, { t: "mả" }, { t: "mã" }, { t: "mạ" }], match: { vowel: "a" }, note: { en: "long open a", de: "langes offenes a" } },
         { base: "ă", cells: [{ t: "băn" }, { t: "bằn" }, { t: "bắn" }, { t: "bẳn" }, { t: "bẵn" }, { t: "bặn" }], match: { vowel: "ă" }, note: { en: "short a; only before a final consonant", de: "kurzes a; nur vor Endkonsonant" } },

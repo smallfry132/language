@@ -364,6 +364,10 @@
       whyAgain: "card · Again", whyTyped: (s) => `typed ${s}`, whyPicked: (s) => `picked ${s}`, whyTones: "tones need work", whyNotHeard: "not heard yet",
       sessionPlan: (r, n) => `${r} reviews + ${n} new words`, sessionPlanReviews: (r) => `${r} reviews`, sessionPlanNew: (n) => `${n} new words`, topicLine: (x) => `Topic · ${x}`, todaysSession: "Today’s session",
       hearIt: "Hear it", typeThePinyin: "Type the pinyin", typeTheWord: "Type the word", typePickHint: "Letters only — then tap each tone below. Tone numbers (de2guo2) and tone marks work too.", eachSyllable: "Each syllable needs a tone · neutral tone: leave it unselected", dontKnow: "I don’t know — show me", flow_write_word: "Type the word", typePickHintVi: "Letters only — then tap each tone below. Telex (traf → trà) works too.", eachSyllableVi: "Each syllable needs a tone · no mark = ngang",
+      practiceEyebrow: "Practice", tapTile: "Tap a tile to hear it", voiceNorth: "Northern voice", voiceSouth: "Southern voice", nsNote: "d, gi and r sound like “z” in the North and like “y” in the South.", telexNote: "Telex: <b>dd</b> → đ · <b>aa</b> → â · <b>ow</b> → ơ · tones <b>f s r x j</b>", result: "Result", resultCells: (c, w) => `${c} correct, ${w} wrong`, mistakesN: (n) => `Mistakes · ${n}`, addedToReviews: "Added to today’s reviews", retryMistakes: "Retry mistakes", rateSelfQ: "No speech recogniser on this device? Rate yourself:", notYet: "Not yet", closeEnough: "Close", gotIt: "Got it", sayHint: "Tap the mic and say the word.", tonesRightShort: "tones right", heardShort: "heard", model: "Model", you: "You", setUpRound: "set up this round", allN: (n) => `All ${n}`, orByTime: "or by time", minShort: "min", wordsMatch: (n) => (n === 1 ? "1 word matches" : `${n} words match`), perRound: (k, m) => `${k} per round · ≈ ${m} min`, skillNote_listen: "Ears first", skillNote_speak: "Your tutor’s focus", skillNote_read: "Characters, gently", skillNote_write: "Typing is best on the Mac",
+      sub_listen: "Hear a word, pick the meaning", sub_listenPic: "No reading needed", sub_tones: "Which tone did you hear?", sub_soundDrill: "zh / z / j · q / ch / c", sub_say: "Mic + pitch curve per syllable", sub_dialogues: "Listen · read aloud · role play", sub_freePlay: "Random partner, any topic", sub_soundChart: "Pinyin initials & finals",
+      sub_choose: "Sound-alikes in a sentence", sub_picture: "See it, pick the pinyin", sub_flash: "Spaced repetition", sub_quiz: "4 directions", sub_match: "Pinyin ↔ meaning", sub_type: "Pinyin + tone picker", sub_typer: "Timed typing race", sub_numbers: "yī èr sān … to 99", sub_trace: "Stroke order, when you start reading",
+      modeFree: "Free role play", modeTrace: "Trace characters", newBadge: "New", nDue: (n) => `${n} due`, bestWpm: (n) => `best ${n} wpm`, accentLabel: "Accent", accentN: "Northern", accentS: "Southern",
       nextDialogue: "Next dialogue", allLessons: "All lessons", dlgOf: (i, n) => `${i} of ${n}`, fromTutor: "From your tutor", syncedWith: (x) => `Synced · ${x}`
     },
     de: {
@@ -498,6 +502,10 @@
       whyAgain: "Karte · Nochmal", whyTyped: (s) => `getippt: ${s}`, whyPicked: (s) => `gewählt: ${s}`, whyTones: "Töne üben", whyNotHeard: "noch nicht erkannt",
       sessionPlan: (r, n) => `${r} Wiederholungen + ${n} neue Wörter`, sessionPlanReviews: (r) => `${r} Wiederholungen`, sessionPlanNew: (n) => `${n} neue Wörter`, topicLine: (x) => `Thema · ${x}`, todaysSession: "Heutige Einheit",
       hearIt: "Anhören", typeThePinyin: "Pinyin tippen", typeTheWord: "Wort tippen", typePickHint: "Nur Buchstaben – dann unten jeden Ton antippen. Tonzahlen (de2guo2) und Tonzeichen gehen auch.", eachSyllable: "Jede Silbe braucht einen Ton · neutraler Ton: nichts wählen", dontKnow: "Weiß ich nicht – zeig es mir", flow_write_word: "Wort tippen", typePickHintVi: "Nur Buchstaben – dann unten jeden Ton antippen. Telex (traf → trà) geht auch.", eachSyllableVi: "Jede Silbe braucht einen Ton · ohne Zeichen = ngang",
+      practiceEyebrow: "Üben", tapTile: "Tippe eine Kachel an, um sie zu hören", voiceNorth: "Nördliche Stimme", voiceSouth: "Südliche Stimme", nsNote: "d, gi und r klingen im Norden wie ein stimmhaftes „s“, im Süden wie „j“.", telexNote: "Telex: <b>dd</b> → đ · <b>aa</b> → â · <b>ow</b> → ơ · Töne <b>f s r x j</b>", result: "Ergebnis", resultCells: (c, w) => `${c} richtig, ${w} falsch`, mistakesN: (n) => `Fehler · ${n}`, addedToReviews: "Zu den heutigen Wiederholungen hinzugefügt", retryMistakes: "Fehler wiederholen", rateSelfQ: "Keine Spracherkennung auf diesem Gerät? Bewerte dich selbst:", notYet: "Noch nicht", closeEnough: "Fast", gotIt: "Geschafft", sayHint: "Tippe aufs Mikrofon und sag das Wort.", tonesRightShort: "Töne richtig", heardShort: "erkannt", model: "Vorlage", you: "Du", setUpRound: "Runde einrichten", allN: (n) => `Alle ${n}`, orByTime: "oder nach Zeit", minShort: "Min.", wordsMatch: (n) => (n === 1 ? "1 Wort passt" : `${n} Wörter passen`), perRound: (k, m) => `${k} pro Runde · ≈ ${m} Min.`, skillNote_listen: "Erst die Ohren", skillNote_speak: "Schwerpunkt im Unterricht", skillNote_read: "Zeichen, ganz sanft", skillNote_write: "Tippen geht am Mac am besten",
+      sub_listen: "Wort hören, Bedeutung wählen", sub_listenPic: "Ohne Lesen", sub_tones: "Welchen Ton hast du gehört?", sub_soundDrill: "zh / z / j · q / ch / c", sub_say: "Mikro + Tonkurve je Silbe", sub_dialogues: "Hören · laut lesen · Rollenspiel", sub_freePlay: "Zufälliger Partner, beliebiges Thema", sub_soundChart: "Pinyin-Anlaute und -Auslaute",
+      sub_choose: "Ähnlich klingende Wörter im Satz", sub_picture: "Bild sehen, Pinyin wählen", sub_flash: "Verteilte Wiederholung", sub_quiz: "4 Richtungen", sub_match: "Pinyin ↔ Bedeutung", sub_type: "Pinyin + Tonwahl", sub_typer: "Tipp-Rennen auf Zeit", sub_numbers: "yī èr sān … bis 99", sub_trace: "Strichfolge, wenn du mit Zeichen anfängst",
+      modeFree: "Freies Rollenspiel", modeTrace: "Zeichen nachziehen", newBadge: "Neu", nDue: (n) => `${n} fällig`, bestWpm: (n) => `Rekord ${n} WpM`, accentLabel: "Akzent", accentN: "Nord", accentS: "Süd",
       nextDialogue: "Nächster Dialog", allLessons: "Alle Lektionen", dlgOf: (i, n) => `${i} von ${n}`, fromTutor: "Aus deinem Unterricht", syncedWith: (x) => `Synchronisiert · ${x}`
     }
   };
@@ -520,6 +528,7 @@
   const COURSE_I18N = {
     ja: {
       en: {
+        skillNote_read: "Kana and kanji", skillNote_write: "Romaji or kana", sub_soundDrill: "Long vowels · small っ", sub_say: "Microphone check", sub_soundChart: "Kana tables", sub_choose: "One long vowel changes the word", sub_picture: "See it, pick the word", sub_match: "Word ↔ meaning", sub_type: "Romaji or kana", sub_numbers: "ichi, ni, san … to 99",
         modeSayDesc: "See a word and say it. The microphone checks it, or you record and compare.", stepSpeakDesc: "Say each word out loud. The microphone checks it, or you record yourself and compare.",
         brandSub: "Japanese", search: "Search kanji, kana, romaji or meaning…", tilePinyin: "Reading on tiles", langName: "Japanese", typeOr: "…or type it",
         modeType: "Type the reading", modeTypeDesc: "See the word, type its reading in kana or romaji.",
@@ -541,6 +550,7 @@
         ]
       },
       de: {
+        skillNote_read: "Kana und Kanji", skillNote_write: "Romaji oder Kana", sub_soundDrill: "Lange Vokale · kleines っ", sub_say: "Mikrofon-Check", sub_soundChart: "Kana-Tabellen", sub_choose: "Ein langer Vokal ändert das Wort", sub_picture: "Bild sehen, Wort wählen", sub_match: "Wort ↔ Bedeutung", sub_type: "Romaji oder Kana", sub_numbers: "ichi, ni, san … bis 99",
         modeSayDesc: "Wort sehen und laut sagen. Das Mikrofon prüft es, oder du nimmst dich auf und vergleichst.", stepSpeakDesc: "Sag jedes Wort laut. Das Mikrofon prüft es, oder du nimmst dich auf und vergleichst.",
         brandSub: "Japanisch", search: "Kanji, Kana, Romaji oder Bedeutung suchen…", tilePinyin: "Lesung auf Kacheln", langName: "Japanisch", typeOr: "…oder tippe es",
         modeType: "Lesung tippen", modeTypeDesc: "Wort sehen, Lesung in Kana oder Romaji eingeben.",
@@ -564,6 +574,7 @@
     },
     ko: {
       en: {
+        skillNote_read: "Hangul blocks", skillNote_write: "Korean keyboard", sub_soundDrill: "ㄱ / ㅋ / ㄲ · ㅓ / ㅗ", sub_say: "Microphone check", sub_soundChart: "Hangul letters", sub_choose: "Only the final consonant changes", sub_picture: "See it, pick the word", sub_match: "Word ↔ meaning", sub_type: "Hangul or romanization", sub_numbers: "il, i, sam … to 99",
         modeSayDesc: "See a word and say it. The microphone checks it, or you record and compare.", stepSpeakDesc: "Say each word out loud. The microphone checks it, or you record yourself and compare.",
         brandSub: "Korean", search: "Search Hangul, romanization or meaning…", tilePinyin: "Romanization on tiles", langName: "Korean", typeOr: "…or type it",
         modeType: "Type the word", modeTypeDesc: "See the meaning, type the Korean word in Hangul or romanization.",
@@ -590,6 +601,7 @@
         ]
       },
       de: {
+        skillNote_read: "Hangul-Blöcke", skillNote_write: "Koreanische Tastatur", sub_soundDrill: "ㄱ / ㅋ / ㄲ · ㅓ / ㅗ", sub_say: "Mikrofon-Check", sub_soundChart: "Hangul-Buchstaben", sub_choose: "Nur der Endkonsonant ändert sich", sub_picture: "Bild sehen, Wort wählen", sub_match: "Wort ↔ Bedeutung", sub_type: "Hangul oder Umschrift", sub_numbers: "il, i, sam … bis 99",
         modeSayDesc: "Wort sehen und laut sagen. Das Mikrofon prüft es, oder du nimmst dich auf und vergleichst.", stepSpeakDesc: "Sag jedes Wort laut. Das Mikrofon prüft es, oder du nimmst dich auf und vergleichst.",
         brandSub: "Koreanisch", search: "Hangul, Umschrift oder Bedeutung suchen…", tilePinyin: "Umschrift auf Kacheln", langName: "Koreanisch", typeOr: "…oder tippe es",
         modeType: "Wort tippen", modeTypeDesc: "Bedeutung sehen, koreanisches Wort in Hangul oder Umschrift eingeben.",
@@ -618,6 +630,7 @@
     },
     vi: {
       en: {
+        skillNote_read: "", skillNote_speak: "", skillNote_write: "Telex keyboard", sub_tones: "ma · mà · má · mả · mã · mạ", sub_soundDrill: "tr / ch · s / x · d / gi / r", sub_say: "Mic + tone check", sub_soundChart: "Initials, finals, tones", sub_choose: "Same letters, different tone", sub_picture: "See it, pick the word", sub_match: "Word ↔ meaning", sub_type: "Telex: traf → trà, suwax → sữa", sub_numbers: "một, hai, ba … to 99",
         modeSayDesc: "See a word and say it. The microphone checks it, or you record and compare.", stepSpeakDesc: "Say each word out loud. The microphone checks it, or you record yourself and compare.",
         brandSub: "Vietnamese", search: "Search word or meaning…", tilePinyin: "Pronunciation on tiles", typeOr: "…or type it",
         modeType: "Type the word", modeTypeDesc: "See the meaning, type the Vietnamese word.",
@@ -648,6 +661,7 @@
         tone1d: "Flat, mid-high, no mark: ma.", tone2d: "Starts mid and falls gently, grave accent: mà.", tone3d: "Rises sharply, acute accent: má.", tone4d: "Dips then rises, hook: mả.", tone5d: "Rises with a catch in the throat, tilde: mã.", tone6d: "Drops abruptly and stops, dot below: mạ."
       },
       de: {
+        skillNote_read: "", skillNote_speak: "", skillNote_write: "Telex-Tastatur", sub_tones: "ma · mà · má · mả · mã · mạ", sub_soundDrill: "tr / ch · s / x · d / gi / r", sub_say: "Mikro + Tonprüfung", sub_soundChart: "Anlaute, Auslaute, Töne", sub_choose: "Gleiche Buchstaben, anderer Ton", sub_picture: "Bild sehen, Wort wählen", sub_match: "Wort ↔ Bedeutung", sub_type: "Telex: traf → trà, suwax → sữa", sub_numbers: "một, hai, ba … bis 99",
         modeSayDesc: "Wort sehen und laut sagen. Das Mikrofon prüft es, oder du nimmst dich auf und vergleichst.", stepSpeakDesc: "Sag jedes Wort laut. Das Mikrofon prüft es, oder du nimmst dich auf und vergleichst.",
         brandSub: "Vietnamesisch", search: "Wort oder Bedeutung suchen…", tilePinyin: "Aussprache auf Kacheln", typeOr: "…oder tippe es",
         modeType: "Wort tippen", modeTypeDesc: "Bedeutung sehen, vietnamesisches Wort eingeben.",
@@ -784,6 +798,7 @@
   function markLearning(id) { S.srs[id] = { ef: 2.5, interval: 0, reps: 0, due: Date.now(), lapses: 0, first: todayKey() }; save(); }
   function resetWord(id) { delete S.srs[id]; save(); }
   function recordAnswer(correct) {
+    if (!flow && typeof runMarks !== "undefined") runMarks.push(!!correct);
     S.stats.answered += 1; if (correct) S.stats.correct += 1;
     const k = todayKey(); S.stats.days[k] = (S.stats.days[k] || 0) + 1; save();
   }
@@ -909,6 +924,7 @@
     closeSheet();
     if (cleanup) { cleanup(); cleanup = null; }
     flow = null; document.body.classList.remove("in-flow");
+    runMarks = []; runT0 = Date.now(); runMode = null; runWhy = {};
     // Leaving a screen ends any listening or recording that is still running
     if (MIC.cap) { MIC.cap.aborted = true; MIC.cap.finish(); }
     if (MIC.rec) { MIC.rec.onresult = null; MIC.rec.abort ? MIC.rec.abort() : MIC.rec.stop(); }
@@ -974,7 +990,7 @@
     const search = $("#search");
     search.oninput = () => { wf.q = search.value; drawTiles(); };
     $$("[data-ws]").forEach((b) => (b.onclick = () => { wf.status = wf.status === b.dataset.ws ? "all" : b.dataset.ws; render(); }));
-    if ($("#review-due")) $("#review-due").onclick = () => { setupPrefs.pool = "due"; navigate("train/flash"); };
+    if ($("#review-due")) $("#review-due").onclick = () => { setupPrefs.pools = ["due"]; setupPrefs.mins = 0; navigate("train/flash"); };
     bindLevelChips("lvl-chips", () => { setTopbar(t("words") + " · " + levelLabel(), null); drawTiles(); });
     $$("#status-chips .chip").forEach((b) => (b.onclick = () => { wf.status = b.dataset.status; $$("#status-chips .chip").forEach((x) => x.classList.toggle("active", x === b)); drawTiles(); }));
     $$("#cat-chips .chip").forEach((b) => (b.onclick = () => { wf.cat = b.dataset.cat; $$("#cat-chips .chip").forEach((x) => x.classList.toggle("active", x === b)); drawTiles(); }));
@@ -1057,15 +1073,19 @@
     { id: "say", ico: "🎤", key: "modeSay" },
     { id: "picture", ico: "🖼️", key: "modePicture" },
     { id: "listenPic", ico: "👂", key: "modeListenPic" },
-    { id: "choose", ico: "🔤", key: "modeChoose" }
+    { id: "choose", ico: "🔤", key: "modeChoose" },
+    { id: "trace", ico: "✍️", key: "modeTrace" }
   ];
-  // Practice is grouped by what the tutors ask for; each row is a mode or a place in the app
+  // Practice (round 2): grouped by skill, each group with its word in the language and a note; rows show
+  // what is waiting (due words, best speed, dialogues done) and NEW for the newest modes
   const SKILLS = [
-    { id: "listen", rows: [["train/listen", "modeListen"], ["train/listenPic", "modeListenPic"], ["train/tones", "modeTones"], ["sounds/drill", "soundDrill"]] },
-    { id: "speak", rows: [["train/say", "modeSay"], ["lessons", "dialoguesRead"], ["sounds", "soundChart"]] },
-    { id: "read", rows: [["train/choose", "modeChoose"], ["train/picture", "modePicture"], ["train/flash", "modeFlash"], ["train/quiz", "modeQuiz"], ["train/match", "modeMatch"]] },
-    { id: "write", rows: [["train/type", "modeType"], ["train/typer", "modeTyper"], ["train/numbers", "modeNumbers"]] }
+    { id: "listen", rows: [["train/listen", "modeListen", "listen"], ["train/listenPic", "modeListenPic", "listenPic"], ["train/tones", "modeTones", "tones"], ["sounds/drill", "soundDrill", "soundDrill"]] },
+    { id: "speak", rows: [["train/say", "modeSay", "say"], ["lessons", "dialogues", "dialogues"], ["free", "modeFree", "freePlay", true], ["sounds", "soundChart", "soundChart"]] },
+    { id: "read", rows: [["train/choose", "modeChoose", "choose"], ["train/picture", "modePicture", "picture"], ["train/flash", "modeFlash", "flash"], ["train/quiz", "modeQuiz", "quiz"], ["train/match", "modeMatch", "match"]] },
+    { id: "write", rows: [["train/type", "modeType", "type"], ["train/typer", "modeTyper", "typer"], ["train/numbers", "modeNumbers", "numbers"], ["train/trace", "modeTrace", "trace", true]] }
   ];
+  const SKILL_WORD = { zh: [["tīng", "听"], ["shuō", "说"], ["dú", "读"], ["xiě", "写"]], vi: [["Nghe"], ["Nói"], ["Đọc"], ["Viết"]], ja: [["kiku", "聞く"], ["hanasu", "話す"], ["yomu", "読む"], ["kaku", "書く"]], ko: [["deutgi", "듣기"], ["malhagi", "말하기"], ["ilkgi", "읽기"], ["sseugi", "쓰기"]] };
+  const PRACTICE_WORD = { zh: ["Liànxí", "练习"], vi: ["Luyện tập"], ja: ["Renshū", "練習"], ko: ["Yeonseup", "연습"] };
   function renderTrain(view) {
     const mode = route[1];
     if (!mode) return renderTrainHome(view);
@@ -1082,72 +1102,106 @@
     if (mode === "numbers") return startNumbers(view);
     if (mode === "say") return setupSession(view, mode, { pool: true, count: [5, 10, 20] });
     if (mode === "choose") return setupSession(view, mode, { pool: true, count: [10, 20, 40] });
+    if (mode === "trace") return C.id === "zh" && window.STROKES ? startTrace(view) : renderTrainHome(view);
     if (mode === "picture" || mode === "listenPic") return hasPics() ? setupSession(view, mode, { pool: true, count: [10, 20, 40], pics: true }) : renderTrainHome(view);
   }
   function renderTrainHome(view) {
     setTopbar(t("train"), null);
-    const due = dueWords().length;
-    const hidden = (route) => ((route === "train/picture" || route === "train/listenPic") && !hasPics()) || (route === "train/tones" && !C.toneOptions) || (route === "train/typer" && C.id === "ja") || (route === "lessons" && !courseDialogues().length);
+    document.body.classList.add("home");
+    const due = dueWords().length, dl = courseDialogues();
+    const hidden = (r) => ((r === "train/picture" || r === "train/listenPic") && !hasPics()) || (r === "train/tones" && !C.toneOptions) || (r === "train/typer" && C.id === "ja") || ((r === "lessons" || r === "free") && !dl.length) || (r === "train/trace" && !(C.id === "zh" && window.STROKES));
+    const meta = (r) => r === "train/listen" || r === "train/flash" ? (due ? t("nDue", due) : "")
+      : r === "train/typer" && S.typer && S.typer[C.id] ? t("bestWpm", S.typer[C.id])
+      : r === "lessons" ? `${dl.filter((d) => dlgDone(d.id)).length} / ${dl.length}` : "";
+    const word = (k) => { const x = SKILL_WORD[C.id][k]; return C.id === "zh" ? (pyFirst() ? `<span class="py-face">${pyHtml(x[0])}</span>` : `<span class="hanzi">${x[1]}</span>`) : `<span class="${x[1] ? "hanzi" : ""}">${esc(x[1] || x[0])}</span>`; };
+    const pw = PRACTICE_WORD[C.id];
     view.innerHTML = `
-      ${due ? `<button class="list-hint due-note" id="due-note" type="button">${t("dueInToday", due)} ›</button>` : ""}
-      <div class="skills">${SKILLS.map((sk) => `
-        <section class="skill">
-          <div class="skill-head">${icon(sk.id)}<div><h3>${t("skill_" + sk.id)}</h3><div class="li-sub">${t("skill_" + sk.id + "Desc")}</div></div></div>
-          <div class="list">${sk.rows.filter(([r]) => !hidden(r)).map(([r, key]) => `<button class="list-item" data-go="${r}" type="button"><span class="grow"><div class="li-title">${t(key)}</div><div class="li-sub">${t(key + "Desc")}</div></span><span class="li-chev">›</span></button>`).join("")}</div>
-        </section>`).join("")}</div>`;
-    if ($("#due-note")) $("#due-note").onclick = () => navigate("today");
-    $$("[data-go]").forEach((b) => (b.onclick = () => navigate(b.dataset.go)));
+      <div class="page-head"><span class="eyebrow">${t("practiceEyebrow")}</span>
+        <div class="row"><span class="ph-title grow">${C.id === "zh" ? `${pyHtml(pw[0])} <span class="hanzi ph-sub">${pw[1]}</span>` : `<span class="${pw[1] ? "hanzi" : ""}">${esc(pw[1] || pw[0])}</span>`}</span>
+        ${C.id === "vi" ? `<button class="accent-btn" id="accent" type="button">${t("accentLabel")} · ${t(S.settings.viAccent === "s" ? "accentS" : "accentN")}</button>` : ""}</div></div>
+      ${SKILLS.map((sk, k) => `
+        <section class="skill2">
+          <div class="sk2-head"><span class="sk2-name">${t("skill_" + sk.id)} ${word(k)}</span><span class="sk2-note">${esc(t("skillNote_" + sk.id))}</span></div>
+          ${sk.rows.filter(([r]) => !hidden(r)).map(([r, key, sub, isNew]) => `<button class="sk2-row" data-go="${r}" type="button"><span class="grow"><span class="sk2-t">${t(key)}${isNew ? `<span class="new-badge">${t("newBadge")}</span>` : ""}</span><span class="sk2-s">${esc(t("sub_" + sub))}</span></span><span class="sk2-m">${meta(r)}</span>${icon("chev")}</button>`).join("")}
+        </section>`).join("")}`;
+    $$("[data-go]").forEach((b) => (b.onclick = () => {
+      if (b.dataset.go === "free") { const d = dl[Math.floor(Math.random() * dl.length)]; return navigate("lessons/d/" + d.id + "/turn"); }
+      navigate(b.dataset.go);
+    }));
+    if ($("#accent")) $("#accent").onclick = () => { S.settings.viAccent = S.settings.viAccent === "s" ? "n" : "s"; save(); pickVoice(); render(); };
   }
 
-  /* --- Session setup --- */
-  const setupPrefs = { pool: "due", count: 10, cat: "all", direction: "hzTr" };
+  /* --- Session setup (round 2): chip rows always open, How many or By time, direction as a segmented control,
+   * and a sticky summary bar with the number of matching words and Start --- */
+  const setupPrefs = { pools: ["due"], count: 10, mins: 0, cat: "all", direction: "hzTr" };
+  const MODE_SECS = { flash: 10, quiz: 8, listen: 8, picture: 8, listenPic: 8, type: 15, say: 20, choose: 12 };
   function poolWords(pool, cat) {
-    let list = WORDS.filter((w) => inCat(w, cat));
-    if (pool === "due") {
-      const due = list.filter((w) => isDue(w.id)); const fresh = list.filter((w) => status(w.id) === "new");
-      list = due.concat(shuffle(fresh));
-      if (!list.length) list = WORDS.filter((w) => inCat(w, cat));
-    } else if (pool === "lessons") list = lessonWords().filter((w) => inCat(w, cat));
-    else if (pool === "favs") list = list.filter((w) => S.favs.includes(w.id));
-    else if (pool === "learning") list = list.filter((w) => status(w.id) === "learning");
-    return list;
+    const pools = Array.isArray(pool) ? pool : [pool];
+    const one = (p) => {
+      let list = WORDS.filter((w) => inCat(w, cat));
+      if (p === "due") {
+        const due = list.filter((w) => isDue(w.id)); const fresh = list.filter((w) => status(w.id) === "new");
+        list = due.concat(shuffle(fresh));
+      } else if (p === "lessons") list = lessonWords().filter((w) => inCat(w, cat));
+      else if (p === "favs") list = list.filter((w) => S.favs.includes(w.id));
+      else if (p === "learning") list = list.filter((w) => status(w.id) === "learning");
+      return list;
+    };
+    const seen = new Set(), out = [];
+    pools.forEach((p) => one(p).forEach((w) => { if (!seen.has(w.id)) { seen.add(w.id); out.push(w); } }));
+    return out.length || !pools.includes("due") ? out : WORDS.filter((w) => inCat(w, cat));
   }
   function setupSession(view, mode, cfg) {
-    const pools = [["due", t("dueWords")]].concat(lessonWords().length ? [["lessons", t("lessonsPool")]] : [], [["all", t("allWords")], ["learning", t("learningOnly")], ["favs", t("favsOnly")]]);
-    if (setupPrefs.pool === "lessons" && !lessonWords().length) setupPrefs.pool = "due";
+    const m = MODES.find((x) => x.id === mode), skill = SKILLS.find((sk) => sk.rows.some(([r]) => r === "train/" + mode));
+    const due = WORDS.filter((w) => isDue(w.id)).length;
+    const pools = [["due", t("dueWords") + (due ? " · " + due : "")]].concat(lessonWords().length ? [["lessons", t("lessonsPool")]] : [], [["all", t("allWords")], ["learning", t("learningOnly")], ["favs", t("favsOnly")]]);
+    setupPrefs.pools = setupPrefs.pools.filter((p) => pools.some(([k]) => k === p)); if (!setupPrefs.pools.length) setupPrefs.pools = ["due"];
     // Pinyin first: the character directions make no sense yet
     const dirs = [["hzTr", t("dirHzTr")], ["trHz", t("dirTrHz")]].concat(pyFirst() ? [] : [["hzPy", t("dirHzPy")], ["pyHz", t("dirPyHz")]]);
     if (!dirs.some(([k]) => k === setupPrefs.direction)) setupPrefs.direction = "hzTr";
-    view.innerHTML = `
-      <div class="card stack">
-        <h2>${t(MODES.find((m) => m.id === mode).key)}</h2>
-        <p class="muted" style="margin:0">${t(MODES.find((m) => m.id === mode).key + "Desc")}</p>
-        <div class="list-hint" id="pool-info"></div>
-        <button class="btn primary block" id="start" type="button">${t("start")}</button>
-        <details class="adjust"><summary>${t("adjust")}</summary>
-        <div class="section-title" style="margin-top:4px">${t("levels")}</div>
-        ${levelChips("s-lvl-chips")}
-        <div class="section-title">${t("whichWords")}</div>
-        <div class="chips" id="pool-chips">${pools.map(([k, l]) => `<button class="chip ${setupPrefs.pool === k ? "active" : ""}" data-pool="${k}" type="button">${l}</button>`).join("")}</div>
-        <div class="section-title">${t(themes().length ? "topics" : "category")}</div>
-        ${topicChips("scat-chips", setupPrefs.cat)}
-        <div class="section-title">${t("howMany")}</div>
-        <div class="chips" id="count-chips">${cfg.count.map((n) => `<button class="chip ${setupPrefs.count === n ? "active" : ""}" data-count="${n}" type="button">${n === 150 ? t("all") : n}</button>`).join("")}</div>
-        ${cfg.direction ? `<div class="section-title">${t("direction")}</div><div class="chips" id="dir-chips">${dirs.map(([k, l]) => `<button class="chip ${setupPrefs.direction === k ? "active" : ""}" data-dir="${k}" type="button">${l}</button>`).join("")}</div>` : ""}
-        </details>
-      </div>`;
-    if (!cfg.count.includes(setupPrefs.count)) setupPrefs.count = cfg.count[0];
-    const bind = (sel, attr, key) => $$(sel + " .chip").forEach((b) => (b.onclick = () => { setupPrefs[key] = attr === "count" ? +b.dataset[attr] : b.dataset[attr]; $$(sel + " .chip").forEach((x) => x.classList.toggle("active", x === b)); updateInfo(); }));
-    bind("#pool-chips", "pool", "pool"); bind("#scat-chips", "cat", "cat"); bind("#count-chips", "count", "count");
-    if (cfg.direction) bind("#dir-chips", "dir", "direction");
-    bindLevelChips("s-lvl-chips", updateInfo);
-    const poolOf = () => poolWords(setupPrefs.pool, setupPrefs.cat).filter((w) => !cfg.pics || pic(w));
-    function updateInfo() { const n = poolOf().length; $("#pool-info").textContent = t("wordsCount", Math.min(n, setupPrefs.count), n); $("#start").disabled = n < (mode === "flash" || mode === "type" || mode === "say" ? 1 : 4); }
-    updateInfo();
-    $("#start").onclick = () => {
-      runWhy = {};
+    if (!cfg.count.includes(setupPrefs.count) && setupPrefs.count !== 9999) setupPrefs.count = cfg.count[1] || cfg.count[0];
+    const secs = MODE_SECS[mode] || 10;
+    const topics = themes().length ? themes().map((x) => [x.id, L(x.name)]) : Object.keys(CATS).filter((c) => WORDS.some((w) => w.cat === c)).map((c) => [c, catName(c)]);
+    let showAll = setupPrefs.cat !== "all" && topics.findIndex(([k]) => k === setupPrefs.cat) >= 6;
+    const poolOf = () => poolWords(setupPrefs.pools.includes("all") ? ["all"] : setupPrefs.pools, setupPrefs.cat).filter((w) => !cfg.pics || pic(w));
+    document.body.classList.add("home"); // the setup has its own header
+    function draw() {
+      const n = poolOf().length, per = setupPrefs.mins ? Math.max(1, Math.round((setupPrefs.mins * 60) / secs)) : setupPrefs.count;
+      const take = Math.min(n, per), mins = Math.max(1, Math.round((take * secs) / 60));
+      const tp = showAll ? topics : topics.slice(0, 6);
+      view.innerHTML = `
+        <div class="setup2">
+          <div class="setup-head"><button class="fh-close" id="su-back" type="button" aria-label="${t("back")}">${icon("back")}</button><div class="grow"><div class="fh-title">${t(m.key)}</div><div class="fh-sub">${skill ? t("skill_" + skill.id) + " · " : ""}${t("setUpRound")}</div></div></div>
+          <div class="su-sec"><div class="su-label">${t("levels")}</div>${levelChips("s-lvl-chips")}</div>
+          <div class="su-sec"><div class="su-label">${t("whichWords")}</div><div class="chips" id="pool-chips">${pools.map(([k, l]) => `<button class="chip ${setupPrefs.pools.includes(k) ? "active" : ""}" data-pool="${k}" type="button" aria-pressed="${setupPrefs.pools.includes(k)}">${l}</button>`).join("")}</div></div>
+          <div class="su-sec"><div class="su-label">${t(themes().length ? "topics" : "category")}</div><div class="chips" id="scat-chips"><button class="chip ${setupPrefs.cat === "all" ? "active" : ""}" data-cat="all" type="button">${t("all")}</button>${tp.map(([k, l]) => `<button class="chip ${setupPrefs.cat === k ? "active" : ""}" data-cat="${k}" type="button">${esc(l)}</button>`).join("")}${!showAll && topics.length > 6 ? `<button class="chip" id="more-topics" type="button">+ ${topics.length - 6}</button>` : ""}</div></div>
+          <div class="su-sec"><div class="su-label">${t("howMany")}</div>
+            <div class="seg" id="count-seg">${cfg.count.filter((c) => c < 150).map((c) => `<button class="${!setupPrefs.mins && setupPrefs.count === c ? "on" : ""}" data-count="${c}" type="button">${c}</button>`).join("")}<button class="${!setupPrefs.mins && setupPrefs.count === 9999 ? "on" : ""}" data-count="9999" type="button">${t("allN", n)}</button></div>
+            <div class="by-time">${t("orByTime")} <span class="new-badge">${t("newBadge")}</span> · ${[5, 10, 15].map((x) => `<button class="link-btn ${setupPrefs.mins === x ? "on" : ""}" data-mins="${x}" type="button">${x}</button>`).join(" · ")} ${t("minShort")}</div></div>
+          ${cfg.direction ? `<div class="su-sec"><div class="su-label">${t("direction")}</div><div class="seg" id="dir-seg">${dirs.map(([k, l]) => `<button class="${setupPrefs.direction === k ? "on" : ""}" data-dir="${k}" type="button">${l}</button>`).join("")}</div></div>` : ""}
+        </div>
+        <div class="su-bar"><div class="grow"><b>${t("wordsMatch", n)}</b><span>${t("perRound", take, mins)}</span></div><button class="btn primary" id="start" type="button" ${n < (mode === "flash" || mode === "type" || mode === "say" ? 1 : 4) ? "disabled" : ""}>${t("start")}</button></div>`;
+      $("#su-back").onclick = () => navigate("train");
+      $$("#pool-chips .chip").forEach((b) => (b.onclick = () => {
+        const k = b.dataset.pool, cur = setupPrefs.pools;
+        setupPrefs.pools = k === "all" ? ["all"] : cur.includes(k) ? (cur.length > 1 ? cur.filter((x) => x !== k) : cur) : cur.filter((x) => x !== "all").concat(k);
+        draw();
+      }));
+      $$("#scat-chips [data-cat]").forEach((b) => (b.onclick = () => { setupPrefs.cat = b.dataset.cat; draw(); }));
+      if ($("#more-topics")) $("#more-topics").onclick = () => { showAll = true; draw(); };
+      $$("#count-seg [data-count]").forEach((b) => (b.onclick = () => { setupPrefs.count = +b.dataset.count; setupPrefs.mins = 0; draw(); }));
+      $$("[data-mins]").forEach((b) => (b.onclick = () => { setupPrefs.mins = setupPrefs.mins === +b.dataset.mins ? 0 : +b.dataset.mins; draw(); }));
+      $$("#dir-seg [data-dir]").forEach((b) => (b.onclick = () => { setupPrefs.direction = b.dataset.dir; draw(); }));
+      bindLevelChips("s-lvl-chips", draw);
+      $("#start").onclick = () => start(take);
+    }
+    function start(take) {
       let list = poolOf();
-      list = setupPrefs.pool === "due" ? list.slice(0, setupPrefs.count) : sample(list, setupPrefs.count);
+      list = setupPrefs.pools.includes("due") && setupPrefs.pools.length === 1 ? list.slice(0, take) : sample(list, take);
+      run(list);
+    }
+    function run(list) {
+      runWhy = {}; runMarks = []; runT0 = Date.now(); runMode = { mode, again: run };
       if (mode === "flash") runFlash(view, list);
       else if (mode === "quiz") runQuiz(view, list, setupPrefs.direction);
       else if (mode === "type") runType(view, list);
@@ -1156,30 +1210,45 @@
       else if (mode === "picture") runQuiz(view, list, "picWord");
       else if (mode === "listenPic") runQuiz(view, list, "listenPic");
       else if (mode === "choose") runChoose(view, list);
-    };
+    }
+    draw();
   }
 
+  // The current practice round (outside the daily session): answers in order, start time, how to run it again
+  let runMarks = [], runT0 = 0, runMode = null;
   function sessionHead(i, n, extra) {
     if (flow) return flowHead(i, n); // inside the daily session: its own header
+    const close = `<button class="fh-close" id="ex-close" type="button" aria-label="${t("close")}">${icon("close")}</button>`;
     // One segment per question when they fit, as on the style canvas
-    if (n <= 24) return `<div class="session-head"><div class="segments" role="progressbar" aria-valuenow="${i}" aria-valuemax="${n}">${Array.from({ length: n }, (_, k) => `<i class="${k < i ? "on" : ""}"></i>`).join("")}</div><span class="count">${i}/${n}${extra ? " · " + extra : ""}</span></div>`;
-    return `<div class="session-head"><div class="progress-bar"><span style="width:${Math.round((i / n) * 100)}%"></span></div><span class="count">${i}/${n}${extra ? " · " + extra : ""}</span></div>`;
+    if (n <= 24) return `<div class="session-head">${close}<div class="segments" role="progressbar" aria-valuenow="${i}" aria-valuemax="${n}">${Array.from({ length: n }, (_, k) => `<i class="${k < i ? "on" : ""}"></i>`).join("")}</div><span class="count">${i}/${n}${extra ? " · " + extra : ""}</span></div>`;
+    return `<div class="session-head">${close}<div class="progress-bar"><span style="width:${Math.round((i / n) * 100)}%"></span></div><span class="count">${i}/${n}${extra ? " · " + extra : ""}</span></div>`;
   }
+  document.addEventListener("click", (e) => { if (e.target.closest("#ex-close")) navigate(route[0] === "train" ? "train" : route[0]); });
+  // Result (round 2): score, one cell per answer (a wrong one is an outlined ✕, never colour alone), the mistakes
+  // with what you picked, Retry mistakes · Done
   function showResult(view, { correct, total, mistakes, mode, extra, onAgain }) {
     if (flow) return flowStepDone(view, { correct, total, mistakes });
     S.stats.sessions += 1; save();
     const pct = total ? Math.round((correct / total) * 100) : 100;
+    const m = runMode && MODES.find((x) => x.id === runMode.mode);
+    const marks = runMarks.length ? runMarks : Array.from({ length: total }, (_, k) => k < correct);
+    const secs = runT0 ? Math.round((Date.now() - runT0) / 1000) : 0;
+    const again = runMode ? runMode.again : null;
     view.innerHTML = `
-      <div class="card result-card">
-        <div class="big">${pct}%</div>
-        <div class="sub">${t("resultScore", correct, total)}${extra ? " · " + extra : ""}</div>
-        ${mistakes.length ? `<div class="result-list"><div class="section-title">${t("reviewMistakes")}</div>${mistakes.map((w) => `<div class="result-item"><span class="hanzi">${w.hz}</span><div class="grow"><div class="r-py">${w.py}</div><div class="r-tr">${esc(tr(w))}</div></div><button class="speak-btn sm" data-speak="${w.hz}" type="button">🔊</button></div>`).join("")}</div>` : `<div class="sub" style="margin-top:12px">🎉 ${t("perfect")}</div>`}
-        <div class="stack" style="margin-top:20px">
-          <button class="btn primary block" id="r-again" type="button">${t("playAgain")}</button>
-          <button class="btn block" id="r-back" type="button">${t("backToTrain")}</button>
-        </div>
+      <div class="res2">
+        <span class="eyebrow">${m ? esc(t(m.key)) + " · " : ""}${t("result")}</span>
+        <div class="res2-score"><b>${correct}</b><span>/${total}</span></div>
+        <div class="res2-sub">${pct}%${secs ? ` · ${fmtTime(secs * 1000)} ${t("minShort")}` : ""}${extra ? " · " + extra : ""}</div>
+        ${marks.length && marks.length <= 60 ? `<div class="res2-cells" role="img" aria-label="${esc(t("resultCells", correct, total - correct))}">${marks.map((ok) => `<i class="${ok ? "ok" : "bad"}">${ok ? "" : "✕"}</i>`).join("")}</div>` : ""}
+        ${mistakes.length ? `<div class="res2-mhead"><b>${t("mistakesN", mistakes.length)}</b><span>${t("addedToReviews")}</span></div>
+          <div class="res2-list">${mistakes.map((w) => `<div class="res2-row"><span class="x">✕</span><div class="grow"><div class="r2-word">${C.id === "zh" ? `${pyHtml(w.py)} <span class="hanzi">${esc(w.hz)}</span>` : C.id === "vi" ? viHtml(w.hz) : `<span class="hanzi">${esc(w.hz)}</span> <small>${esc(w.py)}</small>`}</div><div class="r2-sub">${esc(tr(w))}${runWhy[w.id] ? " · " + esc(runWhy[w.id]) : ""}</div></div><button class="sq-btn" data-speak="${esc(w.hz)}" type="button" aria-label="${t("play")}">${icon("speaker")}</button></div>`).join("")}</div>` : `<div class="res2-perfect">${t("perfect")}</div>`}
+      </div>
+      <div class="stack res2-btns">
+        ${mistakes.length && again ? `<button class="btn block fd-again" id="r-retry" type="button">${t("retryMistakes")}</button>` : `<button class="btn block" id="r-again" type="button">${t("playAgain")}</button>`}
+        <button class="btn primary block" id="r-back" type="button">${t("done")}</button>
       </div>`;
-    $("#r-again").onclick = onAgain;
+    if ($("#r-retry")) $("#r-retry").onclick = () => again(shuffle(mistakes.slice()));
+    if ($("#r-again")) $("#r-again").onclick = onAgain;
     $("#r-back").onclick = () => navigate("train");
     $$("[data-speak]").forEach((b) => (b.onclick = () => speak(b.dataset.speak)));
     checkGoal();
@@ -1936,6 +2005,19 @@
           <button class="btn sm icon ghost" id="s-view" type="button" title="${soundPrefs.view === "focus" ? t("viewList") : t("viewFocus")}">${soundPrefs.view === "focus" ? "▦" : "▭"}</button>
         </div>
       </div>`;
+    if (g.tiles) { // Vietnamese initials (round 2): one tile per letter with a word, N/S where North and South differ
+      const south = S.settings.viAccent === "s";
+      view.innerHTML = `<div class="chips" id="sg-chips">${data.groups.map((x) => `<button class="chip ${x === g ? "active" : ""}" data-g="${x.id}" type="button">${esc(L(x.name))}</button>`).join("")}</div>
+        <div class="list-hint">${t("tapTile")} · ${t(south ? "voiceSouth" : "voiceNorth")}</div>
+        <div class="stiles">${g.rows.map((r, ri) => `<button class="stile ${r.ns ? "ns" : ""}" data-tile="${ri}" type="button"><span class="st-l">${esc(r.base)}</span><span class="st-w">${viHtml(r.cells[0].t)} <small>${esc(L(r.gloss))}</small></span>${r.ns ? `<span class="st-ns">N/S</span>` : ""}</button>`).join("")}</div>
+        <div class="snote-box"><b>N/S</b> · ${t("nsNote")}</div>
+        <div class="snote-box">${t("telexNote")}</div>
+        <button class="btn primary block" id="go-drill" type="button" style="margin-top:12px">🎧 ${t("listenPick")}</button>`;
+      $$("[data-g]").forEach((b) => (b.onclick = () => { soundPrefs.group = b.dataset.g; soundPrefs.row = 0; render(); }));
+      $$("[data-tile]").forEach((b) => (b.onclick = () => { const r = g.rows[+b.dataset.tile]; speak(r.cells[0].t, { rate: rate() }); }));
+      $("#go-drill").onclick = () => navigate("sounds/drill");
+      return;
+    }
     if (soundPrefs.view === "focus") {
       const ri = soundPrefs.row; const r = g.rows[ri];
       const pos = `${ri + 1} / ${g.rows.length}`;
@@ -2697,12 +2779,13 @@
           }
           // Recording without a check: listen to yourself next to the model and rate it
           const box = document.createElement("div"); box.className = "self-rate";
-          box.innerHTML = `${playBtns(rec.url)}<button class="btn sm" data-p="model" type="button">▶ ${t("playModel")}</button>
-            <span class="grow small muted">${t("rateSelf")}</span><button class="btn sm danger" data-r="0" type="button">${t("rateAgain")}</button><button class="btn sm success" data-r="1" type="button">${t("rateGood")}</button>`;
-          b.after(box);
+          box.innerHTML = `<div class="row">${playBtns(rec.url)}<button class="btn sm" data-p="model" type="button">▶ ${t("playModel")}</button></div>
+            <div class="small muted">${t("rateSelfQ")}</div><div class="rate3"><button class="btn" data-r="0" type="button">${t("notYet")}</button><button class="btn" data-r="0.6" type="button">${t("closeEnough")}</button><button class="btn" data-r="1" type="button">${t("gotIt")}</button></div>`;
+          const host = opts && opts.rateHost && $(opts.rateHost);
+          if (host) host.replaceChildren(box); else b.after(box);
           box.querySelector('[data-p="model"]').onclick = () => speak(target.hz);
           new Audio(rec.url).play();
-          $$("[data-r]", box).forEach((x) => (x.onclick = () => done(k, { mode: "rec", url: rec.url, ms: rec.ms, self: x.dataset.r === "1", score: x.dataset.r === "1" ? 1 : 0 })));
+          $$("[data-r]", box).forEach((x) => (x.onclick = () => { box.remove(); done(k, { mode: "rec", url: rec.url, ms: rec.ms, self: x.dataset.r === "1", score: +x.dataset.r }); }));
         };
         b.classList.add("live"); label.textContent = t("listening");
         cap.ready.catch(() => cap.finish());
@@ -2712,7 +2795,7 @@
   // Feedback under a spoken line or word
   function resultHtml(l, r) {
     if (r.mode === "pitch") return `${pitchChart(r.tones)}<div class="row">${playBtns(r.url)}<button class="btn sm" data-say-model="${esc(l.hz)}" type="button">▶ ${t("playModel")}</button></div>`;
-    if (r.mode === "rec") return `<div class="heard ${r.self ? "ok" : "bad"}">${r.self ? "✓ " + t("rateGood") : "↺ " + t("rateAgain")} ${playBtns(r.url)}</div>`;
+    if (r.mode === "rec") return `<div class="heard ${r.self ? "ok" : "bad"}">${r.score >= 1 ? "✓ " + t("gotIt") : r.score > 0 ? "≈ " + t("closeEnough") : "↺ " + t("notYet")} ${playBtns(r.url)}</div>`;
     const msg = r.score >= 0.8 ? t("heardGreat") : r.score >= 0.4 ? t("heardAlmost") : t("heardNo");
     let line = "";
     const parts = C.id === "zh" ? pyParts(l.py) : [];
@@ -2724,31 +2807,40 @@
   }
   document.addEventListener("click", (e) => { const b = e.target.closest("[data-say-model]"); if (b) speak(b.dataset.sayModel); });
 
-  /* --- Say the word: speaking practice for single words; Chinese shows the tone curve --- */
+  /* --- Say the word (round 2): the word, then after speaking: tones right, the model and your curve,
+   * what was heard, one tip, Play mine / Play model; without a recogniser you rate yourself (Not yet · Close · Got it) --- */
   function runSay(view, list) {
     let i = 0, correct = 0, skipped = 0; const mistakes = [];
     function draw() {
       if (i >= list.length) { if (cleanup) { cleanup(); cleanup = null; } return showResult(view, { correct, total: list.length - skipped, mistakes, onAgain: () => navigate("train/say") }); }
-      const w = list[i];
+      const w = list[i]; let res = null;
+      const reading = C.id === "zh" ? (pyFirst() ? `<div class="say-word">${pyHtml(w.py)}</div><div class="say-sub"><span class="hanzi">${esc(w.hz)}</span> · ${esc(tr(w))}</div>` : `<div class="say-word hanzi">${esc(w.hz)}</div><div class="say-sub">${pyHtml(w.py)} · ${esc(tr(w))}</div>`)
+        : C.id === "vi" ? `<div class="say-word">${viHtml(w.hz)}</div><div class="say-sub">${esc(tr(w))}</div>`
+        : `<div class="say-word hanzi">${esc(w.hz)}</div><div class="say-sub">${esc(w.py)} · ${esc(tr(w))}</div>`;
       view.innerHTML = `${sessionHead(i, list.length, `✓ ${correct}`)}
-        <div class="card meet-card">
-          ${picHtml(w, "big")}
-          ${heroHtml(w)}
-          <div class="meet-tr">${esc(tr(w))}</div>
-          <div class="row meet-btns"><button class="btn" id="m-say" type="button">🔊 ${t("playModel")}</button>${micButton("w")}</div>
-          <div id="say-res"></div>
+        <div class="say2">
+          <div class="say2-card">${picHtml(w, "say-pic")}<div class="grow">${reading}</div><div class="say-score" id="say-score" hidden></div></div>
+          <div id="say-res"><div class="say-idle"><button class="btn" id="m-say" type="button">${icon("play")} ${t("playModel")}</button><div class="small muted">${t("sayHint")}</div></div></div>
         </div>
-        <div id="say-next"><button class="btn ghost block" id="s-skip" type="button" style="margin-top:12px">${t("skip")}</button></div>`;
+        <div class="say2-foot"><button class="btn ghost" id="s-skip" type="button">${t("skip")}</button><div class="say-mic">${micButton("w")}</div><button class="btn" id="s-next" type="button">${t("next")} →</button></div>`;
       $("#m-say").onclick = () => speak(w.hz);
       $("#s-skip").onclick = () => { skipped++; i++; draw(); };
+      $("#s-next").onclick = () => {
+        if (!res) { skipped++; i++; return draw(); }
+        const ok = res.score >= 0.8;
+        grade(w.id, ok ? 2 : res.score > 0 ? 1 : 0); recordAnswer(ok);
+        if (ok) correct++; else { mistakes.push(w); noteMiss(w, res.tones && res.tones.res && res.tones.res.some((x) => x.ok === false) ? t("whyTones") : t("whyNotHeard")); }
+        i++; draw();
+      };
       bindMics(view, () => w, (_, r) => {
-        const ok = r.score >= 0.8;
-        $("#say-res").innerHTML = resultHtml(w, r);
-        if (r.mode === "rec" && $(".self-rate")) $(".self-rate").remove();
-        $("#say-next").innerHTML = `<div class="row" style="margin-top:12px"><button class="btn grow" id="s-retry" type="button">↺ ${t("again")}</button><button class="btn primary grow" id="s-next" type="button">${t("next")}</button></div>`;
-        $("#s-retry").onclick = () => draw();
-        $("#s-next").onclick = () => { grade(w.id, ok ? 2 : 0); recordAnswer(ok); if (ok) correct++; else { mistakes.push(w); noteMiss(w, r.tones && r.tones.res && r.tones.res.some((x) => x.ok === false) ? t("whyTones") : t("whyNotHeard")); } i++; draw(); };
-      }, { pitch: w.py.split(/\s+/).length <= 2 && pyParts(w.py).filter((x) => !x.sep).length <= 4 });
+        res = r;
+        const box = $("#say-score");
+        if (r.mode === "pitch" && !r.tones.none) { const sc = r.tones.res.filter((x) => x.ok !== null); box.innerHTML = `<b>${sc.filter((x) => x.ok).length} / ${sc.length}</b><span>${t("tonesRightShort")}</span>`; box.hidden = false; }
+        else if (r.mode === "sr") { box.innerHTML = `<b>${Math.round(r.score * 100)}%</b><span>${t("heardShort")}</span>`; box.hidden = false; }
+        $("#say-res").innerHTML = (r.mode === "pitch" ? `<div class="pc-legend"><span><i></i>${t("model")}</span><span><i class="you"></i>${t("you")}</span></div>` : "") + resultHtml(w, r)
+          + (r.mode === "pitch" ? "" : `<div class="row" style="margin-top:8px"><button class="btn sm" data-say-model="${esc(w.hz)}" type="button">▶ ${t("playModel")}</button></div>`);
+        $("#s-next").classList.add("primary");
+      }, { rateHost: "#say-res", pitch: w.py.split(/\s+/).length <= 2 && pyParts(w.py).filter((x) => !x.sep).length <= 4 });
     }
     draw();
   }

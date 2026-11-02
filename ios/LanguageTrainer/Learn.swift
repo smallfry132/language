@@ -178,7 +178,10 @@ struct LearnView: View {
                 Text(n > 0 || introduced > 0 ? store.t("sessionDone") : store.t("sessionTitle")).font(.title3.weight(.bold))
                 Text(n > 0 || introduced > 0 ? store.t("sessionDoneSub") : store.t("sessionEmpty")).font(.footnote).foregroundStyle(dark ? Color.white.opacity(0.75) : Color.ink2)
                 if p.unseen > 0 {
-                    Button(store.t("moreNew", min(5, p.unseen))) { store.extraNew += 5; path.append(Route.today) }.buttonStyle(cardButton).padding(.top, 8)
+                    Button(store.t("moreNew", min(5, p.unseen))) {
+                        // A new round: today's finished session would otherwise count Meet as done and start nothing
+                        store.extraNew += 5; TodaySession.reset(); path.append(Route.today)
+                    }.buttonStyle(cardButton).padding(.top, 8)
                 }
             }
         }

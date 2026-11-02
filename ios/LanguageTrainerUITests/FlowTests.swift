@@ -47,6 +47,11 @@ final class FlowTests: XCTestCase {
         XCTAssertEqual(steps.count, 5, "meet, cards, listen, say, type: \(steps)")
         app.buttons["FlowDone"].tap()
         XCTAssertTrue(text("Done for today").waitForExistence(timeout: 3))
+        // Learn 5 more starts a new round with new words (it used to do nothing after a finished session)
+        let more = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Learn'")).matching(NSPredicate(format: "label CONTAINS 'more'")).firstMatch
+        XCTAssertTrue(more.waitForExistence(timeout: 3))
+        more.tap()
+        XCTAssertTrue(text("Meet new words").waitForExistence(timeout: 5))
     }
 
     func testLessonWithOwnWord() {

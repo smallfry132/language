@@ -2432,7 +2432,8 @@
     bindKeys((e) => { if (C.id !== "ja" && (e.key === "t" || e.key === "T") && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); navigate("train/typer"); } });
     if ($("#go-session")) $("#go-session").onclick = () => navigate("today/session");
     if ($("#sync-retry")) $("#sync-retry").onclick = () => { syncNow(); toast(t("syncing")); };
-    if ($("#more-new")) $("#more-new").onclick = () => { extraNew += 5; navigate("today/session"); };
+    // A new round: today's finished session would otherwise count Meet as done and start nothing
+    if ($("#more-new")) $("#more-new").onclick = () => { extraNew += 5; try { localStorage.removeItem(FLOW_KEY); } catch (e) { /* private mode */ } navigate("today/session"); };
     $("#course-switch").onclick = openCourseSheet;
     if ($("#wod")) $("#wod").onclick = (e) => { if (e.target.closest("[data-speak]")) speak(wd.hz); else openWord(wd.id); };
     $$("[data-go]").forEach((b) => (b.onclick = () => navigate(b.dataset.go)));

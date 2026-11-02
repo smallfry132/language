@@ -5,12 +5,12 @@ import LanguageCore
  * is folded into "Adjust". Results lead back here; in a guided session they lead to the next step. */
 
 enum Mode: String, CaseIterable, Hashable {
-    case flash, quiz, type, typer, listen, match, tones, numbers, say, picture, listenPic, choose
+    case flash, quiz, type, typer, listen, match, tones, numbers, say, picture, listenPic, choose, trace
     var key: String {
         switch self {
         case .flash: "modeFlash"; case .quiz: "modeQuiz"; case .type: "modeType"; case .typer: "modeTyper"; case .listen: "modeListen"
         case .match: "modeMatch"; case .tones: "modeTones"; case .numbers: "modeNumbers"; case .say: "modeSay"
-        case .picture: "modePicture"; case .listenPic: "modeListenPic"; case .choose: "modeChoose"
+        case .picture: "modePicture"; case .listenPic: "modeListenPic"; case .choose: "modeChoose"; case .trace: "modeTrace"
         }
     }
 }
@@ -36,7 +36,7 @@ struct PracticeHome: View {
             ("listen", "ear", [Row(route: .mode(.listen), key: "modeListen")] + (pics ? [Row(route: .mode(.listenPic), key: "modeListenPic")] : []) + (c.toneOptions != nil ? [Row(route: .mode(.tones), key: "modeTones")] : []) + [Row(route: .soundDrill, key: "soundDrill")]),
             ("speak", "mic", [Row(route: .mode(.say), key: "modeSay")] + (store.dialogues.isEmpty ? [] : [Row(route: .dialogues, key: "dialoguesRead")]) + [Row(route: .sounds, key: "soundChart")]),
             ("read", "book", [Row(route: .mode(.choose), key: "modeChoose")] + (pics ? [Row(route: .mode(.picture), key: "modePicture")] : []) + [Row(route: .mode(.flash), key: "modeFlash"), Row(route: .mode(.quiz), key: "modeQuiz"), Row(route: .mode(.match), key: "modeMatch")]),
-            ("write", "pencil", [Row(route: .mode(.type), key: "modeType")] + (c.id == "ja" ? [] : [Row(route: .mode(.typer), key: "modeTyper")]) + [Row(route: .mode(.numbers), key: "modeNumbers")])
+            ("write", "pencil", [Row(route: .mode(.type), key: "modeType")] + (c.id == "ja" ? [] : [Row(route: .mode(.typer), key: "modeTyper")]) + [Row(route: .mode(.numbers), key: "modeNumbers")] + (c.id == "zh" ? [Row(route: .mode(.trace), key: "modeTrace")] : []))
         ]
     }
     var body: some View {
@@ -54,7 +54,7 @@ struct PracticeHome: View {
                 VStack(spacing: 0) {
                     ForEach(Array(sk.rows.enumerated()), id: \.offset) { k, r in
                         NavigationLink(value: r.route) {
-                            ListRow(title: store.t(r.key), sub: store.t(r.key + "Desc"))
+                            ListRow(title: store.t(r.key), sub: store.t(r.key == "modeTrace" ? "sub_trace" : r.key + "Desc"))
                         }.buttonStyle(.plain)
                         if k < sk.rows.count - 1 { Divider().padding(.leading, 16) }
                     }
@@ -110,6 +110,7 @@ func exercise(_ mode: Mode, _ list: [Word], direction: QuizDirection = .hzTr, do
     case .numbers: NumberDrill(done: done)
     case .typer: TyperRun(list: list, done: done)
     case .choose: ChooseWord(list: list, done: done)
+    case .trace: TraceRun(list: list, done: done)
     }
 }
 
@@ -125,7 +126,7 @@ struct PracticeScreen: View {
         Group {
             switch phase {
             case .setup:
-                if [.match, .tones, .numbers].contains(mode) { Color.paper.onAppear { begin() } }
+                if [.match, .tones, .numbers, .trace].contains(mode) { Color.paper.onAppear { begin() } }
                 else { SetupView(mode: mode, prefs: prefs) { begin() }.onAppear { if Launch.has("-autostart") { begin() } } }
             case .run(let id, let list):
                 exercise(mode, list, direction: prefs.direction) { phase = .result($0) }.id(id)
@@ -145,6 +146,10 @@ struct PracticeScreen: View {
             let pool = store.course.id == "zh" ? store.words.selected.filter { $0.hz.count == 1 && Lingo.firstTone($0.py, course: "zh") != 5 } : store.words.selected.filter { !$0.hz.contains(" ") }
             list = Array(pool.shuffled().prefix(10))
         case .numbers: list = []
+        case .trace: // lesson words first, then words you have met (Trace characters)
+            let ok = { (w: Word) in Strokes.shared.covers(w.hz) }
+            let lw = store.words.lessonWords(store.state, newestFirst: true).filter(ok)
+            list = Array((lw.isEmpty ? store.words.selected.filter(ok).sorted { (store.status($0.id) == .new ? 1 : 0) < (store.status($1.id) == .new ? 1 : 0) } : lw).prefix(6))
         default:
             var pool = prefs.pool(store)
             if [.picture, .listenPic].contains(mode) { pool = pool.filter { store.words.picture($0.id) != nil } }

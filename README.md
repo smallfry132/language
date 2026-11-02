@@ -40,6 +40,14 @@ The web app's word lists, dialogues, sound charts and texts are the single sourc
   - Tone drill: hear a syllable and identify its tone (4 Mandarin tones, 6 Vietnamese tones)
   - Number trainer for 1–99 (read and write), Chinese and Vietnamese
 - **Sounds** – a textbook-style pronunciation chart per language: one base sound per row with its variants as playable cells (Mandarin finals and initials across the four tones, Vietnamese vowels across the six tones plus consonants and final consonants, the Japanese kana tables plus length and double-consonant contrasts). Tapping a cell plays it and lists real words from the word lists containing that sound. A listen-and-pick drill trains minimal pairs (tones, similar consonants, similar vowels, long vs short vowels).
+- **Daily session** – Meet · Cards · Listen · Say · Type with one header (step, words left, minutes left); Continue resumes where you stopped; the Done screen lists the words to watch and why.
+- **Type the reading** – letters first, then a tone tile per syllable (4 for Chinese, 6 for Vietnamese).
+- **Trace characters** (Chinese) – stroke by stroke in a 田字格: Trace, Copy or From memory, with the stroke order. Stroke data for the HSK 1–3 characters comes from [hanzi-writer-data](https://github.com/chanind/hanzi-writer-data) / Make Me a Hanzi under the Arphic Public License (`web/data/ARPHICPL.TXT`).
+- **Dialogues** in all four languages (Vietnamese and Japanese written for this app), with short tips on single lines.
+- **Statistics** – 12-week heatmap, progress per level, tones when speaking, accuracy per skill.
+- **First launch** – choose course, level and pinyin first, then check voice and microphone. Clear states when there is no voice, the microphone is off or the sync server can't be reached.
+- **Desktop** – from 860 px the dock becomes a sidebar (with My lessons and Dialogues), Learn becomes a grid with a Typer card, Words opens words in a side pane.
+- **iPhone widgets and Siri** – word of the day on the Home and Lock Screen; “Quiz me” and “Word of the day” for Siri (see ios/README.md).
 - **Progress** – known / learning / new counts, due reviews, streak, daily goal, activity heatmap, progress per category.
 - **Extras** – tone guide with audio, pinyin tips, appearance (auto / light / dark), speech speed.
 - **PWA** – manifest, icons and a service worker so the app works offline once loaded.

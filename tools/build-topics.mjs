@@ -1,5 +1,6 @@
-// Builds topics and pictures for Vietnamese, Japanese and Korean from the hand-made Chinese ones (web/js/themes.js).
-// Korean words come with their topic group already (data-ko.js, field t); they only get pictures here.
+// Builds topics and pictures for Vietnamese, Japanese, Korean, German and Spanish from the hand-made Chinese ones
+// (web/js/themes.js). Korean, German and Spanish words come with their topic group already (field t); they only get
+// pictures here.
 //   node tools/build-topics.mjs   → web/js/themes-auto.js
 // A word goes, in this order of preference:
 //   1. where the Chinese word with the same English meaning is (same group, same place in the order, same picture)
@@ -15,7 +16,7 @@ const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..")
 const JS = path.join(ROOT, "web/js");
 const ctx = { window: {} };
 vm.createContext(ctx);
-for (const f of ["data.js", "data-hsk2.js", "data-hsk3.js", "data-vi.js", "data-vi-2.js", "data-ja.js", "data-ko.js", "themes.js"]) vm.runInContext(fs.readFileSync(path.join(JS, f), "utf8"), ctx);
+for (const f of ["data.js", "data-hsk2.js", "data-hsk3.js", "data-vi.js", "data-vi-2.js", "data-ja.js", "data-ko.js", "data-de.js", "data-es.js", "themes.js"]) vm.runInContext(fs.readFileSync(path.join(JS, f), "utf8"), ctx);
 const app = fs.readFileSync(path.join(JS, "app.js"), "utf8");
 const a = app.indexOf("const KANA = "), b = app.indexOf("  const JA_WORDS = ");
 vm.runInContext(app.slice(a, b).replace(/^\s*const /gm, "var "), ctx); // toRomaji, jaCategory
@@ -25,7 +26,9 @@ const ZH = [].concat(W.HSK1_WORDS, W.HSK2_WORDS, W.HSK3_WORDS);
 const COURSES = {
   vi: { levels: ["A1", "A2", "B1", "B2", "C1", "C2"], words: W.VI_WORDS.map((w) => ({ id: w.id, hz: w.w, en: w.en, cat: w.cat, lvl: w.lvl })) },
   ja: { levels: ["N5", "N4", "N3", "N2", "N1"], words: W.JA_WORDS_RAW.map(([lvl, expr, , en], i) => ({ id: "j" + (i + 1), hz: expr, en, cat: ctx.jaCategory(expr, en), lvl })) },
-  ko: { levels: ["A1", "A2"], words: W.KO_WORDS.map((w) => ({ id: w.id, hz: w.w, en: w.en, cat: "", lvl: w.lvl, t: w.t })) }
+  ko: { levels: ["A1", "A2"], words: W.KO_WORDS.map((w) => ({ id: w.id, hz: w.w, en: w.en, cat: "", lvl: w.lvl, t: w.t })) },
+  de: { levels: ["A1", "A2"], words: W.DE_WORDS.map((w) => ({ id: w.id, hz: w.w, en: w.en, cat: "", lvl: w.lvl, t: w.t })) },
+  es: { levels: ["A1", "A2"], words: W.ES_WORDS.map((w) => ({ id: w.id, hz: w.w, en: w.en, cat: "", lvl: w.lvl, t: w.t })) }
 };
 
 // English meanings: "to open; to drive" → ["to open", "to drive"]; brackets dropped

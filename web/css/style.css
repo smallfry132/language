@@ -1435,3 +1435,29 @@ html[data-course="vi"] .tip-chip b { color: #0F2A24; } html[data-course="vi"] .b
 .p-own { display: flex; flex-wrap: wrap; gap: 6px; } .p-own input { flex: 1 1 110px; min-width: 0; height: 36px; padding: 0 10px; border: 1px solid var(--line); border-radius: calc(var(--radius-sm) / 1.5); background: var(--bg-elev); color: var(--text); font: inherit; font-size: 14px; }
 .heard-line2 { margin-top: 6px; font-size: 13px; line-height: 1.5; } .heard-line2 .hanzi { font-size: 17px; color: var(--text); } .heard-line2 b { font-size: 15px; }
 .ok-note { color: var(--green); }
+
+/* ===== German (Klar) and Spanish (Sol): Latin script, nouns coloured by gender ===== */
+html[data-course="de"] { --bg: #F6F6F3; --bg-elev: #FFFFFF; --bg-sunken: #ECECE7; --text: #161616; --text-2: #54524E; --text-3: #6A6864; --line: #DEDDD8; --accent: #161616; --accent-text: #FFFFFF; --accent-soft: rgba(183, 121, 31, 0.12); --seal: #B7791F; --radius: 8px; --radius-sm: 6px; --font-hanzi: var(--font); --g-m: #1D5BBF; --g-f: #C62828; --g-n: #2E7D32; }
+html[data-course="es"] { --bg: #FBF6EF; --bg-elev: #FFFFFF; --bg-sunken: #F1E7D9; --text: #2B1D14; --text-2: #6B5848; --text-3: #7A6656; --line: #EADFCF; --accent: #2B1D14; --accent-text: #FFFFFF; --accent-soft: rgba(196, 87, 43, 0.12); --seal: #C4572B; --radius: 16px; --radius-sm: 12px; --font-hanzi: var(--font); --g-m: #2459A8; --g-f: #B5283E; --g-n: #2E7D32; }
+@media (prefers-color-scheme: dark) {
+  html[data-course="de"]:not([data-theme="light"]) { --bg: #141414; --bg-elev: #1F1F1E; --bg-sunken: #0D0D0D; --text: #F0EFEC; --text-2: #B4B2AD; --text-3: #95938E; --line: #363634; --accent: #F0EFEC; --accent-text: #141414; --accent-soft: rgba(230, 170, 70, 0.16); --seal: #E6AA46; --g-m: #7FA6FF; --g-f: #F07A6E; --g-n: #6BCB77; }
+  html[data-course="es"]:not([data-theme="light"]) { --bg: #1A1410; --bg-elev: #251D17; --bg-sunken: #120E0B; --text: #F4ECE2; --text-2: #C2B3A2; --text-3: #A29282; --line: #3C3027; --accent: #F4ECE2; --accent-text: #1A1410; --accent-soft: rgba(232, 128, 86, 0.16); --seal: #E88056; --g-m: #86A9F0; --g-f: #F08A96; --g-n: #6BCB77; }
+}
+html[data-course="de"][data-theme="dark"] { --bg: #141414; --bg-elev: #1F1F1E; --bg-sunken: #0D0D0D; --text: #F0EFEC; --text-2: #B4B2AD; --text-3: #95938E; --line: #363634; --accent: #F0EFEC; --accent-text: #141414; --accent-soft: rgba(230, 170, 70, 0.16); --seal: #E6AA46; --g-m: #7FA6FF; --g-f: #F07A6E; --g-n: #6BCB77; }
+html[data-course="es"][data-theme="dark"] { --bg: #1A1410; --bg-elev: #251D17; --bg-sunken: #120E0B; --text: #F4ECE2; --text-2: #C2B3A2; --text-3: #A29282; --line: #3C3027; --accent: #F4ECE2; --accent-text: #1A1410; --accent-soft: rgba(232, 128, 86, 0.16); --seal: #E88056; --g-m: #86A9F0; --g-f: #F08A96; --g-n: #6BCB77; }
+.art { font-weight: 700; } .art.g-m, .g-m > b { color: var(--g-m); } .art.g-f, .g-f > b { color: var(--g-f); } .art.g-n, .g-n > b { color: var(--g-n); }
+html.no-tone-colors .art { color: inherit; }
+.hero-word.latin, .latin-face { font-family: var(--font); font-weight: 700; }
+.hero-word.latin { font-size: 40px; line-height: 1.15; }
+.gender-noun { font-size: 34px; font-weight: 700; margin-top: 6px; } .gender-noun .gap { color: var(--text-3); letter-spacing: .05em; }
+.gender-btns { display: grid; gap: 10px; margin-top: 18px; } .gender-btns.n3 { grid-template-columns: repeat(3, 1fr); } .gender-btns.n2 { grid-template-columns: repeat(2, 1fr); }
+.gender-btn { position: relative; min-height: 88px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border: 1.5px solid var(--line); border-radius: var(--radius); background: var(--bg-elev); font: inherit; color: var(--text); cursor: pointer; }
+.gender-btn b { font-size: 26px; } .gender-btn small { font-size: 12px; color: var(--text-2); } .gender-btn .opt-key { position: absolute; top: 6px; left: 8px; }
+.gender-btn.g-m { border-top: 4px solid var(--g-m); } .gender-btn.g-f { border-top: 4px solid var(--g-f); } .gender-btn.g-n { border-top: 4px solid var(--g-n); }
+.gender-btn.correct { border-color: var(--green); background: color-mix(in srgb, var(--green) 10%, var(--bg-elev)); } .gender-btn.wrong { border-color: var(--red); background: color-mix(in srgb, var(--red) 10%, var(--bg-elev)); }
+.seal-stamp.latin { grid-template-columns: 1fr; font-family: var(--font); font-size: 22px; align-content: center; }
+html[data-course="de"] .lesson-card, html[data-course="es"] .lesson-card { background: var(--bg-elev); }
+html[data-course="es"] .lesson-card .cc-btn { background: var(--seal); color: #fff; }
+html[data-course="de"] .lesson-card .cc-btn { background: var(--text); color: var(--bg); }
+html[data-course="de"] .wt-main, html[data-course="es"] .wt-main { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.2; }
+.say-like-latin { font-size: 22px; font-weight: 700; letter-spacing: .02em; } .say-like-latin .small { font-weight: 400; letter-spacing: 0; }

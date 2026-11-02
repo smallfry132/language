@@ -5,6 +5,7 @@
  *       "tone"  – the same syllable, only the tone differs
  *       "build" – one character or word inside several words
  *       "final" – (Korean) only the final consonant differs
+ * For Spanish, "tone" is used for words that differ only in the written accent (sí / si).
  * `whole` and words missing from the list may carry their own { hz, py, en, de }.
  * Exported to the iPhone app by tools/export-data.mjs. */
 window.FAMILIES = {
@@ -132,5 +133,57 @@ window.FAMILIES = {
     { kind: "final", words: ["살", "삼", "사", "산"] },
     { kind: "build", words: ["학생", "학교", "대학교"], note: { en: "학 learning: student, school, university.", de: "학 Lernen: Schüler, Schule, Universität." } },
     { kind: "build", words: ["한국", "한국어", { hz: "한국 사람", py: "hanguk saram", en: "Korean person", de: "Koreaner, Koreanerin" }] }
+  ],
+  de: [
+    { kind: "pair", words: ["groß", "klein"], whole: { hz: "die Größe", py: "", en: "size", de: "Größe" }, note: { en: "From groß comes die Größe, size.", de: "Aus groß wird die Größe." } },
+    { kind: "pair", words: ["viel", "wenig"] },
+    { kind: "pair", words: ["lang", "kurz"], whole: { hz: "die Länge", py: "", en: "length", de: "Länge" }, note: { en: "From lang comes die Länge, length.", de: "Aus lang wird die Länge." } },
+    { kind: "pair", words: ["schnell", "langsam"] },
+    { kind: "pair", words: ["alt", "neu"], note: { en: "alt is old for things and people; for people the opposite is jung.", de: "alt heißt alt bei Dingen und Menschen; bei Menschen ist das Gegenteil jung." } },
+    { kind: "pair", words: ["alt", "jung"] },
+    { kind: "pair", words: ["gut", "schlecht"] },
+    { kind: "pair", words: ["richtig", "falsch"] },
+    { kind: "pair", words: ["warm", "kalt"] },
+    { kind: "pair", words: ["heiß", "kalt"] },
+    { kind: "pair", words: ["weit", "nah"] },
+    { kind: "pair", words: ["teuer", "billig"] },
+    { kind: "pair", words: ["oben", "unten"] },
+    { kind: "pair", words: ["links", "rechts"] },
+    { kind: "pair", words: ["vorne", "hinten"] },
+    { kind: "pair", words: ["früh", "spät"] },
+    { kind: "pair", words: ["kaufen", "verkaufen"], note: { en: "ver- turns buy into sell.", de: "ver- macht aus kaufen verkaufen." } },
+    { kind: "pair", words: ["kommen", "gehen"] },
+    { kind: "pair", words: ["öffnen", "schließen"] },
+    { kind: "pair", words: ["der Mann", "die Frau"] },
+    { kind: "pair", words: ["leicht", "schwer"], note: { en: "leicht is both light and easy; schwer both heavy and difficult.", de: "leicht und schwer gelten für Gewicht und Schwierigkeit." } },
+    { kind: "build", words: ["der Tag", "heute", "der Montag", "der Geburtstag"], note: { en: "Tag (day) inside other words: Monday, birthday.", de: "Tag in anderen Wörtern: Montag, Geburtstag." } },
+    { kind: "build", words: ["das Haus", "zu Hause", { hz: "nach Hause", py: "", en: "(going) home", de: "nach Hause" }, "das Krankenhaus"], note: { en: "zu Hause = at home, nach Hause = (going) home, Krankenhaus = hospital (sick house).", de: "zu Hause, nach Hause, Krankenhaus." } }
+  ],
+  es: [
+    { kind: "pair", words: ["grande", "pequeño"], whole: { hz: "el tamaño", py: "", en: "size", de: "die Größe" } },
+    { kind: "pair", words: ["mucho", "poco"] },
+    { kind: "pair", words: ["largo", "corto"] },
+    { kind: "pair", words: ["rápido", "lento"] },
+    { kind: "pair", words: ["nuevo", "viejo"] },
+    { kind: "pair", words: ["joven", "viejo"] },
+    { kind: "pair", words: ["bueno", "malo"] },
+    { kind: "pair", words: ["caro", "barato"] },
+    { kind: "pair", words: ["caliente", "frío"] },
+    { kind: "pair", words: ["cerca", "lejos"] },
+    { kind: "pair", words: ["arriba", "abajo"] },
+    { kind: "pair", words: ["la izquierda", "la derecha"] },
+    { kind: "pair", words: ["delante", "detrás"] },
+    { kind: "pair", words: ["temprano", "tarde"] },
+    { kind: "pair", words: ["comprar", "vender"] },
+    { kind: "pair", words: ["abrir", "cerrar"] },
+    { kind: "pair", words: ["ir", "venir"] },
+    { kind: "pair", words: ["el hombre", "la mujer"] },
+    { kind: "pair", words: ["fácil", "difícil"] },
+    { kind: "pair", words: ["ser", "estar"], note: { en: "Both mean to be: ser for what something is, estar for where it is and how it is right now.", de: "Beide heißen sein: ser für das, was etwas ist; estar für Ort und Zustand." } },
+    { kind: "tone", words: ["sí", "si"], note: { en: "Only the accent differs: sí = yes, si = if.", de: "Nur der Akzent unterscheidet: sí = ja, si = wenn." } },
+    { kind: "tone", words: ["tú", "tu"], note: { en: "tú = you, tu = your.", de: "tú = du, tu = dein." } },
+    { kind: "tone", words: ["él", "el"], note: { en: "él = he, el = the.", de: "él = er, el = der." } },
+    { kind: "tone", words: ["el té", "te"], note: { en: "té = tea, te = (to) you.", de: "té = Tee, te = dir/dich." } },
+    { kind: "tone", words: ["el papá", "la papa"], note: { en: "papá = dad, papa = potato (Latin America): the stress moves.", de: "papá = Papa, papa = Kartoffel (Lateinamerika): die Betonung wandert." } }
   ]
 };

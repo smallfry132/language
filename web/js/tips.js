@@ -94,5 +94,47 @@ window.SAY_TIPS = {
       ["ㄹ", { en: "ㄹ is a tap between vowels and an “l” at the end of a block.", de: "ㄹ ist zwischen Vokalen ein angetipptes „r“, am Silbenende ein „l“." }]
     ],
     liaison: { en: "Sounds like [{0}]: a final consonant slides into a block that starts with silent ㅇ.", de: "Klingt wie [{0}]: der Endkonsonant rutscht in die nächste Silbe mit stummem ㅇ." }
+  },
+  de: {
+    sound: [
+      ["sch", { en: "sch is like English “sh”.", de: "sch wie in „Schule“." }],
+      ["sp", { en: "sp at the start of a word is said “shp” (spielen).", de: "sp am Wortanfang spricht man „schp“ (spielen)." }],
+      ["st", { en: "st at the start of a word is said “sht” (Stadt).", de: "st am Wortanfang spricht man „scht“ (Stadt)." }],
+      ["ch", { en: "ch is rough after a, o, u (Buch), soft like a whispered “h” in “huge” after other vowels (ich).", de: "ch ist nach a, o, u rau (Buch), nach anderen Vokalen weich (ich)." }],
+      ["ü", { en: "ü: say “ee” and round your lips.", de: "ü: „i“ sagen und die Lippen runden." }],
+      ["ö", { en: "ö: say “e” as in “bed” and round your lips.", de: "ö: „e“ sagen und die Lippen runden." }],
+      ["ä", { en: "ä is like e in “bed”.", de: "ä klingt wie ein offenes e." }],
+      ["äu", { en: "äu sounds like “oy”.", de: "äu klingt wie „eu“." }],
+      ["eu", { en: "eu sounds like “oy” (heute).", de: "eu wie in „heute“." }],
+      ["ei", { en: "ei sounds like “eye” (mein).", de: "ei wie in „mein“." }],
+      ["ie", { en: "ie is a long “ee” (sie).", de: "ie ist ein langes i (sie)." }],
+      ["z", { en: "z is said “ts” (Zeit).", de: "z spricht man „ts“ (Zeit)." }],
+      ["w", { en: "w is said like English v (Wasser).", de: "w wie in „Wasser“." }],
+      ["v", { en: "v is usually said like f (Vater).", de: "v spricht man meist wie f (Vater)." }],
+      ["j", { en: "j is said like English y (ja).", de: "j wie in „ja“." }],
+      ["ß", { en: "ß is a sharp s.", de: "ß ist ein scharfes s." }],
+      ["r", { en: "r is soft, at the back of the throat; at the end of a word it is almost a vowel (Vater ≈ “fah-tah”).", de: "r wird hinten im Hals gesprochen; am Wortende fast wie ein a (Vater)." }]
+    ],
+    final: { en: "At the end of a word b, d, g sound like p, t, k.", de: "Am Wortende klingen b, d, g wie p, t, k." },
+    gender: { m: { en: "der: masculine.", de: "der: maskulin." }, f: { en: "die: feminine.", de: "die: feminin." }, n: { en: "das: neuter.", de: "das: neutral." } }
+  },
+  es: {
+    sound: [
+      ["rr", { en: "rr is rolled: several taps of the tongue.", de: "rr wird gerollt: die Zunge schlägt mehrmals an." }],
+      ["ñ", { en: "ñ is like “ny” in “canyon”.", de: "ñ klingt wie „nj“." }],
+      ["ll", { en: "ll is like y in “yes” in most regions.", de: "ll klingt in den meisten Gegenden wie ein deutsches j." }],
+      ["j", { en: "j is a rough h, from the back of the throat.", de: "j ist ein raues ch wie in „Bach“." }],
+      ["ge", { en: "g before e or i is a rough h (gente).", de: "g vor e oder i ist ein raues ch (gente)." }],
+      ["gi", { en: "g before e or i is a rough h (gitano).", de: "g vor e oder i ist ein raues ch." }],
+      ["h", { en: "h is always silent (hola = “ola”).", de: "h ist immer stumm (hola = „ola“)." }],
+      ["qu", { en: "qu is a plain k; the u is silent (queso).", de: "qu ist ein k, das u ist stumm (queso)." }],
+      ["v", { en: "v sounds like b; between vowels softly, lips barely touching.", de: "v klingt wie b; zwischen Vokalen weich, die Lippen berühren sich kaum." }],
+      ["z", { en: "z is like “th” in “think” in Spain, like s in Latin America.", de: "z klingt in Spanien wie englisches „th“, in Lateinamerika wie s." }],
+      ["ce", { en: "c before e or i is like “th” in Spain, like s in Latin America.", de: "c vor e oder i klingt in Spanien wie englisches „th“, in Lateinamerika wie s." }],
+      ["ci", { en: "c before e or i is like “th” in Spain, like s in Latin America.", de: "c vor e oder i klingt in Spanien wie englisches „th“, in Lateinamerika wie s." }],
+      ["r", { en: "r between vowels is a single quick tap (pero); at the start it is rolled (rojo).", de: "r zwischen Vokalen wird einmal angetippt (pero); am Anfang gerollt (rojo)." }]
+    ],
+    stress: { en: "Stress: {0}.", de: "Betonung: {0}." },
+    gender: { m: { en: "el: masculine.", de: "el: maskulin." }, f: { en: "la: feminine.", de: "la: feminin." } }
   }
 };

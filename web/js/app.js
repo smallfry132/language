@@ -71,6 +71,14 @@
     return { id: w.id, hz: w.w, py: window.KO.romanize(w.w), en: w.en, de: w.de, cat: "misc", lvl: w.lvl, ex: w.ex, exPy: window.KO.romanize(w.ex), exEn: w.exEn, pron: pron !== w.w ? pron : "", course: "ko" };
   });
   ((window.DIALOGUES && window.DIALOGUES.ko) || []).forEach((d) => d.lines.forEach((l) => { l.py = l.py || window.KO.romanize(l.hz); }));
+  // German and Spanish: the word as written (nouns with their article), the gender from the article, the plural
+  const GENDER = { der: "m", die: "f", das: "n", el: "m", la: "f" };
+  const latinWords = (list, course) => (list || []).map((w) => {
+    // plural-only nouns (die Eltern, die Leute) have no gender: their "die" is the plural article
+    const art = /plural only/i.test(w.en) ? null : (w.w.match(/^(der|die|das|el|la)\s/) || [])[1];
+    return { id: w.id, hz: w.w, py: "", en: w.en, de: w.de, cat: "misc", lvl: w.lvl, ex: w.ex, exPy: "", exEn: w.exEn, exDe: w.exDe, g: art ? GENDER[art] : "", pl: w.pl || "", course };
+  });
+  const DE_WORDS = latinWords(window.DE_WORDS, "de"), ES_WORDS = latinWords(window.ES_WORDS, "es");
   // A typed Korean answer: Hangul, or romanization as pronounced or letter by letter (spaces don't matter)
   const koTyped = (v, hz) => { const a = v.normalize("NFC").toLowerCase().replace(/[^\p{L}]/gu, ""), plain = (s) => s.toLowerCase().replace(/[^\p{L}]/gu, ""); return a === plain(hz) || a === plain(window.KO.romanize(hz)) || a === plain(window.KO.romanize(hz, { spelled: true })); };
   // Hangul syllable → its letters (initial, vowel, final) as Unicode compatibility jamo
@@ -80,8 +88,11 @@
     zh: { id: "zh", glyph: "中", name: "中文 · Chinese", title: "HSK Trainer", tts: "zh-CN", script: "cjk", levels: [1, 2, 3], levelName: (l) => "HSK " + l, allLabel: "HSK 1–3", words: ZH_WORDS, toneOptions: [1, 2, 3, 4], testPhrase: "你好，我学习汉语。", source: { text: "glxxyz/hskhsk.com", url: "https://github.com/glxxyz/hskhsk.com" } },
     vi: { id: "vi", glyph: "Vi", name: "Tiếng Việt · Vietnamese", title: "Tiếng Việt Trainer", tts: "vi-VN", script: "latin", levels: [1, 2, 3, 4, 5, 6], levelName: (l) => ["A1", "A2", "B1", "B2", "C1", "C2"][l - 1], allLabel: "A1–C2", words: VI_WORDS, toneOptions: [1, 2, 3, 4, 5, 6], testPhrase: "Xin chào, tôi học tiếng Việt.", source: null },
     ja: { id: "ja", glyph: "あ", name: "日本語 · Japanese", title: "JLPT Trainer", tts: "ja-JP", script: "cjk", levels: [1, 2, 3, 4, 5], levelName: (l) => "N" + (6 - l), allLabel: "N5–N1", words: JA_WORDS, toneOptions: null, testPhrase: "こんにちは。日本語を勉強しています。", source: { text: "jamsinclair/open-anki-jlpt-decks", url: "https://github.com/jamsinclair/open-anki-jlpt-decks" } },
-    ko: { id: "ko", glyph: "한", name: "한국어 · Korean", title: "Korean Trainer", tts: "ko-KR", script: "cjk", levels: [1, 2], levelName: (l) => ["A1", "A2"][l - 1], allLabel: "A1–A2", words: KO_WORDS, toneOptions: null, testPhrase: "안녕하세요. 저는 한국어를 공부해요.", source: null }
+    ko: { id: "ko", glyph: "한", name: "한국어 · Korean", title: "Korean Trainer", tts: "ko-KR", script: "cjk", levels: [1, 2], levelName: (l) => ["A1", "A2"][l - 1], allLabel: "A1–A2", words: KO_WORDS, toneOptions: null, testPhrase: "안녕하세요. 저는 한국어를 공부해요.", source: null },
+    de: { id: "de", glyph: "De", name: "Deutsch · German", title: "Deutsch Trainer", tts: "de-DE", script: "latin", gender: true, levels: [1, 2], levelName: (l) => ["A1", "A2"][l - 1], allLabel: "A1–A2", words: DE_WORDS, toneOptions: null, testPhrase: "Hallo, ich lerne Deutsch.", source: null },
+    es: { id: "es", glyph: "Es", name: "Español · Spanish", title: "Español Trainer", tts: "es-ES", script: "latin", gender: true, levels: [1, 2], levelName: (l) => ["A1", "A2"][l - 1], allLabel: "A1–A2", words: ES_WORDS, toneOptions: null, testPhrase: "Hola, estoy aprendiendo español.", source: null }
   };
+  Object.keys(COURSES).forEach((k) => { if (!COURSES[k].words.length) delete COURSES[k]; }); // a course without its word file
   const CATS = window.HSK1_CATEGORIES;
   CATS.custom = { en: "My words", de: "Eigene Wörter", icon: "✏️" };
   const BY_ID = Object.fromEntries(Object.values(COURSES).flatMap((c) => c.words).map((w) => [w.id, w]));
@@ -95,7 +106,7 @@
     .map(([id, x]) => ({ id, hz: x.hz || x.py, py: x.py, en: x.en, cat: "custom", lvl: 1, ex: "", exPy: "", exEn: "", course }));
   // One look per language (Ink Grid, Quiet Ruby, Block Builder, Tone Color): colours and fonts in style.css
   // under html[data-course]; here the tab labels written in the language itself
-  const LOOK_EXTRA = { zh: ["课", "话"], ja: ["課", "話"], ko: ["과", "화"], vi: ["Bài", "Thoại"] };
+  const LOOK_EXTRA = { zh: ["课", "话"], ja: ["課", "話"], ko: ["과", "화"], vi: ["Bài", "Thoại"] }; // German and Spanish use the line icons
   const LOOK_TABS = { zh: ["学", "练", "词", "我"], ja: ["学", "練", "語", "私"], ko: ["학", "연", "단", "나"], vi: ["Học", "Tập", "Từ", "Tôi"] };
   function applyCourse() {
     C = COURSES[S.course] || COURSES.zh;
@@ -152,7 +163,19 @@
   const stripJa = (s) => s.normalize("NFC").toLowerCase().replace(/[\s'’\-.,!?・]/g, "");
   // Korean: Hangul or romanization, without spaces, hyphens and punctuation
   const stripKo = (s) => s.normalize("NFC").toLowerCase().replace(/[\s'’\-.,!?]/g, "");
-  const norm = (s) => (C.id === "zh" ? stripTones(s) : C.id === "ja" ? stripJa(s) : C.id === "ko" ? stripKo(s) : stripVi(s));
+  // German and Spanish: case, accents and umlauts don't matter for searching (straße = strasse, café = cafe)
+  const stripLatin = (s) => s.normalize("NFC").toLowerCase().replace(/ß/g, "ss").replace(/ä/g, "a").replace(/ö/g, "o").replace(/ü/g, "u").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[.,!?¿¡'’]/g, "").replace(/\s+/g, " ").trim();
+  const norm = (s) => (C.id === "zh" ? stripTones(s) : C.id === "ja" ? stripJa(s) : C.id === "ko" ? stripKo(s) : C.gender ? stripLatin(s) : stripVi(s));
+  // A typed German or Spanish answer. German: ä ö ü ß may be typed ae oe ue ss. Spanish: accents (and ñ) are optional,
+  // but typed accents must be right. Nouns need their article: the gender is part of the word.
+  function latinTyped(v, hz) {
+    const clean = (x) => x.normalize("NFC").toLowerCase().replace(/[.,!?¿¡]/g, "").replace(/\s+/g, " ").trim();
+    const a = clean(v), b = clean(hz);
+    if (a === b) return true;
+    if (C.id === "de") return a === b.replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/ß/g, "ss") || a.replace(/ae/g, "ä").replace(/oe/g, "ö").replace(/ue/g, "ü").replace(/ss/g, "ß") === b;
+    const accents = /[\u0300-\u036f]/.test(a.normalize("NFD"));
+    return !accents && stripLatin(a) === stripLatin(b);
+  }
   const hasDiacritics = (s) => /[̀-ͯ]/.test(s.normalize("NFD")) || /đ/i.test(s);
   const TONE_MARKS = { "̄": 1, "́": 2, "̌": 3, "̀": 4 };           // Mandarin: 1–4, none = neutral (5)
   const VI_TONE_MARKS = { "̀": 2, "́": 3, "̉": 4, "̃": 5, "̣": 6 }; // Vietnamese: ngang(1) huyền sắc hỏi ngã nặng
@@ -173,7 +196,7 @@
     stats: { answered: 0, correct: 0, days: {}, sessions: 0, since: 0 },
     settings: { rate: 0.85, autoSpeak: true, tilePinyin: true, quizSize: 10, dailyGoal: 20, theme: "auto", newPerDay: 5 }, // readingLayer: always | new | off
     course: "zh",
-    courses: { zh: { levels: [1] }, vi: { levels: [1] }, ja: { levels: [1] }, ko: { levels: [1] } },
+    courses: { zh: { levels: [1] }, vi: { levels: [1] }, ja: { levels: [1] }, ko: { levels: [1] }, de: { levels: [1] }, es: { levels: [1] } },
     lessons: {},  // id → { course, name, words: [ids], created, t }
     custom: {},   // id → own word { course, hz, py, en, t }
     dlg: {},      // dialogue id → { listen: day, read: { best, last, acc }, turn: { best, last } }
@@ -365,7 +388,7 @@
       whyAgain: "card · Again", whyTyped: (s) => `typed ${s}`, whyPicked: (s) => `picked ${s}`, whyTones: "tones need work", whyNotHeard: "not heard yet",
       sessionPlan: (r, n) => `${r} reviews + ${n} new words`, sessionPlanReviews: (r) => `${r} reviews`, sessionPlanNew: (n) => `${n} new words`, topicLine: (x) => `Topic · ${x}`, todaysSession: "Today’s session",
       hearIt: "Hear it", typeThePinyin: "Type the pinyin", typeTheWord: "Type the word", typePickHint: "Letters only — then tap each tone below. Tone numbers (de2guo2) and tone marks work too.", eachSyllable: "Each syllable needs a tone · neutral tone: leave it unselected", dontKnow: "I don’t know — show me", flow_write_word: "Type the word", typePickHintVi: "Letters only — then tap each tone below. Telex (traf → trà) works too.", eachSyllableVi: "Each syllable needs a tone · no mark = ngang",
-      practiceEyebrow: "Practice", heardWord: "Heard", notInLists: "not in your word lists", heardDiff: (a, b) => `${a} sounded like ${b}`, curveOverruled: (x) => `The curve looked off, but the recogniser heard exactly ${x} — counted as right.`, pasteList: "Paste a list", pasteShort: "Paste list", pasteNewLesson: "Goes into a new lesson", pasteLabel: "Words from your tutor", pastePhZh: "nǐ hǎo, xièxie, 老师 teacher …", pastePh: "One word per line, or with commas", pasteHint: "Pinyin, characters or meanings — one per line or separated by commas. Each word is looked up for you.", skipped: "skipped", undo: "Undo", pasteWhich: "Which one?", pasteParts: "Not one word in the list — add its parts?", noneOwn: "None — my own word", notInListShort: "Not in the word list — add it as your own:", pasteCount: (n) => (n === 1 ? "1 word to add" : `${n} words to add`), pasteOpen: (n) => `${n} still open`, lessonDated: (n, d) => `Lesson ${n} · ${d}`, modeFamilies: "Word families", sub_families: "Similar words side by side", famSub: (n) => `${n} families · see the difference`, fam_pair: "Opposites", fam_tone: "Same sound, other tone", fam_build: "One part, many words", fam_final: "One final consonant", together: "Together:", compare: "Compare", whichOne: "Which one?", nextFamily: "Next family", famQListen: "Which one did you hear?", famQMeaning: "Which one means this?", wordFamily: "Word family", bestOnMac: "Best on the Mac · Typer", typerRaceZh: "Typing race · pinyin + tones", typerRace: "Typing race", typerHintZh: "type de2guo2 or the marks.", typerHintVi: "Telex or VNI keyboard.", typerHintKo: "Korean keyboard.", loading: "Loading…", traceOffline: "The stroke data could not be loaded. Connect once to download it.", trace_trace: "Trace", trace_copy: "Copy", trace_memory: "From memory", strokeOf: (i, n) => `Stroke ${i} of ${n}`, traceAria: (c) => `Writing grid for ${c}`, traceStart: (d) => `Start at the red dot and ${d}.`, strokeGood: (n) => `Stroke ${n} looks good.`, dirDot: "make a short dot", dirRight: "go across to the right", dirDownRight: "sweep down to the right", dirDown: "go straight down", dirDownLeft: "sweep down to the left", dirUpRight: "flick up to the right", dirLeft: "go to the left", traceAgain: "Not quite — start at the red dot and follow the stroke.", traceHelp: "Here is the next stroke — follow the dashed line.", traceDone: "Character done", order: "Order", showMe: "Show me", clear: "Clear", whyStrokes: "strokes", koFinalMissing: (h, f) => `Heard ${h} — the final ${f} was missing.`, koFinalExtra: (h, f) => `Heard ${h} — there is no final ${f} here.`, jaHold: (r) => `Hold the long vowels and small っ: ${r}.`, cardPicKo: "Picture → Korean", cardKanji: "Kanji → reading & meaning", picture: "Picture", chooseLong: "One long vowel changes the meaning.", chooseFinal: "Only the final consonant changes.", micOffTitle: "The microphone is off for this app", micOffText: "Turn it on in your browser’s or the system’s settings to get tone feedback — or say it aloud and rate yourself.", rateMyself: "Rate myself", rateSelfAloud: "Say it aloud after the model, then rate yourself:", getVoice: "Get a voice · 2 min", listenHidden: "Listening exercises are hidden until a voice is installed.", cantReach: "Can’t reach the sync server", offlineWord: "Offline", savedHereSync: "Your progress is saved on this device and syncs when you’re back online.", tryAgain: "Try again", syncCode: "Sync code", syncing: "Syncing…", obStep: (i, n) => `Step ${i} of ${n}`, obWhat: "What do you want to learn?", obWhatSub: "Each language has its own look. You can switch any time.", wordsN: (n) => `${n.toLocaleString("en")} words`, obStarting: "Just starting", obDone: (l) => `${l} done`, obPfSub: "Recommended if you can’t read characters yet", obContinue: (l) => `Continue with ${l}`, obReady: "Let’s get your ears and voice ready", obVoice: (l) => `${l} voice`, obVoiceDefault: "Default voice found · a more natural one is free", obVoiceGood: (q) => `${q} voice found`, obHow: "Show me how · 2 min", obMic: "Microphone", obMicSub: "For Say the word, dialogues and role play", obMicText: "The app listens only while you use the mic button. Your pitch is compared with the model on this device; the words themselves are recognised by Apple’s or your browser’s speech recogniser.", obAllowMic: "Allow microphone", obMicOn: "Microphone on", obPlan: (n, m) => `${n} new words + reviews · ≈ ${m} min`, change: "Change", obStart: "Start learning", obLater: "Not now — I’ll tap and type instead", showAllVoices: (n) => `Show all ${n} voices`, inUse: "in use", noVoiceTitle: (l) => `No ${l} voice on this device`, noVoiceText: "You can keep learning — words show their reading and tone marks. Add a free voice to hear them.", speed: "Speed", speedSlow: "Slow", speedLearner: "Learner", speedNative: "Native", naturalVoice: "Get a natural voice · free, ≈ 2 min", naturalVoiceText: (l) => `Your device has better ${l} voices than the default — they just need downloading once.`, voiceStepsIos: ["Open Settings → Accessibility → Spoken Content.", "Tap Voices → {0}.", "Pick a voice marked Enhanced or Premium and tap download.", "Come back here — the new voice shows up in this list.", "Tap Test voice to hear the difference."], voiceStepsMac: ["Open System Settings → Accessibility → Spoken Content.", "Click System voice → Manage Voices… → {0}.", "Tick a voice marked Enhanced or Premium to download it.", "Reload this page — the new voice shows up in this list.", "Click Test voice to hear the difference."], testVoice: "Test voice", statsTitle: (l) => `Statistics · ${l}`, ofKnown: (n) => `of ${n} known`, accuracyLower: "accuracy", last12: "Last 12 weeks", daysStudied: (n) => (n === 1 ? "1 day studied" : `${n} days studied`), heatAria: "Study heatmap for the last 12 weeks", less: "less", more: "more", byLevel: "By level", lvMeta: (k, l, n) => `${k} known · ${l} learning · of ${n}`, lvNotStarted: (n) => `not started · ${n} words`, tonesSpeaking: "Tones when speaking", weakestTone: (x) => `The ${x} tone is your weakest — there’s a drill for it in Practice → Tone drill.`, tonesEmpty: "Say a few words with the microphone (Practice → Say the word) to see how each tone comes out.", bySkill: "By skill", lessonN: (n) => `Lesson ${n}`, pctLearned: (n) => `${n}% learned`, pickFromList: "Pick from list", typeMyOwn: "Type my own", ownTyped: (n) => (n === 1 ? "1 typed in by you" : `${n} typed in by you`), ownTag: "Own", removeX: (x) => `Remove ${x}`, ownPrompt: "Pinyin, English or characters", ownPromptOther: "The word or its meaning", alreadyIn: "Already in this lesson", notInList: "Not in the word list — add it as your own word:", addOwn: "Add as my word", lessonsSub: "Words from your tutor classes", newShort: "New", ownN: (n) => `${n} own`, practiseLessonN: (n) => `Practise lesson ${n}`, noLessonsYet: "No lessons yet", noLessonsText: "After your next class, add the new words here so they come up in your daily session.", firstLesson: "First lesson", afterClass: "After class", afterClassText: "Add new words while they’re fresh. Pick them from the list, or type your own — the reading and audio are filled in for you.", dlgTopicsDone: (n, d) => `${n} topics · ${d} done`, timed: "timed", linesN: (n) => `${n} lines`, freeSub: "Random partner, uses only words you know", noDialogues: "No dialogues for this language yet.", searchWords: "Search words", review: "Review", wordsInOrder: (n) => `${n} words · in learning order`, sayItLike: "Say it like", wordDetail: "Word detail", favorite: "Favourite", status: "Status", inLesson: (x) => `In ${x}`, addToLessonX: (x) => `Add to ${x}`, tapTile: "Tap a tile to hear it", voiceNorth: "Northern voice", voiceSouth: "Southern voice", nsNote: "d, gi and r sound like “z” in the North and like “y” in the South.", telexNote: "Telex: <b>dd</b> → đ · <b>aa</b> → â · <b>ow</b> → ơ · tones <b>f s r x j</b>", result: "Result", resultCells: (c, w) => `${c} correct, ${w} wrong`, mistakesN: (n) => `Mistakes · ${n}`, addedToReviews: "Added to today’s reviews", retryMistakes: "Retry mistakes", rateSelfQ: "No speech recogniser on this device? Rate yourself:", notYet: "Not yet", closeEnough: "Close", gotIt: "Got it", sayHint: "Tap the mic and say the word.", tonesRightShort: "tones right", heardShort: "heard", model: "Model", you: "You", setUpRound: "set up this round", allN: (n) => `All ${n}`, orByTime: "or by time", minShort: "min", wordsMatch: (n) => (n === 1 ? "1 word matches" : `${n} words match`), perRound: (k, m) => `${k} per round · ≈ ${m} min`, skillNote_listen: "Ears first", skillNote_speak: "Your tutor’s focus", skillNote_read: "Characters, gently", skillNote_write: "Typing is best on the Mac",
+      practiceEyebrow: "Practice", plural: "Plural", modeGender: "Der, die, das?", modeGenderEs: "El or la?", sub_gender: "Pick the article", gender_m: "masculine", gender_f: "feminine", gender_n: "neuter", heardWord: "Heard", notInLists: "not in your word lists", heardDiff: (a, b) => `${a} sounded like ${b}`, curveOverruled: (x) => `The curve looked off, but the recogniser heard exactly ${x} — counted as right.`, pasteList: "Paste a list", pasteShort: "Paste list", pasteNewLesson: "Goes into a new lesson", pasteLabel: "Words from your tutor", pastePhZh: "nǐ hǎo, xièxie, 老师 teacher …", pastePh: "One word per line, or with commas", pasteHint: "Pinyin, characters or meanings — one per line or separated by commas. Each word is looked up for you.", skipped: "skipped", undo: "Undo", pasteWhich: "Which one?", pasteParts: "Not one word in the list — add its parts?", noneOwn: "None — my own word", notInListShort: "Not in the word list — add it as your own:", pasteCount: (n) => (n === 1 ? "1 word to add" : `${n} words to add`), pasteOpen: (n) => `${n} still open`, lessonDated: (n, d) => `Lesson ${n} · ${d}`, modeFamilies: "Word families", sub_families: "Similar words side by side", famSub: (n) => `${n} families · see the difference`, fam_pair: "Opposites", fam_tone: "Same sound, other tone", fam_build: "One part, many words", fam_final: "One final consonant", together: "Together:", compare: "Compare", whichOne: "Which one?", nextFamily: "Next family", famQListen: "Which one did you hear?", famQMeaning: "Which one means this?", wordFamily: "Word family", bestOnMac: "Best on the Mac · Typer", typerRaceZh: "Typing race · pinyin + tones", typerRace: "Typing race", typerHintZh: "type de2guo2 or the marks.", typerHintVi: "Telex or VNI keyboard.", typerHintKo: "Korean keyboard.", loading: "Loading…", traceOffline: "The stroke data could not be loaded. Connect once to download it.", trace_trace: "Trace", trace_copy: "Copy", trace_memory: "From memory", strokeOf: (i, n) => `Stroke ${i} of ${n}`, traceAria: (c) => `Writing grid for ${c}`, traceStart: (d) => `Start at the red dot and ${d}.`, strokeGood: (n) => `Stroke ${n} looks good.`, dirDot: "make a short dot", dirRight: "go across to the right", dirDownRight: "sweep down to the right", dirDown: "go straight down", dirDownLeft: "sweep down to the left", dirUpRight: "flick up to the right", dirLeft: "go to the left", traceAgain: "Not quite — start at the red dot and follow the stroke.", traceHelp: "Here is the next stroke — follow the dashed line.", traceDone: "Character done", order: "Order", showMe: "Show me", clear: "Clear", whyStrokes: "strokes", koFinalMissing: (h, f) => `Heard ${h} — the final ${f} was missing.`, koFinalExtra: (h, f) => `Heard ${h} — there is no final ${f} here.`, jaHold: (r) => `Hold the long vowels and small っ: ${r}.`, cardPicKo: "Picture → Korean", cardKanji: "Kanji → reading & meaning", picture: "Picture", chooseLong: "One long vowel changes the meaning.", chooseFinal: "Only the final consonant changes.", micOffTitle: "The microphone is off for this app", micOffText: "Turn it on in your browser’s or the system’s settings to get tone feedback — or say it aloud and rate yourself.", rateMyself: "Rate myself", rateSelfAloud: "Say it aloud after the model, then rate yourself:", getVoice: "Get a voice · 2 min", listenHidden: "Listening exercises are hidden until a voice is installed.", cantReach: "Can’t reach the sync server", offlineWord: "Offline", savedHereSync: "Your progress is saved on this device and syncs when you’re back online.", tryAgain: "Try again", syncCode: "Sync code", syncing: "Syncing…", obStep: (i, n) => `Step ${i} of ${n}`, obWhat: "What do you want to learn?", obWhatSub: "Each language has its own look. You can switch any time.", wordsN: (n) => `${n.toLocaleString("en")} words`, obStarting: "Just starting", obDone: (l) => `${l} done`, obPfSub: "Recommended if you can’t read characters yet", obContinue: (l) => `Continue with ${l}`, obReady: "Let’s get your ears and voice ready", obVoice: (l) => `${l} voice`, obVoiceDefault: "Default voice found · a more natural one is free", obVoiceGood: (q) => `${q} voice found`, obHow: "Show me how · 2 min", obMic: "Microphone", obMicSub: "For Say the word, dialogues and role play", obMicText: "The app listens only while you use the mic button. Your pitch is compared with the model on this device; the words themselves are recognised by Apple’s or your browser’s speech recogniser.", obAllowMic: "Allow microphone", obMicOn: "Microphone on", obPlan: (n, m) => `${n} new words + reviews · ≈ ${m} min`, change: "Change", obStart: "Start learning", obLater: "Not now — I’ll tap and type instead", showAllVoices: (n) => `Show all ${n} voices`, inUse: "in use", noVoiceTitle: (l) => `No ${l} voice on this device`, noVoiceText: "You can keep learning — words show their reading and tone marks. Add a free voice to hear them.", speed: "Speed", speedSlow: "Slow", speedLearner: "Learner", speedNative: "Native", naturalVoice: "Get a natural voice · free, ≈ 2 min", naturalVoiceText: (l) => `Your device has better ${l} voices than the default — they just need downloading once.`, voiceStepsIos: ["Open Settings → Accessibility → Spoken Content.", "Tap Voices → {0}.", "Pick a voice marked Enhanced or Premium and tap download.", "Come back here — the new voice shows up in this list.", "Tap Test voice to hear the difference."], voiceStepsMac: ["Open System Settings → Accessibility → Spoken Content.", "Click System voice → Manage Voices… → {0}.", "Tick a voice marked Enhanced or Premium to download it.", "Reload this page — the new voice shows up in this list.", "Click Test voice to hear the difference."], testVoice: "Test voice", statsTitle: (l) => `Statistics · ${l}`, ofKnown: (n) => `of ${n} known`, accuracyLower: "accuracy", last12: "Last 12 weeks", daysStudied: (n) => (n === 1 ? "1 day studied" : `${n} days studied`), heatAria: "Study heatmap for the last 12 weeks", less: "less", more: "more", byLevel: "By level", lvMeta: (k, l, n) => `${k} known · ${l} learning · of ${n}`, lvNotStarted: (n) => `not started · ${n} words`, tonesSpeaking: "Tones when speaking", weakestTone: (x) => `The ${x} tone is your weakest — there’s a drill for it in Practice → Tone drill.`, tonesEmpty: "Say a few words with the microphone (Practice → Say the word) to see how each tone comes out.", bySkill: "By skill", lessonN: (n) => `Lesson ${n}`, pctLearned: (n) => `${n}% learned`, pickFromList: "Pick from list", typeMyOwn: "Type my own", ownTyped: (n) => (n === 1 ? "1 typed in by you" : `${n} typed in by you`), ownTag: "Own", removeX: (x) => `Remove ${x}`, ownPrompt: "Pinyin, English or characters", ownPromptOther: "The word or its meaning", alreadyIn: "Already in this lesson", notInList: "Not in the word list — add it as your own word:", addOwn: "Add as my word", lessonsSub: "Words from your tutor classes", newShort: "New", ownN: (n) => `${n} own`, practiseLessonN: (n) => `Practise lesson ${n}`, noLessonsYet: "No lessons yet", noLessonsText: "After your next class, add the new words here so they come up in your daily session.", firstLesson: "First lesson", afterClass: "After class", afterClassText: "Add new words while they’re fresh. Pick them from the list, or type your own — the reading and audio are filled in for you.", dlgTopicsDone: (n, d) => `${n} topics · ${d} done`, timed: "timed", linesN: (n) => `${n} lines`, freeSub: "Random partner, uses only words you know", noDialogues: "No dialogues for this language yet.", searchWords: "Search words", review: "Review", wordsInOrder: (n) => `${n} words · in learning order`, sayItLike: "Say it like", wordDetail: "Word detail", favorite: "Favourite", status: "Status", inLesson: (x) => `In ${x}`, addToLessonX: (x) => `Add to ${x}`, tapTile: "Tap a tile to hear it", voiceNorth: "Northern voice", voiceSouth: "Southern voice", nsNote: "d, gi and r sound like “z” in the North and like “y” in the South.", telexNote: "Telex: <b>dd</b> → đ · <b>aa</b> → â · <b>ow</b> → ơ · tones <b>f s r x j</b>", result: "Result", resultCells: (c, w) => `${c} correct, ${w} wrong`, mistakesN: (n) => `Mistakes · ${n}`, addedToReviews: "Added to today’s reviews", retryMistakes: "Retry mistakes", rateSelfQ: "No speech recogniser on this device? Rate yourself:", notYet: "Not yet", closeEnough: "Close", gotIt: "Got it", sayHint: "Tap the mic and say the word.", tonesRightShort: "tones right", heardShort: "heard", model: "Model", you: "You", setUpRound: "set up this round", allN: (n) => `All ${n}`, orByTime: "or by time", minShort: "min", wordsMatch: (n) => (n === 1 ? "1 word matches" : `${n} words match`), perRound: (k, m) => `${k} per round · ≈ ${m} min`, skillNote_listen: "Ears first", skillNote_speak: "Your tutor’s focus", skillNote_read: "Characters, gently", skillNote_write: "Typing is best on the Mac",
       sub_listen: "Hear a word, pick the meaning", sub_listenPic: "No reading needed", sub_tones: "Which tone did you hear?", sub_soundDrill: "zh / z / j · q / ch / c", sub_say: "Mic + pitch curve per syllable", sub_dialogues: "Listen · read aloud · role play", sub_freePlay: "Random partner, any topic", sub_soundChart: "Pinyin initials & finals",
       sub_choose: "Sound-alikes in a sentence", sub_picture: "See it, pick the pinyin", sub_flash: "Spaced repetition", sub_quiz: "4 directions", sub_match: "Pinyin ↔ meaning", sub_type: "Pinyin + tone picker", sub_typer: "Timed typing race", sub_numbers: "yī èr sān … to 99", sub_trace: "Stroke order, when you start reading",
       modeFree: "Free role play", modeTrace: "Trace characters", newBadge: "New", nDue: (n) => `${n} due`, bestWpm: (n) => `best ${n} wpm`, accentLabel: "Accent", accentN: "Northern", accentS: "Southern",
@@ -503,7 +526,7 @@
       whyAgain: "Karte · Nochmal", whyTyped: (s) => `getippt: ${s}`, whyPicked: (s) => `gewählt: ${s}`, whyTones: "Töne üben", whyNotHeard: "noch nicht erkannt",
       sessionPlan: (r, n) => `${r} Wiederholungen + ${n} neue Wörter`, sessionPlanReviews: (r) => `${r} Wiederholungen`, sessionPlanNew: (n) => `${n} neue Wörter`, topicLine: (x) => `Thema · ${x}`, todaysSession: "Heutige Einheit",
       hearIt: "Anhören", typeThePinyin: "Pinyin tippen", typeTheWord: "Wort tippen", typePickHint: "Nur Buchstaben – dann unten jeden Ton antippen. Tonzahlen (de2guo2) und Tonzeichen gehen auch.", eachSyllable: "Jede Silbe braucht einen Ton · neutraler Ton: nichts wählen", dontKnow: "Weiß ich nicht – zeig es mir", flow_write_word: "Wort tippen", typePickHintVi: "Nur Buchstaben – dann unten jeden Ton antippen. Telex (traf → trà) geht auch.", eachSyllableVi: "Jede Silbe braucht einen Ton · ohne Zeichen = ngang",
-      practiceEyebrow: "Üben", heardWord: "Gehört", notInLists: "nicht in deinen Wortlisten", heardDiff: (a, b) => `${a} klang wie ${b}`, curveOverruled: (x) => `Die Kurve sah nicht ganz richtig aus, aber die Erkennung hat genau ${x} gehört – zählt als richtig.`, pasteList: "Liste einfügen", pasteShort: "Liste einfügen", pasteNewLesson: "Kommt in eine neue Lektion", pasteLabel: "Wörter aus dem Unterricht", pastePhZh: "nǐ hǎo, xièxie, 老师 Lehrer …", pastePh: "Ein Wort pro Zeile oder mit Kommas", pasteHint: "Pinyin, Zeichen oder Bedeutungen – eins pro Zeile oder mit Kommas getrennt. Jedes Wort wird für dich nachgeschlagen.", skipped: "übersprungen", undo: "Rückgängig", pasteWhich: "Welches?", pasteParts: "Kein einzelnes Wort der Liste – die Teile hinzufügen?", noneOwn: "Keins – mein eigenes Wort", notInListShort: "Nicht in der Wortliste – als eigenes Wort hinzufügen:", pasteCount: (n) => (n === 1 ? "1 Wort zum Hinzufügen" : `${n} Wörter zum Hinzufügen`), pasteOpen: (n) => `${n} noch offen`, lessonDated: (n, d) => `Lektion ${n} · ${d}`, modeFamilies: "Wortfamilien", sub_families: "Ähnliche Wörter nebeneinander", famSub: (n) => `${n} Familien · sieh den Unterschied`, fam_pair: "Gegensätze", fam_tone: "Gleicher Laut, anderer Ton", fam_build: "Ein Teil, viele Wörter", fam_final: "Ein Endkonsonant", together: "Zusammen:", compare: "Vergleichen", whichOne: "Welches ist es?", nextFamily: "Nächste Familie", famQListen: "Welches hast du gehört?", famQMeaning: "Welches bedeutet das?", wordFamily: "Wortfamilie", bestOnMac: "Am besten am Mac · Schreibmaschine", typerRaceZh: "Tipp-Rennen · Pinyin + Töne", typerRace: "Tipp-Rennen", typerHintZh: "tippe de2guo2 oder die Zeichen.", typerHintVi: "Telex- oder VNI-Tastatur.", typerHintKo: "Koreanische Tastatur.", loading: "Lädt …", traceOffline: "Die Strichdaten konnten nicht geladen werden. Einmal online gehen, um sie zu laden.", trace_trace: "Nachziehen", trace_copy: "Abschreiben", trace_memory: "Aus dem Kopf", strokeOf: (i, n) => `Strich ${i} von ${n}`, traceAria: (c) => `Schreibfeld für ${c}`, traceStart: (d) => `Beim roten Punkt anfangen und ${d}.`, strokeGood: (n) => `Strich ${n} sieht gut aus.`, dirDot: "einen kurzen Punkt setzen", dirRight: "nach rechts ziehen", dirDownRight: "nach rechts unten schwingen", dirDown: "gerade nach unten ziehen", dirDownLeft: "nach links unten schwingen", dirUpRight: "nach rechts oben schnellen", dirLeft: "nach links ziehen", traceAgain: "Nicht ganz – beim roten Punkt anfangen und dem Strich folgen.", traceHelp: "Hier ist der nächste Strich – folge der gestrichelten Linie.", traceDone: "Zeichen fertig", order: "Reihenfolge", showMe: "Zeig es mir", clear: "Löschen", whyStrokes: "Striche", koFinalMissing: (h, f) => `Gehört: ${h} – der Endkonsonant ${f} fehlte.`, koFinalExtra: (h, f) => `Gehört: ${h} – hier gibt es kein ${f} am Ende.`, jaHold: (r) => `Lange Vokale und kleines っ halten: ${r}.`, cardPicKo: "Bild → Koreanisch", cardKanji: "Kanji → Lesung & Bedeutung", picture: "Bild", chooseLong: "Ein langer Vokal ändert die Bedeutung.", chooseFinal: "Nur der Endkonsonant ändert sich.", micOffTitle: "Das Mikrofon ist für diese App aus", micOffText: "Schalte es in den Einstellungen des Browsers oder Systems ein, um Rückmeldung zu den Tönen zu bekommen – oder sprich laut und bewerte dich selbst.", rateMyself: "Selbst bewerten", rateSelfAloud: "Sprich es nach der Vorlage laut, dann bewerte dich:", getVoice: "Stimme holen · 2 Min.", listenHidden: "Hörübungen sind ausgeblendet, bis eine Stimme installiert ist.", cantReach: "Sync-Server nicht erreichbar", offlineWord: "Offline", savedHereSync: "Dein Fortschritt ist auf diesem Gerät gespeichert und wird synchronisiert, sobald du wieder online bist.", tryAgain: "Erneut versuchen", syncCode: "Sync-Code", syncing: "Synchronisiere …", obStep: (i, n) => `Schritt ${i} von ${n}`, obWhat: "Was möchtest du lernen?", obWhatSub: "Jede Sprache hat ihr eigenes Aussehen. Du kannst jederzeit wechseln.", wordsN: (n) => `${n.toLocaleString("de")} Wörter`, obStarting: "Ganz neu", obDone: (l) => `${l} geschafft`, obPfSub: "Empfohlen, wenn du noch keine Zeichen lesen kannst", obContinue: (l) => `Weiter mit ${l}`, obReady: "Ohren und Stimme vorbereiten", obVoice: (l) => `Stimme für ${l}`, obVoiceDefault: "Standardstimme gefunden · eine natürlichere gibt es kostenlos", obVoiceGood: (q) => `${q}-Stimme gefunden`, obHow: "Zeig mir wie · 2 Min.", obMic: "Mikrofon", obMicSub: "Für Wort sprechen, Dialoge und Rollenspiel", obMicText: "Die App hört nur zu, während du die Mikrofon-Taste benutzt. Deine Tonhöhe wird auf diesem Gerät mit der Vorlage verglichen; die Wörter erkennt die Spracherkennung von Apple oder deines Browsers.", obAllowMic: "Mikrofon erlauben", obMicOn: "Mikrofon an", obPlan: (n, m) => `${n} neue Wörter + Wiederholungen · ≈ ${m} Min.`, change: "Ändern", obStart: "Loslegen", obLater: "Jetzt nicht – ich tippe lieber", showAllVoices: (n) => `Alle ${n} Stimmen zeigen`, inUse: "aktiv", noVoiceTitle: (l) => `Keine Stimme für ${l} auf diesem Gerät`, noVoiceText: "Du kannst weiterlernen – Wörter zeigen Lesung und Tonzeichen. Lade eine kostenlose Stimme, um sie zu hören.", speed: "Tempo", speedSlow: "Langsam", speedLearner: "Lernend", speedNative: "Normal", naturalVoice: "Natürliche Stimme holen · kostenlos, ≈ 2 Min.", naturalVoiceText: (l) => `Dein Gerät hat bessere Stimmen für ${l} als die Standardstimme – sie müssen nur einmal geladen werden.`, voiceStepsIos: ["Einstellungen → Bedienungshilfen → Gesprochene Inhalte öffnen.", "Stimmen → {0} tippen.", "Eine Stimme mit „Erweitert“ oder „Premium“ wählen und laden.", "Hierher zurückkommen – die neue Stimme erscheint in der Liste.", "Auf „Stimme testen“ tippen und den Unterschied hören."], voiceStepsMac: ["Systemeinstellungen → Bedienungshilfen → Gesprochene Inhalte öffnen.", "Systemstimme → Stimmen verwalten … → {0}.", "Eine Stimme mit „Erweitert“ oder „Premium“ ankreuzen und laden.", "Diese Seite neu laden – die neue Stimme erscheint in der Liste.", "Auf „Stimme testen“ klicken und den Unterschied hören."], testVoice: "Stimme testen", statsTitle: (l) => `Statistik · ${l}`, ofKnown: (n) => `von ${n} gelernt`, accuracyLower: "richtig", last12: "Letzte 12 Wochen", daysStudied: (n) => (n === 1 ? "1 Lerntag" : `${n} Lerntage`), heatAria: "Lernkalender der letzten 12 Wochen", less: "weniger", more: "mehr", byLevel: "Nach Stufe", lvMeta: (k, l, n) => `${k} gelernt · ${l} in Arbeit · von ${n}`, lvNotStarted: (n) => `nicht begonnen · ${n} Wörter`, tonesSpeaking: "Töne beim Sprechen", weakestTone: (x) => `Der ${x} Ton ist dein schwächster – dafür gibt es unter Üben → Ton-Training eine Übung.`, tonesEmpty: "Sprich ein paar Wörter ins Mikrofon (Üben → Wort sprechen), dann siehst du, wie jeder Ton gelingt.", bySkill: "Nach Fertigkeit", lessonN: (n) => `Lektion ${n}`, pctLearned: (n) => `${n} % gelernt`, pickFromList: "Aus der Liste", typeMyOwn: "Selbst tippen", ownTyped: (n) => (n === 1 ? "1 von dir eingetippt" : `${n} von dir eingetippt`), ownTag: "Eigen", removeX: (x) => `${x} entfernen`, ownPrompt: "Pinyin, Deutsch oder Zeichen", ownPromptOther: "Das Wort oder seine Bedeutung", alreadyIn: "Schon in dieser Lektion", notInList: "Nicht in der Wortliste – als eigenes Wort hinzufügen:", addOwn: "Als mein Wort hinzufügen", lessonsSub: "Wörter aus deinem Unterricht", newShort: "Neu", ownN: (n) => `${n} eigene`, practiseLessonN: (n) => `Lektion ${n} üben`, noLessonsYet: "Noch keine Lektionen", noLessonsText: "Füge nach der nächsten Stunde die neuen Wörter hier hinzu, dann kommen sie in deiner täglichen Einheit dran.", firstLesson: "Erste Lektion", afterClass: "Nach dem Unterricht", afterClassText: "Neue Wörter eintragen, solange sie frisch sind. Aus der Liste wählen oder selbst tippen – Lesung und Ton werden ergänzt.", dlgTopicsDone: (n, d) => `${n} Themen · ${d} fertig`, timed: "mit Zeit", linesN: (n) => `${n} Zeilen`, freeSub: "Zufälliger Partner, nur Wörter, die du kennst", noDialogues: "Für diese Sprache gibt es noch keine Dialoge.", searchWords: "Wörter suchen", review: "Wiederholen", wordsInOrder: (n) => `${n} Wörter · in Lernreihenfolge`, sayItLike: "So klingt es", wordDetail: "Wortdetails", favorite: "Favorit", status: "Status", inLesson: (x) => `In ${x}`, addToLessonX: (x) => `Zu ${x} hinzufügen`, tapTile: "Tippe eine Kachel an, um sie zu hören", voiceNorth: "Nördliche Stimme", voiceSouth: "Südliche Stimme", nsNote: "d, gi und r klingen im Norden wie ein stimmhaftes „s“, im Süden wie „j“.", telexNote: "Telex: <b>dd</b> → đ · <b>aa</b> → â · <b>ow</b> → ơ · Töne <b>f s r x j</b>", result: "Ergebnis", resultCells: (c, w) => `${c} richtig, ${w} falsch`, mistakesN: (n) => `Fehler · ${n}`, addedToReviews: "Zu den heutigen Wiederholungen hinzugefügt", retryMistakes: "Fehler wiederholen", rateSelfQ: "Keine Spracherkennung auf diesem Gerät? Bewerte dich selbst:", notYet: "Noch nicht", closeEnough: "Fast", gotIt: "Geschafft", sayHint: "Tippe aufs Mikrofon und sag das Wort.", tonesRightShort: "Töne richtig", heardShort: "erkannt", model: "Vorlage", you: "Du", setUpRound: "Runde einrichten", allN: (n) => `Alle ${n}`, orByTime: "oder nach Zeit", minShort: "Min.", wordsMatch: (n) => (n === 1 ? "1 Wort passt" : `${n} Wörter passen`), perRound: (k, m) => `${k} pro Runde · ≈ ${m} Min.`, skillNote_listen: "Erst die Ohren", skillNote_speak: "Schwerpunkt im Unterricht", skillNote_read: "Zeichen, ganz sanft", skillNote_write: "Tippen geht am Mac am besten",
+      practiceEyebrow: "Üben", plural: "Plural", modeGender: "Der, die, das?", modeGenderEs: "El oder la?", sub_gender: "Den Artikel wählen", gender_m: "maskulin", gender_f: "feminin", gender_n: "neutral", heardWord: "Gehört", notInLists: "nicht in deinen Wortlisten", heardDiff: (a, b) => `${a} klang wie ${b}`, curveOverruled: (x) => `Die Kurve sah nicht ganz richtig aus, aber die Erkennung hat genau ${x} gehört – zählt als richtig.`, pasteList: "Liste einfügen", pasteShort: "Liste einfügen", pasteNewLesson: "Kommt in eine neue Lektion", pasteLabel: "Wörter aus dem Unterricht", pastePhZh: "nǐ hǎo, xièxie, 老师 Lehrer …", pastePh: "Ein Wort pro Zeile oder mit Kommas", pasteHint: "Pinyin, Zeichen oder Bedeutungen – eins pro Zeile oder mit Kommas getrennt. Jedes Wort wird für dich nachgeschlagen.", skipped: "übersprungen", undo: "Rückgängig", pasteWhich: "Welches?", pasteParts: "Kein einzelnes Wort der Liste – die Teile hinzufügen?", noneOwn: "Keins – mein eigenes Wort", notInListShort: "Nicht in der Wortliste – als eigenes Wort hinzufügen:", pasteCount: (n) => (n === 1 ? "1 Wort zum Hinzufügen" : `${n} Wörter zum Hinzufügen`), pasteOpen: (n) => `${n} noch offen`, lessonDated: (n, d) => `Lektion ${n} · ${d}`, modeFamilies: "Wortfamilien", sub_families: "Ähnliche Wörter nebeneinander", famSub: (n) => `${n} Familien · sieh den Unterschied`, fam_pair: "Gegensätze", fam_tone: "Gleicher Laut, anderer Ton", fam_build: "Ein Teil, viele Wörter", fam_final: "Ein Endkonsonant", together: "Zusammen:", compare: "Vergleichen", whichOne: "Welches ist es?", nextFamily: "Nächste Familie", famQListen: "Welches hast du gehört?", famQMeaning: "Welches bedeutet das?", wordFamily: "Wortfamilie", bestOnMac: "Am besten am Mac · Schreibmaschine", typerRaceZh: "Tipp-Rennen · Pinyin + Töne", typerRace: "Tipp-Rennen", typerHintZh: "tippe de2guo2 oder die Zeichen.", typerHintVi: "Telex- oder VNI-Tastatur.", typerHintKo: "Koreanische Tastatur.", loading: "Lädt …", traceOffline: "Die Strichdaten konnten nicht geladen werden. Einmal online gehen, um sie zu laden.", trace_trace: "Nachziehen", trace_copy: "Abschreiben", trace_memory: "Aus dem Kopf", strokeOf: (i, n) => `Strich ${i} von ${n}`, traceAria: (c) => `Schreibfeld für ${c}`, traceStart: (d) => `Beim roten Punkt anfangen und ${d}.`, strokeGood: (n) => `Strich ${n} sieht gut aus.`, dirDot: "einen kurzen Punkt setzen", dirRight: "nach rechts ziehen", dirDownRight: "nach rechts unten schwingen", dirDown: "gerade nach unten ziehen", dirDownLeft: "nach links unten schwingen", dirUpRight: "nach rechts oben schnellen", dirLeft: "nach links ziehen", traceAgain: "Nicht ganz – beim roten Punkt anfangen und dem Strich folgen.", traceHelp: "Hier ist der nächste Strich – folge der gestrichelten Linie.", traceDone: "Zeichen fertig", order: "Reihenfolge", showMe: "Zeig es mir", clear: "Löschen", whyStrokes: "Striche", koFinalMissing: (h, f) => `Gehört: ${h} – der Endkonsonant ${f} fehlte.`, koFinalExtra: (h, f) => `Gehört: ${h} – hier gibt es kein ${f} am Ende.`, jaHold: (r) => `Lange Vokale und kleines っ halten: ${r}.`, cardPicKo: "Bild → Koreanisch", cardKanji: "Kanji → Lesung & Bedeutung", picture: "Bild", chooseLong: "Ein langer Vokal ändert die Bedeutung.", chooseFinal: "Nur der Endkonsonant ändert sich.", micOffTitle: "Das Mikrofon ist für diese App aus", micOffText: "Schalte es in den Einstellungen des Browsers oder Systems ein, um Rückmeldung zu den Tönen zu bekommen – oder sprich laut und bewerte dich selbst.", rateMyself: "Selbst bewerten", rateSelfAloud: "Sprich es nach der Vorlage laut, dann bewerte dich:", getVoice: "Stimme holen · 2 Min.", listenHidden: "Hörübungen sind ausgeblendet, bis eine Stimme installiert ist.", cantReach: "Sync-Server nicht erreichbar", offlineWord: "Offline", savedHereSync: "Dein Fortschritt ist auf diesem Gerät gespeichert und wird synchronisiert, sobald du wieder online bist.", tryAgain: "Erneut versuchen", syncCode: "Sync-Code", syncing: "Synchronisiere …", obStep: (i, n) => `Schritt ${i} von ${n}`, obWhat: "Was möchtest du lernen?", obWhatSub: "Jede Sprache hat ihr eigenes Aussehen. Du kannst jederzeit wechseln.", wordsN: (n) => `${n.toLocaleString("de")} Wörter`, obStarting: "Ganz neu", obDone: (l) => `${l} geschafft`, obPfSub: "Empfohlen, wenn du noch keine Zeichen lesen kannst", obContinue: (l) => `Weiter mit ${l}`, obReady: "Ohren und Stimme vorbereiten", obVoice: (l) => `Stimme für ${l}`, obVoiceDefault: "Standardstimme gefunden · eine natürlichere gibt es kostenlos", obVoiceGood: (q) => `${q}-Stimme gefunden`, obHow: "Zeig mir wie · 2 Min.", obMic: "Mikrofon", obMicSub: "Für Wort sprechen, Dialoge und Rollenspiel", obMicText: "Die App hört nur zu, während du die Mikrofon-Taste benutzt. Deine Tonhöhe wird auf diesem Gerät mit der Vorlage verglichen; die Wörter erkennt die Spracherkennung von Apple oder deines Browsers.", obAllowMic: "Mikrofon erlauben", obMicOn: "Mikrofon an", obPlan: (n, m) => `${n} neue Wörter + Wiederholungen · ≈ ${m} Min.`, change: "Ändern", obStart: "Loslegen", obLater: "Jetzt nicht – ich tippe lieber", showAllVoices: (n) => `Alle ${n} Stimmen zeigen`, inUse: "aktiv", noVoiceTitle: (l) => `Keine Stimme für ${l} auf diesem Gerät`, noVoiceText: "Du kannst weiterlernen – Wörter zeigen Lesung und Tonzeichen. Lade eine kostenlose Stimme, um sie zu hören.", speed: "Tempo", speedSlow: "Langsam", speedLearner: "Lernend", speedNative: "Normal", naturalVoice: "Natürliche Stimme holen · kostenlos, ≈ 2 Min.", naturalVoiceText: (l) => `Dein Gerät hat bessere Stimmen für ${l} als die Standardstimme – sie müssen nur einmal geladen werden.`, voiceStepsIos: ["Einstellungen → Bedienungshilfen → Gesprochene Inhalte öffnen.", "Stimmen → {0} tippen.", "Eine Stimme mit „Erweitert“ oder „Premium“ wählen und laden.", "Hierher zurückkommen – die neue Stimme erscheint in der Liste.", "Auf „Stimme testen“ tippen und den Unterschied hören."], voiceStepsMac: ["Systemeinstellungen → Bedienungshilfen → Gesprochene Inhalte öffnen.", "Systemstimme → Stimmen verwalten … → {0}.", "Eine Stimme mit „Erweitert“ oder „Premium“ ankreuzen und laden.", "Diese Seite neu laden – die neue Stimme erscheint in der Liste.", "Auf „Stimme testen“ klicken und den Unterschied hören."], testVoice: "Stimme testen", statsTitle: (l) => `Statistik · ${l}`, ofKnown: (n) => `von ${n} gelernt`, accuracyLower: "richtig", last12: "Letzte 12 Wochen", daysStudied: (n) => (n === 1 ? "1 Lerntag" : `${n} Lerntage`), heatAria: "Lernkalender der letzten 12 Wochen", less: "weniger", more: "mehr", byLevel: "Nach Stufe", lvMeta: (k, l, n) => `${k} gelernt · ${l} in Arbeit · von ${n}`, lvNotStarted: (n) => `nicht begonnen · ${n} Wörter`, tonesSpeaking: "Töne beim Sprechen", weakestTone: (x) => `Der ${x} Ton ist dein schwächster – dafür gibt es unter Üben → Ton-Training eine Übung.`, tonesEmpty: "Sprich ein paar Wörter ins Mikrofon (Üben → Wort sprechen), dann siehst du, wie jeder Ton gelingt.", bySkill: "Nach Fertigkeit", lessonN: (n) => `Lektion ${n}`, pctLearned: (n) => `${n} % gelernt`, pickFromList: "Aus der Liste", typeMyOwn: "Selbst tippen", ownTyped: (n) => (n === 1 ? "1 von dir eingetippt" : `${n} von dir eingetippt`), ownTag: "Eigen", removeX: (x) => `${x} entfernen`, ownPrompt: "Pinyin, Deutsch oder Zeichen", ownPromptOther: "Das Wort oder seine Bedeutung", alreadyIn: "Schon in dieser Lektion", notInList: "Nicht in der Wortliste – als eigenes Wort hinzufügen:", addOwn: "Als mein Wort hinzufügen", lessonsSub: "Wörter aus deinem Unterricht", newShort: "Neu", ownN: (n) => `${n} eigene`, practiseLessonN: (n) => `Lektion ${n} üben`, noLessonsYet: "Noch keine Lektionen", noLessonsText: "Füge nach der nächsten Stunde die neuen Wörter hier hinzu, dann kommen sie in deiner täglichen Einheit dran.", firstLesson: "Erste Lektion", afterClass: "Nach dem Unterricht", afterClassText: "Neue Wörter eintragen, solange sie frisch sind. Aus der Liste wählen oder selbst tippen – Lesung und Ton werden ergänzt.", dlgTopicsDone: (n, d) => `${n} Themen · ${d} fertig`, timed: "mit Zeit", linesN: (n) => `${n} Zeilen`, freeSub: "Zufälliger Partner, nur Wörter, die du kennst", noDialogues: "Für diese Sprache gibt es noch keine Dialoge.", searchWords: "Wörter suchen", review: "Wiederholen", wordsInOrder: (n) => `${n} Wörter · in Lernreihenfolge`, sayItLike: "So klingt es", wordDetail: "Wortdetails", favorite: "Favorit", status: "Status", inLesson: (x) => `In ${x}`, addToLessonX: (x) => `Zu ${x} hinzufügen`, tapTile: "Tippe eine Kachel an, um sie zu hören", voiceNorth: "Nördliche Stimme", voiceSouth: "Südliche Stimme", nsNote: "d, gi und r klingen im Norden wie ein stimmhaftes „s“, im Süden wie „j“.", telexNote: "Telex: <b>dd</b> → đ · <b>aa</b> → â · <b>ow</b> → ơ · Töne <b>f s r x j</b>", result: "Ergebnis", resultCells: (c, w) => `${c} richtig, ${w} falsch`, mistakesN: (n) => `Fehler · ${n}`, addedToReviews: "Zu den heutigen Wiederholungen hinzugefügt", retryMistakes: "Fehler wiederholen", rateSelfQ: "Keine Spracherkennung auf diesem Gerät? Bewerte dich selbst:", notYet: "Noch nicht", closeEnough: "Fast", gotIt: "Geschafft", sayHint: "Tippe aufs Mikrofon und sag das Wort.", tonesRightShort: "Töne richtig", heardShort: "erkannt", model: "Vorlage", you: "Du", setUpRound: "Runde einrichten", allN: (n) => `Alle ${n}`, orByTime: "oder nach Zeit", minShort: "Min.", wordsMatch: (n) => (n === 1 ? "1 Wort passt" : `${n} Wörter passen`), perRound: (k, m) => `${k} pro Runde · ≈ ${m} Min.`, skillNote_listen: "Erst die Ohren", skillNote_speak: "Schwerpunkt im Unterricht", skillNote_read: "Zeichen, ganz sanft", skillNote_write: "Tippen geht am Mac am besten",
       sub_listen: "Wort hören, Bedeutung wählen", sub_listenPic: "Ohne Lesen", sub_tones: "Welchen Ton hast du gehört?", sub_soundDrill: "zh / z / j · q / ch / c", sub_say: "Mikro + Tonkurve je Silbe", sub_dialogues: "Hören · laut lesen · Rollenspiel", sub_freePlay: "Zufälliger Partner, beliebiges Thema", sub_soundChart: "Pinyin-Anlaute und -Auslaute",
       sub_choose: "Ähnlich klingende Wörter im Satz", sub_picture: "Bild sehen, Pinyin wählen", sub_flash: "Verteilte Wiederholung", sub_quiz: "4 Richtungen", sub_match: "Pinyin ↔ Bedeutung", sub_type: "Pinyin + Tonwahl", sub_typer: "Tipp-Rennen auf Zeit", sub_numbers: "yī èr sān … bis 99", sub_trace: "Strichfolge, wenn du mit Zeichen anfängst",
       modeFree: "Freies Rollenspiel", modeTrace: "Zeichen nachziehen", newBadge: "Neu", nDue: (n) => `${n} fällig`, bestWpm: (n) => `Rekord ${n} WpM`, accentLabel: "Akzent", accentN: "Nord", accentS: "Süd",
@@ -527,6 +550,113 @@
   };
   // Course-specific wording (Vietnamese is written in Latin script: no hanzi, no pinyin)
   const COURSE_I18N = {
+    de: {
+      en: {
+        skillNote_read: "der · die · das", skillNote_write: "Umlauts: ae oe ue ss work too", sub_soundDrill: "ü / u · ch / sch · ei / ie", sub_say: "Microphone check", sub_soundChart: "Vowels, umlauts, ch", sub_choose: "Words that sound alike", sub_picture: "See it, pick the word", sub_match: "Word ↔ meaning", sub_type: "With the article: der Tisch", sub_numbers: "eins, zwei, drei … to 99",
+        modeSayDesc: "See a word and say it. The microphone checks it, or you record and compare.", stepSpeakDesc: "Say each word out loud. The microphone checks it, or you record yourself and compare.",
+        brandSub: "German", search: "Search German or English…", tilePinyin: "Plural on tiles", langName: "German", typeOr: "…or type it",
+        modeType: "Type the word", modeTypeDesc: "See the meaning, type the German word — nouns with der, die or das.",
+        typeHint: "Nouns with their article (der Tisch). ä ö ü ß can be typed as ae oe ue ss.", typePlaceholder: "German…",
+        modeTyperDesc: "Copy-type German as fast as you can. Enter reads it aloud.",
+        typerIntro: "Type the line exactly as shown. Press Enter when you are done: the app reads it aloud and moves on.",
+        typerHint: "Umlauts: ae oe ue ss work too. Enter = done + speak.",
+        modeNumbers: "Numbers", modeNumbersDesc: "Read and write German numbers 1–99 (einundzwanzig: the ones come first).",
+        dirHzTr: "Word → Meaning", dirTrHz: "Meaning → Word",
+        pinyinTips: "Pronunciation tips", numbers: "Number trainer", numbersDesc: "Practice 1–99",
+        noZhVoice: "No German voice found yet", flow_write: "Type the word",
+        ttsHint: "No sound on iPhone? Flip the ring/silent switch to ring and turn the volume up. For a natural sound, download a Premium or Enhanced German voice under Settings → Accessibility → Spoken Content → Voices → German: the app picks it by itself.",
+        aboutText: "Everyday German words for A1 and A2 with their article, plural, English meaning, an example sentence and pronunciation via your device's speech synthesis. Your progress is stored on this device.",
+        dataSource: "The word list, examples and dialogues were written for this app and sorted into topics; the levels are an editorial grading, not the official Goethe-Institut list.",
+        pinyinTipsText: [
+          "Learn every noun with its article: der (masculine, blue), die (feminine, red), das (neuter, green). The colour helps, the article is what you say.",
+          "German is spoken as it is written, with a few rules: ei sounds like “eye” (mein), ie like “ee” (sie), eu and äu like “oy” (heute, Häuser).",
+          "w is said like English v (Wasser), v often like f (Vater), z like ts (Zeit), j like y (ja).",
+          "ch after a, o, u is rough, at the back (Buch); after other vowels it is soft, like a whispered “h” in “huge” (ich).",
+          "ä is like e in “bed”, ö: say e with rounded lips, ü: say ee with rounded lips. ß is a sharp s.",
+          "At the end of a word b, d, g sound like p, t, k: Hund is said “hunt”.",
+          "The verb comes second in a statement (Heute lerne ich Deutsch) and goes to the end after weil and dass.",
+          "du for friends, family and children; Sie (with capital S) for adults you don't know."
+        ]
+      },
+      de: {
+        skillNote_read: "der · die · das", skillNote_write: "Umlaute: ae oe ue ss gehen auch", sub_soundDrill: "ü / u · ch / sch · ei / ie", sub_say: "Mikrofon-Check", sub_soundChart: "Vokale, Umlaute, ch", sub_choose: "Ähnlich klingende Wörter", sub_picture: "Bild sehen, Wort wählen", sub_match: "Wort ↔ Bedeutung", sub_type: "Mit Artikel: der Tisch", sub_numbers: "eins, zwei, drei … bis 99",
+        brandSub: "Deutsch", search: "Deutsch oder Englisch suchen…", tilePinyin: "Plural auf Kacheln", langName: "Deutsch", typeOr: "…oder tippe es",
+        modeType: "Wort tippen", modeTypeDesc: "Bedeutung sehen, das deutsche Wort tippen – Nomen mit der, die oder das.",
+        typeHint: "Nomen mit Artikel (der Tisch). ä ö ü ß gehen auch als ae oe ue ss.", typePlaceholder: "Deutsch…",
+        modeTyperDesc: "Deutsch so schnell wie möglich abtippen. Enter liest es vor.",
+        typerIntro: "Tippe die Zeile genau ab. Mit Enter bist du fertig: die App liest sie vor und geht weiter.",
+        typerHint: "Umlaute: ae oe ue ss gehen auch. Enter = fertig + vorlesen.",
+        modeNumbers: "Zahlen", modeNumbersDesc: "Deutsche Zahlen 1–99 lesen und schreiben (einundzwanzig: die Einer zuerst).",
+        dirHzTr: "Wort → Bedeutung", dirTrHz: "Bedeutung → Wort",
+        pinyinTips: "Aussprache-Tipps", numbers: "Zahlen-Trainer", numbersDesc: "1–99 üben",
+        noZhVoice: "Noch keine deutsche Stimme gefunden", flow_write: "Wort tippen",
+        aboutText: "Deutsche Alltagswörter für A1 und A2 mit Artikel, Plural, englischer Bedeutung, Beispielsatz und Aussprache über die Sprachausgabe deines Geräts. Dein Fortschritt wird auf diesem Gerät gespeichert.",
+        dataSource: "Wortliste, Beispiele und Dialoge wurden für diese App geschrieben und nach Themen sortiert; die Stufen sind eine redaktionelle Einteilung, nicht die offizielle Goethe-Liste.",
+        pinyinTipsText: [
+          "Lerne jedes Nomen mit seinem Artikel: der (maskulin, blau), die (feminin, rot), das (neutral, grün). Die Farbe hilft, gesagt wird der Artikel.",
+          "Deutsch spricht man meist, wie man es schreibt: ei wie in „mein“, ie wie in „sie“, eu und äu wie in „heute“.",
+          "w klingt wie ein englisches v, v oft wie f (Vater), z wie ts (Zeit).",
+          "ch nach a, o, u ist rau und hinten (Buch); nach anderen Vokalen weich (ich).",
+          "Am Wortende klingen b, d, g wie p, t, k: Hund spricht man „Hunt“.",
+          "Im Aussagesatz steht das Verb an zweiter Stelle; nach weil und dass am Ende.",
+          "du für Freunde, Familie und Kinder; Sie für Erwachsene, die man nicht kennt."
+        ]
+      }
+    },
+    es: {
+      en: {
+        fam_tone: "Only the accent differs", skillNote_read: "el · la", skillNote_write: "Accents optional, ñ as n works", sub_soundDrill: "r / rr · b / v · j / g", sub_say: "Microphone check", sub_soundChart: "Vowels, r and rr, ñ", sub_choose: "Words that sound alike", sub_picture: "See it, pick the word", sub_match: "Word ↔ meaning", sub_type: "With the article: la mesa", sub_numbers: "uno, dos, tres … to 99",
+        modeSayDesc: "See a word and say it. The microphone checks it, or you record and compare.", stepSpeakDesc: "Say each word out loud. The microphone checks it, or you record yourself and compare.",
+        brandSub: "Spanish", search: "Search Spanish or meaning…", tilePinyin: "Plural on tiles", langName: "Spanish", typeOr: "…or type it",
+        modeType: "Type the word", modeTypeDesc: "See the meaning, type the Spanish word — nouns with el or la.",
+        typeHint: "Nouns with their article (la mesa). Accents are optional; if you type them they must be right.", typePlaceholder: "Spanish…",
+        modeTyperDesc: "Copy-type Spanish as fast as you can. Enter reads it aloud.",
+        typerIntro: "Type the line exactly as shown, with accents. Press Enter when you are done: the app reads it aloud and moves on.",
+        typerHint: "Use a Spanish keyboard for á é í ó ú ñ. Enter = done + speak.",
+        modeNumbers: "Numbers", modeNumbersDesc: "Read and write Spanish numbers 1–99 (veintiuno, treinta y uno…).",
+        dirHzTr: "Word → Meaning", dirTrHz: "Meaning → Word",
+        pinyinTips: "Pronunciation tips", numbers: "Number trainer", numbersDesc: "Practice 1–99",
+        noZhVoice: "No Spanish voice found yet", flow_write: "Type the word",
+        ttsHint: "No sound on iPhone? Flip the ring/silent switch to ring and turn the volume up. For a natural sound, download a Premium or Enhanced Spanish voice under Settings → Accessibility → Spoken Content → Voices → Spanish: the app picks it by itself.",
+        aboutText: "Everyday Spanish words for A1 and A2 with their article, plural, English and German meanings, an example sentence and pronunciation via your device's speech synthesis. Your progress is stored on this device.",
+        dataSource: "The word list, examples and dialogues were written for this app and sorted into topics; the levels are an editorial grading, not the Instituto Cervantes inventories.",
+        pinyinTipsText: [
+          "Learn every noun with its article: el (masculine, blue), la (feminine, red). Most words in -o are masculine, most in -a feminine, but not all: el día, la mano.",
+          "Spanish is said as it is written. The five vowels are short and clear: a, e, i, o, u — never glided.",
+          "The stress falls on the second-to-last syllable when a word ends in a vowel, n or s (casa, hablan), otherwise on the last (hablar); a written accent shows every exception (café, árbol).",
+          "r between vowels is a single tap (pero); rr and r at the start are rolled (perro, rojo).",
+          "b and v sound the same; between vowels softly, with the lips barely touching.",
+          "j, and g before e or i, are a rough h (jamón, gente); h is always silent (hola).",
+          "ñ is like ny in “canyon” (España). ll and y are like y in “yes” in most regions.",
+          "ser for what something is (soy alemana), estar for where it is and how it is right now (estoy cansado)."
+        ]
+      },
+      de: {
+        fam_tone: "Nur der Akzent ist anders", skillNote_read: "el · la", skillNote_write: "Akzente optional, ñ als n geht", sub_soundDrill: "r / rr · b / v · j / g", sub_say: "Mikrofon-Check", sub_soundChart: "Vokale, r und rr, ñ", sub_choose: "Ähnlich klingende Wörter", sub_picture: "Bild sehen, Wort wählen", sub_match: "Wort ↔ Bedeutung", sub_type: "Mit Artikel: la mesa", sub_numbers: "uno, dos, tres … bis 99",
+        brandSub: "Spanisch", search: "Spanisch oder Bedeutung suchen…", tilePinyin: "Plural auf Kacheln", langName: "Spanisch", typeOr: "…oder tippe es",
+        modeType: "Wort tippen", modeTypeDesc: "Bedeutung sehen, das spanische Wort tippen – Nomen mit el oder la.",
+        typeHint: "Nomen mit Artikel (la mesa). Akzente sind optional; wenn du sie tippst, müssen sie stimmen.", typePlaceholder: "Spanisch…",
+        modeTyperDesc: "Spanisch so schnell wie möglich abtippen. Enter liest es vor.",
+        typerIntro: "Tippe die Zeile genau ab, mit Akzenten. Mit Enter bist du fertig: die App liest sie vor und geht weiter.",
+        typerHint: "Für á é í ó ú ñ eine spanische Tastatur nutzen. Enter = fertig + vorlesen.",
+        modeNumbers: "Zahlen", modeNumbersDesc: "Spanische Zahlen 1–99 lesen und schreiben (veintiuno, treinta y uno…).",
+        dirHzTr: "Wort → Bedeutung", dirTrHz: "Bedeutung → Wort",
+        pinyinTips: "Aussprache-Tipps", numbers: "Zahlen-Trainer", numbersDesc: "1–99 üben",
+        noZhVoice: "Noch keine spanische Stimme gefunden", flow_write: "Wort tippen",
+        aboutText: "Spanische Alltagswörter für A1 und A2 mit Artikel, Plural, englischer und deutscher Bedeutung, Beispielsatz und Aussprache über die Sprachausgabe deines Geräts. Dein Fortschritt wird auf diesem Gerät gespeichert.",
+        dataSource: "Wortliste, Beispiele und Dialoge wurden für diese App geschrieben und nach Themen sortiert; die Stufen sind eine redaktionelle Einteilung, nicht die Inventare des Instituto Cervantes.",
+        pinyinTipsText: [
+          "Lerne jedes Nomen mit seinem Artikel: el (maskulin, blau), la (feminin, rot). Wörter auf -o sind meist maskulin, auf -a meist feminin – aber nicht alle: el día, la mano.",
+          "Spanisch spricht man, wie man es schreibt. Die fünf Vokale sind kurz und klar.",
+          "Betont wird die vorletzte Silbe, wenn das Wort auf Vokal, n oder s endet (casa, hablan), sonst die letzte (hablar); ein Akzent zeigt jede Ausnahme (café, árbol).",
+          "r zwischen Vokalen wird einmal angetippt (pero); rr und r am Anfang werden gerollt (perro, rojo).",
+          "b und v klingen gleich; zwischen Vokalen weich, die Lippen berühren sich kaum.",
+          "j und g vor e oder i sind ein raues ch wie in „Bach“ (jamón, gente); h ist stumm (hola).",
+          "ñ klingt wie „nj“ (España). ll und y klingen in den meisten Gegenden wie ein deutsches j.",
+          "ser für das, was etwas ist (soy alemana), estar für Ort und momentanen Zustand (estoy cansado)."
+        ]
+      }
+    },
     ja: {
       en: {
         skillNote_read: "Kana and kanji", skillNote_write: "Romaji or kana", sub_soundDrill: "Long vowels · small っ", sub_say: "Microphone check", sub_soundChart: "Kana tables", sub_choose: "One long vowel changes the word", sub_picture: "See it, pick the word", sub_match: "Word ↔ meaning", sub_type: "Romaji or kana", sub_numbers: "ichi, ni, san … to 99",
@@ -702,7 +832,7 @@
   // Pinyin first: Chinese learners who don't read characters yet see and practise pinyin instead (on unless turned off)
   function pyFirst() { return C.id === "zh" && S.courses.zh.pinyinFirst !== false; }
   // The written form of a word as the learner reads it
-  const face = (w) => (pyFirst() ? `<span class="py-face">${pyHtml(w.py)}</span>` : `<span class="hanzi">${w.hz}</span>`);
+  const face = (w) => (pyFirst() ? `<span class="py-face">${pyHtml(w.py)}</span>` : C.gender ? `<span class="latin-face">${genderHtml(w)}</span>` : `<span class="hanzi">${w.hz}</span>`);
   const tr = (w) => (S.lang === "de" && w.de ? w.de : w.en);
   const tr2 = (w) => (S.lang === "de" ? (w.de ? w.en : "") : (w.de || ""));
   const exTr = (w) => (S.lang === "de" && w.exDe ? w.exDe : w.exEn);
@@ -883,7 +1013,8 @@
     const glyphs = LOOK_TABS[C.id];
     const html = TABS.map((tab, k) => `<button class="tab ${route[0] === tab.id || tab.also.includes(route[0]) ? "active" : ""}" data-route="${tab.id}" type="button"><span class="tab-ico ${glyphs ? "tab-glyph" : ""}" aria-hidden="true">${glyphs ? esc(glyphs[k]) : icon(tab.id)}</span><span>${t(tab.key)}</span></button>`).join("");
     // Desktop (round 2): the dock becomes a sidebar with My lessons and Dialogues as their own places
-    const extra = [["lessons", "myLessons", LOOK_EXTRA[C.id][0]], ["dialogues", "dialogues", LOOK_EXTRA[C.id][1]]].map(([r, key, g]) => `<button class="tab ${route[0] === r ? "active" : ""}" data-route="${r}" type="button"><span class="tab-ico tab-glyph" aria-hidden="true">${esc(g)}</span><span>${t(key)}</span></button>`).join("");
+    const ex = LOOK_EXTRA[C.id];
+    const extra = [["lessons", "myLessons", ex && ex[0], "lessons"], ["dialogues", "dialogues", ex && ex[1], "chat"]].map(([r, key, g, ic]) => `<button class="tab ${route[0] === r ? "active" : ""}" data-route="${r}" type="button"><span class="tab-ico ${g ? "tab-glyph" : ""}" aria-hidden="true">${g ? esc(g) : icon(ic)}</span><span>${t(key)}</span></button>`).join("");
     $("#nav-desktop").innerHTML = html.replace(`class="tab active" data-route="today"`, route[0] === "lessons" || route[0] === "dialogues" ? `class="tab" data-route="today"` : `class="tab active" data-route="today"`) + extra;
     $("#nav-mobile").innerHTML = html;
     const last = courseLessons().length;
@@ -1025,8 +1156,9 @@
     const main = C.id === "zh" ? (pyFirst() ? `<span class="wt-main py-face">${pyHtml(w.py)}</span><span class="wt-sub"><span class="hanzi">${esc(w.hz)}</span> · ${esc(tr(w))}</span>`
         : `<span class="wt-main hanzi">${esc(w.hz)}</span><span class="wt-sub">${showsReading(w) ? pyHtml(w.py) + " · " : ""}${esc(tr(w))}</span>`)
       : C.id === "vi" ? `<span class="wt-main">${viHtml(w.hz)}</span><span class="wt-sub">${esc(tr(w))}</span>`
+      : C.gender ? `<span class="wt-main">${genderHtml(w)}</span><span class="wt-sub">${w.pl && w.pl !== "–" && showsReading(w) ? esc(w.pl) + " · " : ""}${esc(tr(w))}</span>`
       : `<span class="wt-main hanzi">${esc(w.hz)}</span><span class="wt-sub">${showsReading(w) ? esc(C.id === "ja" ? (w.kana && w.kana !== w.hz ? w.kana : w.romaji) : w.py) + " · " : ""}${esc(tr(w))}</span>`;
-    return `<button class="wtile ${sel ? "sel" : ""}" data-id="${w.id}" type="button"><span class="wt-pic ${pic(w) ? "" : "ph"}" aria-hidden="true">${pic(w) || esc(Array.from(w.hz)[0] || "")}</span><span class="wt-text">${main}</span>${statusShape(w.id)}</button>`;
+    return `<button class="wtile ${sel ? "sel" : ""}" data-id="${w.id}" type="button">${pic(w) || !C.gender ? `<span class="wt-pic ${pic(w) ? "" : "ph"}" aria-hidden="true">${pic(w) || esc(Array.from(w.hz)[0] || "")}</span>` : ""}<span class="wt-text">${main}</span>${statusShape(w.id)}</button>`;
   }
   let tileLimit = 240;
   function drawTiles(reset) {
@@ -1063,6 +1195,7 @@
     } else if (C.id === "zh") shape = gridHtml(w.hz, Array.from(w.hz).length > 2 ? "sm" : "md");
     else if (C.id === "ja") shape = `<div class="say-like-ja hanzi">${w.kana && w.kana !== w.hz ? `<ruby>${esc(w.hz)}<rt>${esc(w.kana)}</rt></ruby>` : esc(w.hz)}</div>`;
     else if (C.id === "vi") shape = contoursHtml(w.hz);
+    else if (C.gender) shape = `<div class="say-like-latin">${C.id === "es" && !/\s/.test(w.hz.replace(/^(el|la)\s+/, "")) ? esc(esStress(w.hz.replace(/^(el|la)\s+/, ""))) : genderHtml(w)}${w.g ? ` <span class="muted small">· ${t("gender_" + w.g)}${w.pl && w.pl !== "–" ? ` · ${t("plural")}: ${esc(w.pl)}` : ""}</span>` : ""}</div>`;
     return `<div class="say-like"><div class="eyebrow">${t("sayItLike")}</div>${shape}${tipText ? `<div class="sl-tip"><span class="grow">${esc(tipText)}</span><button class="sq-btn" id="d-speak" type="button" aria-label="${t("play")} ${esc(w.hz)}">${icon("speaker")}</button></div>` : `<div class="sl-tip"><span class="grow"></span><button class="sq-btn" id="d-speak" type="button" aria-label="${t("play")}">${icon("speaker")}</button></div>`}</div>`;
   }
   function wordSheetHtml(w) {
@@ -1070,6 +1203,7 @@
     const ls = courseLessons(), last = ls[ls.length - 1];
     const reading = C.id === "zh" ? (pyFirst() ? `<div class="wsh-word py-face">${pyHtml(w.py)}</div><div class="wsh-sub"><span class="hanzi">${esc(w.hz)}</span> · ${esc(tr(w))}</div>` : `<div class="wsh-word hanzi">${esc(w.hz)}</div><div class="wsh-sub">${pyHtml(w.py)} · ${esc(tr(w))}</div>`)
       : C.id === "vi" ? `<div class="wsh-word">${viHtml(w.hz)}</div><div class="wsh-sub">${esc(w.py)} · ${esc(tr(w))}</div>`
+      : C.gender ? `<div class="wsh-word">${genderHtml(w)}</div><div class="wsh-sub">${w.pl && w.pl !== "–" ? `${t("plural")}: ${esc(w.pl)} · ` : ""}${esc(tr(w))}</div>`
       : `<div class="wsh-word hanzi">${esc(w.hz)}</div><div class="wsh-sub">${esc(C.id === "ja" ? w.romaji || w.py : w.py)} · ${esc(tr(w))}</div>`;
     const ex = w.ex ? `<div class="wsh-ex"><div class="grow">${pyFirst() && w.exPy ? `<div class="ex-main">${markIn(w.exPy, w.py)}</div><div class="ex-sub"><span class="hanzi">${esc(w.ex)}</span> · ${esc(exTr(w))}</div>` : `<div class="ex-main hanzi">${markIn(w.ex, w.hz)}</div><div class="ex-sub">${w.exPy && C.id !== "vi" ? esc(w.exPy) + " · " : ""}${esc(exTr(w))}</div>`}</div><button class="sq-btn" id="d-speak-ex" type="button" aria-label="${t("playExample")}">${icon("play")}</button></div>` : "";
     return `
@@ -1123,18 +1257,19 @@
     { id: "picture", ico: "🖼️", key: "modePicture" },
     { id: "listenPic", ico: "👂", key: "modeListenPic" },
     { id: "choose", ico: "🔤", key: "modeChoose" },
-    { id: "trace", ico: "✍️", key: "modeTrace" }
+    { id: "trace", ico: "✍️", key: "modeTrace" },
+    { id: "gender", ico: "🔵", key: "modeGender" }
   ];
   // Practice (round 2): grouped by skill, each group with its word in the language and a note; rows show
   // what is waiting (due words, best speed, dialogues done) and NEW for the newest modes
   const SKILLS = [
     { id: "listen", rows: [["train/listen", "modeListen", "listen"], ["train/listenPic", "modeListenPic", "listenPic"], ["train/tones", "modeTones", "tones"], ["sounds/drill", "soundDrill", "soundDrill"]] },
     { id: "speak", rows: [["train/say", "modeSay", "say"], ["dialogues", "dialogues", "dialogues"], ["free", "modeFree", "freePlay", true], ["sounds", "soundChart", "soundChart"]] },
-    { id: "read", rows: [["families", "modeFamilies", "families", true], ["train/choose", "modeChoose", "choose"], ["train/picture", "modePicture", "picture"], ["train/flash", "modeFlash", "flash"], ["train/quiz", "modeQuiz", "quiz"], ["train/match", "modeMatch", "match"]] },
+    { id: "read", rows: [["train/gender", "modeGender", "gender", true], ["families", "modeFamilies", "families", true], ["train/choose", "modeChoose", "choose"], ["train/picture", "modePicture", "picture"], ["train/flash", "modeFlash", "flash"], ["train/quiz", "modeQuiz", "quiz"], ["train/match", "modeMatch", "match"]] },
     { id: "write", rows: [["train/type", "modeType", "type"], ["train/typer", "modeTyper", "typer"], ["train/numbers", "modeNumbers", "numbers"], ["train/trace", "modeTrace", "trace", true]] }
   ];
-  const SKILL_WORD = { zh: [["tīng", "听"], ["shuō", "说"], ["dú", "读"], ["xiě", "写"]], vi: [["Nghe"], ["Nói"], ["Đọc"], ["Viết"]], ja: [["kiku", "聞く"], ["hanasu", "話す"], ["yomu", "読む"], ["kaku", "書く"]], ko: [["deutgi", "듣기"], ["malhagi", "말하기"], ["ilkgi", "읽기"], ["sseugi", "쓰기"]] };
-  const PRACTICE_WORD = { zh: ["Liànxí", "练习"], vi: ["Luyện tập"], ja: ["Renshū", "練習"], ko: ["Yeonseup", "연습"] };
+  const SKILL_WORD = { zh: [["tīng", "听"], ["shuō", "说"], ["dú", "读"], ["xiě", "写"]], vi: [["Nghe"], ["Nói"], ["Đọc"], ["Viết"]], ja: [["kiku", "聞く"], ["hanasu", "話す"], ["yomu", "読む"], ["kaku", "書く"]], ko: [["deutgi", "듣기"], ["malhagi", "말하기"], ["ilkgi", "읽기"], ["sseugi", "쓰기"]], de: [["Hören"], ["Sprechen"], ["Lesen"], ["Schreiben"]], es: [["Escuchar"], ["Hablar"], ["Leer"], ["Escribir"]] };
+  const PRACTICE_WORD = { zh: ["Liànxí", "练习"], vi: ["Luyện tập"], ja: ["Renshū", "練習"], ko: ["Yeonseup", "연습"], de: ["Üben"], es: ["Practicar"] };
   function renderTrain(view) {
     const mode = route[1];
     if (!mode) return renderTrainHome(view);
@@ -1152,6 +1287,7 @@
     if (mode === "say") return setupSession(view, mode, { pool: true, count: [5, 10, 20] });
     if (mode === "choose") return setupSession(view, mode, { pool: true, count: [10, 20, 40] });
     if (mode === "trace") return C.id === "zh" ? startTrace(view) : renderTrainHome(view);
+    if (mode === "gender") return C.gender ? setupSession(view, mode, { pool: true, count: [10, 20, 40], nouns: true }) : renderTrainHome(view);
     if (mode === "picture" || mode === "listenPic") return hasPics() ? setupSession(view, mode, { pool: true, count: [10, 20, 40], pics: true }) : renderTrainHome(view);
   }
   function renderTrainHome(view) {
@@ -1159,7 +1295,7 @@
     document.body.classList.add("home");
     const due = dueWords().length, dl = courseDialogues();
     const nv = noVoice();
-    const hidden = (r) => (nv && ["train/listen", "train/listenPic", "train/tones", "sounds/drill"].includes(r)) || ((r === "train/picture" || r === "train/listenPic") && !hasPics()) || (r === "train/tones" && !C.toneOptions) || (r === "train/typer" && C.id === "ja") || ((r === "dialogues" || r === "free") && !dl.length) || (r === "train/trace" && C.id !== "zh") || (r === "families" && !families().length);
+    const hidden = (r) => (nv && ["train/listen", "train/listenPic", "train/tones", "sounds/drill"].includes(r)) || ((r === "train/picture" || r === "train/listenPic") && !hasPics()) || (r === "train/tones" && !C.toneOptions) || (r === "train/typer" && C.id === "ja") || ((r === "dialogues" || r === "free") && !dl.length) || (r === "train/trace" && C.id !== "zh") || (r === "families" && !families().length) || ((r === "sounds" || r === "sounds/drill") && !(window.SOUNDS && window.SOUNDS[C.id])) || (r === "train/gender" && !C.gender);
     const meta = (r) => r === "train/listen" || r === "train/flash" ? (due ? t("nDue", due) : "")
       : r === "train/typer" && S.typer && S.typer[C.id] ? t("bestWpm", S.typer[C.id])
       : r === "dialogues" ? `${dl.filter((d) => dlgDone(d.id)).length} / ${dl.length}` : "";
@@ -1173,7 +1309,7 @@
       ${SKILLS.map((sk, k) => !sk.rows.some(([r]) => !hidden(r)) ? "" : `
         <section class="skill2">
           <div class="sk2-head"><span class="sk2-name">${t("skill_" + sk.id)} ${word(k)}</span><span class="sk2-note">${esc(t("skillNote_" + sk.id))}</span></div>
-          ${sk.rows.filter(([r]) => !hidden(r)).map(([r, key, sub, isNew]) => `<button class="sk2-row" data-go="${r}" type="button"><span class="grow"><span class="sk2-t">${t(key)}${isNew ? `<span class="new-badge">${t("newBadge")}</span>` : ""}</span><span class="sk2-s">${esc(t("sub_" + sub))}</span></span><span class="sk2-m">${meta(r)}</span>${icon("chev")}</button>`).join("")}
+          ${sk.rows.filter(([r]) => !hidden(r)).map(([r, key, sub, isNew]) => `<button class="sk2-row" data-go="${r}" type="button"><span class="grow"><span class="sk2-t">${t(key === "modeGender" && C.id === "es" ? "modeGenderEs" : key)}${isNew ? `<span class="new-badge">${t("newBadge")}</span>` : ""}</span><span class="sk2-s">${esc(t("sub_" + sub))}</span></span><span class="sk2-m">${meta(r)}</span>${icon("chev")}</button>`).join("")}
         </section>`).join("")}`;
     $$("[data-go]").forEach((b) => (b.onclick = () => {
       if (b.dataset.go === "free") { const d = dl[Math.floor(Math.random() * dl.length)]; return navigate("lessons/d/" + d.id + "/turn"); }
@@ -1185,7 +1321,7 @@
   /* --- Session setup (round 2): chip rows always open, How many or By time, direction as a segmented control,
    * and a sticky summary bar with the number of matching words and Start --- */
   const setupPrefs = { pools: ["due"], count: 10, mins: 0, cat: "all", direction: "hzTr" };
-  const MODE_SECS = { flash: 10, quiz: 8, listen: 8, picture: 8, listenPic: 8, type: 15, say: 20, choose: 12 };
+  const MODE_SECS = { gender: 6, flash: 10, quiz: 8, listen: 8, picture: 8, listenPic: 8, type: 15, say: 20, choose: 12 };
   function poolWords(pool, cat) {
     const pools = Array.isArray(pool) ? pool : [pool];
     const one = (p) => {
@@ -1214,7 +1350,7 @@
     const secs = MODE_SECS[mode] || 10;
     const topics = themes().length ? themes().map((x) => [x.id, L(x.name)]) : Object.keys(CATS).filter((c) => WORDS.some((w) => w.cat === c)).map((c) => [c, catName(c)]);
     let showAll = setupPrefs.cat !== "all" && topics.findIndex(([k]) => k === setupPrefs.cat) >= 6;
-    const poolOf = () => poolWords(setupPrefs.pools.includes("all") ? ["all"] : setupPrefs.pools, setupPrefs.cat).filter((w) => !cfg.pics || pic(w));
+    const poolOf = () => poolWords(setupPrefs.pools.includes("all") ? ["all"] : setupPrefs.pools, setupPrefs.cat).filter((w) => (!cfg.pics || pic(w)) && (!cfg.nouns || w.g));
     document.body.classList.add("home"); // the setup has its own header
     function draw() {
       const n = poolOf().length, per = setupPrefs.mins ? Math.max(1, Math.round((setupPrefs.mins * 60) / secs)) : setupPrefs.count;
@@ -1263,6 +1399,7 @@
       else if (mode === "picture") runQuiz(view, list, "picWord");
       else if (mode === "listenPic") runQuiz(view, list, "listenPic");
       else if (mode === "choose") runChoose(view, list);
+      else if (mode === "gender") runGender(view, list);
     }
     draw();
   }
@@ -1294,7 +1431,7 @@
         <div class="res2-sub">${pct}%${secs ? ` · ${fmtTime(secs * 1000)} ${t("minShort")}` : ""}${extra ? " · " + extra : ""}</div>
         ${marks.length && marks.length <= 60 ? `<div class="res2-cells" role="img" aria-label="${esc(t("resultCells", correct, total - correct))}">${marks.map((ok) => `<i class="${ok ? "ok" : "bad"}">${ok ? "" : "✕"}</i>`).join("")}</div>` : ""}
         ${mistakes.length ? `<div class="res2-mhead"><b>${t("mistakesN", mistakes.length)}</b><span>${t("addedToReviews")}</span></div>
-          <div class="res2-list">${mistakes.map((w) => `<div class="res2-row"><span class="x">✕</span><div class="grow"><div class="r2-word">${C.id === "zh" ? `${pyHtml(w.py)} <span class="hanzi">${esc(w.hz)}</span>` : C.id === "vi" ? viHtml(w.hz) : `<span class="hanzi">${esc(w.hz)}</span> <small>${esc(w.py)}</small>`}</div><div class="r2-sub">${esc(tr(w))}${runWhy[w.id] ? " · " + esc(runWhy[w.id]) : ""}</div></div><button class="sq-btn" data-speak="${esc(w.hz)}" type="button" aria-label="${t("play")}">${icon("speaker")}</button></div>`).join("")}</div>` : `<div class="res2-perfect">${t("perfect")}</div>`}
+          <div class="res2-list">${mistakes.map((w) => `<div class="res2-row"><span class="x">✕</span><div class="grow"><div class="r2-word">${C.id === "zh" ? `${pyHtml(w.py)} <span class="hanzi">${esc(w.hz)}</span>` : C.id === "vi" ? viHtml(w.hz) : C.gender ? genderHtml(w) : `<span class="hanzi">${esc(w.hz)}</span> <small>${esc(w.py)}</small>`}</div><div class="r2-sub">${esc(tr(w))}${runWhy[w.id] ? " · " + esc(runWhy[w.id]) : ""}</div></div><button class="sq-btn" data-speak="${esc(w.hz)}" type="button" aria-label="${t("play")}">${icon("speaker")}</button></div>`).join("")}</div>` : `<div class="res2-perfect">${t("perfect")}</div>`}
       </div>
       <div class="stack res2-btns">
         ${mistakes.length && again ? `<button class="btn block fd-again" id="r-retry" type="button">${t("retryMistakes")}</button>` : `<button class="btn block" id="r-again" type="button">${t("playAgain")}</button>`}
@@ -1456,6 +1593,34 @@
       else if (e.key === " " && listens) { e.preventDefault(); speak(list[i].hz); }
     });
     draw(false);
+  }
+
+  /* --- Der, die, das? / El or la?: the noun without its article (with its picture and meaning), pick the article.
+   * The colours of the buttons are the gender colours used everywhere, and each button also says its gender. --- */
+  function runGender(view, list) {
+    let i = 0, correct = 0, answered = false; const mistakes = [];
+    const arts = C.id === "de" ? [["der", "m"], ["die", "f"], ["das", "n"]] : [["el", "m"], ["la", "f"]];
+    function draw() {
+      if (i >= list.length) { if (cleanup) { cleanup(); cleanup = null; } return showResult(view, { correct, total: list.length, mistakes, onAgain: () => navigate("train/gender") }); }
+      const w = list[i], noun = w.hz.replace(/^(der|die|das|el|la)\s+/, ""); answered = false;
+      view.innerHTML = `${sessionHead(i, list.length, `✓ ${correct}`)}
+        <div class="quiz-q">${pic(w) ? `<div class="pic big" aria-hidden="true">${pic(w)}</div>` : ""}<div class="gender-noun"><span class="gap">___</span> ${esc(noun)}</div><div class="q-sub">${esc(tr(w))}</div></div>
+        <div class="gender-btns n${arts.length}">${arts.map(([a, g], k) => `<button class="gender-btn g-${g}" data-g="${g}" type="button"><span class="opt-key">${k + 1}</span><b>${a}</b><small>${t("gender_" + g)}</small></button>`).join("")}</div>
+        <div id="fb"></div>`;
+      $$("[data-g]").forEach((b) => (b.onclick = () => {
+        if (answered) return; answered = true;
+        const ok = b.dataset.g === w.g;
+        $$("[data-g]").forEach((x) => { x.disabled = true; if (x.dataset.g === w.g) x.classList.add("correct"); else if (x === b) x.classList.add("wrong"); });
+        grade(w.id, ok ? 2 : 0); recordAnswer(ok);
+        if (ok) correct++; else { mistakes.push(w); noteMiss(w, t("whyPicked", b.querySelector("b").textContent)); }
+        $("#fb").innerHTML = `<div class="feedback ${ok ? "ok" : "bad"}"><span>${ok ? "✓ " + t("correct") : "✗ " + t("wrong")}</span><span class="grow">${genderHtml(w)}${w.pl && w.pl !== "–" ? ` · ${esc(w.pl)}` : ""}</span><button class="speak-btn sm" id="fb-speak" type="button">🔊</button></div><button class="btn primary block" id="q-next" type="button" style="margin-top:12px">${t("next")}</button>`;
+        $("#fb-speak").onclick = () => speak(w.hz);
+        $("#q-next").onclick = () => { i++; draw(); };
+        speak(w.hz);
+      }));
+    }
+    bindKeys((e) => { if (/^[1-3]$/.test(e.key) && !answered) { const b = $$("[data-g]")[+e.key - 1]; if (b) b.click(); } else if ((e.key === "Enter" || e.key === " ") && answered) { e.preventDefault(); i++; draw(); } });
+    draw();
   }
 
   /* --- Choose the right word (style canvas): a sentence with a gap and four words that sound alike
@@ -1637,6 +1802,8 @@
         ok = a === stripJa(w.kana) || a === stripJa(w.romaji) || a === stripJa(w.hz) || a === stripJa(w.romaji).replace(/'/g, "") || a === toRomaji(w.kana).replace(/ou/g, "oo") || a.replace(/ou/g, "oo") === stripJa(w.romaji).replace(/ou/g, "oo");
       } else if (C.id === "ko") {
         ok = koTyped(v, w.hz);
+      } else if (C.gender) {
+        ok = latinTyped(v, w.hz);
       } else {
         const a = v.normalize("NFC").toLowerCase().split(/\s+/), b = w.hz.normalize("NFC").toLowerCase().split(/\s+/);
         ok = stripVi(v) === stripVi(w.hz) && a.length === b.length && a.every((x, k) => firstToneVi(x) === firstToneVi(b[k]));
@@ -1648,7 +1815,7 @@
       const input = $("#ti"); input.disabled = true; input.classList.add(ok ? "ok" : "bad");
       grade(w.id, ok ? 2 : 0); recordAnswer(ok);
       if (ok) correct++; else { mistakes.push(w); const v = input.value.trim(); noteMiss(w, v ? t("whyTyped", v) : t("whyNotHeard")); }
-      $("#t-foot").innerHTML = `<div class="feedback ${ok ? "ok" : "bad"}"><span>${ok ? "✓ " + t("correct") : "✗ " + t("wrong")}</span><span class="grow">${t("answerWas")} <b>${C.id === "zh" ? pyHtml(w.py) : C.id === "ja" ? esc(w.py) : C.id === "vi" ? viHtml(w.hz) : esc(w.hz)}</b>${C.id === "zh" || C.id === "ja" || C.id === "vi" ? "" : ` <span class="muted">[${esc(w.py)}]</span>`}</span><button class="speak-btn sm" id="fb-speak" type="button">🔊</button></div><button class="btn primary block" id="t-next" type="button">${t("next")}</button>`;
+      $("#t-foot").innerHTML = `<div class="feedback ${ok ? "ok" : "bad"}"><span>${ok ? "✓ " + t("correct") : "✗ " + t("wrong")}</span><span class="grow">${t("answerWas")} <b>${C.id === "zh" ? pyHtml(w.py) : C.id === "ja" ? esc(w.py) : C.id === "vi" ? viHtml(w.hz) : C.gender ? genderHtml(w) : esc(w.hz)}</b>${C.id === "zh" || C.id === "ja" || C.id === "vi" || !w.py ? "" : ` <span class="muted">[${esc(w.py)}]</span>`}</span><button class="speak-btn sm" id="fb-speak" type="button">🔊</button></div><button class="btn primary block" id="t-next" type="button">${t("next")}</button>`;
       $("#fb-speak").onclick = () => speak(w.hz);
       $("#t-next").onclick = next; $("#t-next").focus();
       if (S.settings.autoSpeak) speak(w.hz);
@@ -1971,7 +2138,24 @@
   // Korean: Sino-Korean numbers (used for money, dates, minutes, phone numbers)
   const KO_NUM = ["영", "일", "이", "삼", "사", "오", "육", "칠", "팔", "구", "십"];
   const numToKo = (n) => (n <= 10 ? KO_NUM[n] : (Math.floor(n / 10) > 1 ? KO_NUM[Math.floor(n / 10)] : "") + "십" + (n % 10 ? KO_NUM[n % 10] : ""));
+  // German: the ones come first (einundzwanzig); Spanish: 16–29 written as one word (dieciséis, veintiuno)
+  function numToDe(n) {
+    const one = ["null", "eins", "zwei", "drei", "vier", "fünf", "sechs", "sieben", "acht", "neun", "zehn", "elf", "zwölf", "dreizehn", "vierzehn", "fünfzehn", "sechzehn", "siebzehn", "achtzehn", "neunzehn"];
+    const tens = ["", "", "zwanzig", "dreißig", "vierzig", "fünfzig", "sechzig", "siebzig", "achtzig", "neunzig"];
+    if (n < 20) return one[n];
+    const t2 = Math.floor(n / 10), o = n % 10;
+    return o ? (o === 1 ? "ein" : one[o]) + "und" + tens[t2] : tens[t2];
+  }
+  function numToEs(n) {
+    const one = ["cero", "uno", "dos", "tres", "cuatro", "cinco", "seis", "siete", "ocho", "nueve", "diez", "once", "doce", "trece", "catorce", "quince", "dieciséis", "diecisiete", "dieciocho", "diecinueve", "veinte", "veintiuno", "veintidós", "veintitrés", "veinticuatro", "veinticinco", "veintiséis", "veintisiete", "veintiocho", "veintinueve"];
+    const tens = ["", "", "", "treinta", "cuarenta", "cincuenta", "sesenta", "setenta", "ochenta", "noventa"];
+    if (n < 30) return one[n];
+    const t2 = Math.floor(n / 10), o = n % 10;
+    return o ? `${tens[t2]} y ${one[o]}` : tens[t2];
+  }
   function numToHanzi(n) {
+    if (C.id === "de") return numToDe(n);
+    if (C.id === "es") return numToEs(n);
     if (C.id === "ko") return numToKo(n);
     if (C.id === "vi") return numToVi(n);
     if (C.id === "ja") return numToJa(n, false);
@@ -2061,6 +2245,8 @@
   // Vietnamese: each syllable in its tone's colour (the marks stay, so colour is never the only cue)
   const VI_TONE_CLASS = ["", "level", "falling", "rising", "dipping", "broken", "light"];
   const viHtml = (s) => esc(s).replace(/[\p{L}]+/gu, (syl) => `<span class="tc-${VI_TONE_CLASS[firstToneVi(syl)]}">${syl}</span>`);
+  // German and Spanish: the article in its gender's colour (der/el blue, die/la red, das green), the noun in ink
+  const genderHtml = (w) => { const m = String(w.hz).match(/^(der|die|das|el|la)\s+(.+)$/); return m && w.g ? `<span class="art g-${w.g}">${m[1]}</span> ${esc(m[2])}` : esc(w.hz); };
   const firstToneVi = (syl) => { const m = Array.from(syl.normalize("NFD")).map((c) => VI_TONE_MARKS[c]).filter(Boolean); return m[0] || 1; };
   // The reading layer (pinyin, romanization, kana) with a word: always, for words not yet known, or off
   const readingLayer = () => S.settings.readingLayer || (S.settings.tilePinyin === false ? "off" : "always");
@@ -2073,6 +2259,7 @@
     if (C.id === "ja") return `${w.kana && w.kana !== w.hz ? `<div class="furigana">${esc(w.kana)}</div>` : ""}<div class="hero-word">${esc(w.hz)}</div>${w.romaji ? `<div class="romaji">${esc(w.romaji)}</div>` : ""}`;
     if (C.id === "ko") return `<div class="hero-word">${esc(w.hz)}</div><div class="hero-sub">${esc(w.py)}</div>${pronHtml(w)}${koBlocksHtml(w.hz)}`;
     if (C.id === "vi") return `<div class="hero-word">${viHtml(w.hz)}</div><div class="romaji">${esc(w.py)}</div>${contoursHtml(w.hz)}`;
+    if (C.gender) return `<div class="hero-word latin">${genderHtml(w)}</div>${w.pl && w.pl !== "–" ? `<div class="hero-sub">${t("plural")}: ${esc(w.pl)}</div>` : ""}`;
     return `<div class="hero-word">${esc(w.hz)}</div><div class="hero-sub">${pyShow(w.py)}</div>`;
   }
   const gridHtml = (hz, size) => `<div class="grid-chars ${size || ""}" role="img" aria-label="${esc(hz)}">${Array.from(hz).filter((c) => /\S/.test(c)).map((c) => `<span class="gc" aria-hidden="true">${esc(c)}</span>`).join("")}</div>`;
@@ -2335,7 +2522,7 @@
   // A greeting for the time of day, in the language being learnt
   function greeting() {
     const h = new Date().getHours(), part = h < 11 ? 0 : h < 18 ? 1 : 2;
-    const g = { zh: [["早上好", "zǎoshang hǎo"], ["下午好", "xiàwǔ hǎo"], ["晚上好", "wǎnshang hǎo"]], ja: [["おはよう", "ohayō"], ["こんにちは", "konnichiwa"], ["こんばんは", "konbanwa"]], ko: [["좋은 아침이에요", "joeun achimieyo"], ["안녕하세요", "annyeonghaseyo"], ["좋은 저녁이에요", "joeun jeonyeogieyo"]], vi: [["Chào buổi sáng", ""], ["Chào buổi chiều", ""], ["Chào buổi tối", ""]] }[C.id][part];
+    const g = { zh: [["早上好", "zǎoshang hǎo"], ["下午好", "xiàwǔ hǎo"], ["晚上好", "wǎnshang hǎo"]], ja: [["おはよう", "ohayō"], ["こんにちは", "konnichiwa"], ["こんばんは", "konbanwa"]], ko: [["좋은 아침이에요", "joeun achimieyo"], ["안녕하세요", "annyeonghaseyo"], ["좋은 저녁이에요", "joeun jeonyeogieyo"]], vi: [["Chào buổi sáng", ""], ["Chào buổi chiều", ""], ["Chào buổi tối", ""]], de: [["Guten Morgen", ""], ["Guten Tag", ""], ["Guten Abend", ""]], es: [["Buenos días", ""], ["Buenas tardes", ""], ["Buenas noches", ""]] }[C.id][part];
     return { text: g[0], reading: g[1], tr: (S.lang === "de" ? ["Guten Morgen", "Guten Tag", "Guten Abend"] : ["Good morning", "Good afternoon", "Good evening"])[part] };
   }
   // The same word all day: one you have met (or the next to meet) that has a picture
@@ -2358,8 +2545,8 @@
     const g = greeting(), pf = pyFirst();
     const topic = p.fresh[0] && themes().find((x) => x.id === topicOf(p.fresh[0].id));
     const wd = wordOfDay();
-    const tiles = pyFirst() ? ["fùxí", "tīng", "shuō"] : ({ zh: ["复习", "听", "说"], ja: ["復習", "聞く", "話す"], ko: ["복습", "듣기", "말하기"] })[C.id];
-    const native = ({ zh: ["继续", "今天的课"], ja: ["続ける", "今日のレッスン"], ko: ["계속", "오늘의 공부"], vi: ["Tiếp tục", "Bài hôm nay"] })[C.id] || ["", ""];
+    const tiles = pyFirst() ? ["fùxí", "tīng", "shuō"] : ({ zh: ["复习", "听", "说"], ja: ["復習", "聞く", "話す"], ko: ["복습", "듣기", "말하기"], de: ["Karten", "Hören", "Sprechen"], es: ["Repasar", "Escuchar", "Hablar"] })[C.id];
+    const native = ({ zh: ["继续", "今天的课"], ja: ["続ける", "今日のレッスン"], ko: ["계속", "오늘의 공부"], vi: ["Tiếp tục", "Bài hôm nay"], de: ["Weiter", "Heute"], es: ["Seguir", "Hoy"] })[C.id] || ["", ""];
     const days = S.lang === "de" ? (st === 1 ? "Tag" : "Tage") : (st === 1 ? "day" : "days");
     const streakHtml = C.id === "ja" ? `<div class="streak-ja"><b class="hanzi">${st}日</b><span>${t("statsStreak")}</span></div>`
       : C.id === "ko" ? `<div class="streak-pill"><i></i>${st} ${days}</div>`
@@ -2659,7 +2846,7 @@
     setTopbar(L(d.topic), "dialogues");
     const st = dlgState(id);
     const zhPf = pyFirst();
-    const opt = () => ({ hz: zhPf ? !!S.settings.dlgHz : true, tr: S.settings.dlgTr !== false, slow: !!S.settings.dlgSlow, py: S.settings.dlgPy !== false && C.id !== "vi" });
+    const opt = () => ({ hz: zhPf ? !!S.settings.dlgHz : true, tr: S.settings.dlgTr !== false, slow: !!S.settings.dlgSlow, py: S.settings.dlgPy !== false && C.id !== "vi" && !C.gender });
     const nameOf = (who) => (zhPf ? esc(d.people[who].py) : d.people[who].hz);
     const say = (text, onend) => speak(text, { rate: opt().slow ? 0.55 : S.settings.rate, onend });
     // A chat bubble (style canvas): the other person on the left with an avatar, you on the right in the dark bubble;
@@ -2679,7 +2866,7 @@
       </div></div>`;
     }
     const toggles = `${zhPf ? `<button class="tg ${opt().hz ? "on" : ""}" data-opt="dlgHz" type="button" aria-label="${t("showHz")}">汉</button>`
-      : C.id !== "vi" ? `<button class="tg ${opt().py ? "on" : ""}" data-opt="dlgPy" type="button" aria-label="${t("readingLayer")}">${({ zh: "拼", ja: "あ", ko: "Aa" })[C.id] || "Aa"}</button>` : ""}
+      : C.id !== "vi" && !C.gender ? `<button class="tg ${opt().py ? "on" : ""}" data-opt="dlgPy" type="button" aria-label="${t("readingLayer")}">${({ zh: "拼", ja: "あ", ko: "Aa" })[C.id] || "Aa"}</button>` : ""}
       <button class="tg ${opt().tr ? "on" : ""}" data-opt="dlgTr" type="button" aria-label="${t("showTr")}">${S.lang.toUpperCase()}</button>`;
     view.innerHTML = `
       <div class="dlg-bar"><div class="dlg-tabs">${DLG_MODES.map((m) => `<button data-mode="${m}" class="${m === mode ? "active" : ""}" type="button">${st[m] ? "✓ " : ""}${m === "turn" ? t("rolePlay") : t("dlg_" + m)}</button>`).join("")}</div><div class="dlg-toggles">${toggles}</div></div>
@@ -3290,7 +3477,7 @@
     S.stats.sessions += 1; save();
     flowDone(view, f);
   }
-  const SEAL = { zh: ["完成", "Wánchéng!", "完成"], ja: ["完了", "Kanryō!", "完了"], ko: ["완료", "Wallyo!", "완료"], vi: ["Xong", "Xong rồi!", ""] };
+  const SEAL = { zh: ["完成", "Wánchéng!", "完成"], ja: ["完了", "Kanryō!", "完了"], ko: ["완료", "Wallyo!", "완료"], vi: ["Xong", "Xong rồi!", ""], de: ["Fertig", "Fertig!", ""], es: ["Hecho", "¡Hecho!", ""] };
   function flowDone(view, f) {
     const by = (k) => f.results.filter((r) => r.step.kind === k);
     const sum = (rs, key) => rs.reduce((s, r) => s + r[key], 0);
@@ -3303,7 +3490,7 @@
     const cell = (big, small, hot) => `<div class="fd-cell"><b class="${hot ? "hot" : ""}">${big}</b><span>${small}</span></div>`;
     view.innerHTML = `
       <div class="flow-done">
-        <div class="seal-stamp ${C.id}" role="img" aria-label="${esc(seal[0])}">${(C.id === "vi" ? [seal[0]] : Array.from(seal[0])).map((c) => `<span>${esc(c)}</span>`).join("")}</div>
+        <div class="seal-stamp ${C.id} ${C.script === "latin" ? "latin" : ""}" role="img" aria-label="${esc(seal[0])}">${(C.script === "latin" ? [seal[0]] : Array.from(seal[0])).map((c) => `<span>${esc(c)}</span>`).join("")}</div>
         <div class="fd-title">${esc(seal[1])}</div>
         <div class="fd-sub">${seal[2] ? `<span class="hanzi">${seal[2]}</span> · ` : ""}${t("sessionIsDone")}</div>
         <div class="fd-grid">
@@ -3384,6 +3571,13 @@
       const k = w.kana || w.hz, hit = T.sound.find(([key]) => k.includes(key));
       return { sound: hit ? L(hit[1]) : "", tone: L(T.flat) };
     }
+    if (C.gender) {
+      const word = w.hz.replace(/^(der|die|das|el|la)\s+/, ""), low = word.toLowerCase();
+      const hit = T.sound.find(([k]) => (k === "sp" || k === "st" ? low.startsWith(k) : low.includes(k)));
+      const extra = C.id === "de" ? (/[bdg]$/.test(low) && !hit ? L(T.final) : w.g ? L(T.gender[w.g]) : "")
+        : !/\s/.test(word) ? L(T.stress).replace("{0}", esStress(word)) : w.g ? L(T.gender[w.g]) : "";
+      return { sound: hit ? L(hit[1]) : "", tone: extra };
+    }
     if (C.id === "ko") {
       if (w.pron) return { sound: L(T.liaison).replace("{0}", w.pron), tone: "" };
       const jamo = Array.from(w.hz).map(koJamo).filter(Boolean).flatMap((j) => [j.i, j.v, j.f]).join("");
@@ -3391,6 +3585,32 @@
       return hit ? { sound: L(hit[1]), tone: "" } : null;
     }
     return null;
+  }
+  // Spanish: the word in syllables with the stressed one in capitals (ca-SA, ca-FÉ, ha-BLAR). Vowels in a row stay
+  // together unless one is an accented í/ú or both are strong (a e o); a consonant between vowels starts the next syllable, two are split unless
+  // they belong together (pl, br, tr, ch, ll, rr …). The stress rule: a written accent, else the second-to-last syllable
+  // after a vowel, n or s, else the last.
+  function esStress(word) {
+    const V = "aeiouáéíóúü", low = word.toLowerCase(), keep = ["pl", "pr", "bl", "br", "fl", "fr", "tr", "dr", "cl", "cr", "gl", "gr", "ch", "ll", "rr"];
+    const syl = []; let cur = "", i = 0;
+    while (i < low.length) {
+      cur += low[i];
+      if (V.includes(low[i])) {
+        // two strong vowels (a e o, also accented) are two syllables: a-e-ro-puer-to
+        const strong = (c) => "aeoáéó".includes(c);
+        let j = i + 1; while (j < low.length && V.includes(low[j]) && !"íú".includes(low[j]) && !"íú".includes(low[i]) && !(strong(low[j]) && strong(low[j - 1]))) { cur += low[j]; j++; }
+        let k = j; while (k < low.length && !V.includes(low[k])) k++;
+        const cons = low.slice(j, k);
+        if (k >= low.length) { cur += cons; syl.push(cur); cur = ""; i = k; break; }
+        const take = cons.length <= 1 ? 0 : keep.includes(cons.slice(-2)) ? cons.length - 2 : cons.length - 1;
+        cur += cons.slice(0, take); syl.push(cur); cur = ""; i = j + take; continue;
+      }
+      i++;
+    }
+    if (cur) syl.length ? (syl[syl.length - 1] += cur) : syl.push(cur);
+    let st = syl.findIndex((x) => /[áéíóú]/.test(x));
+    if (st < 0) st = /[aeiouns]$/.test(low) ? Math.max(0, syl.length - 2) : syl.length - 1;
+    return syl.map((x, k) => (k === st ? x.toUpperCase() : x)).join("-");
   }
   // The tone of a word's first syllable as a small badge with its contour (Chinese and Vietnamese)
   function toneBadge(w) {
@@ -3627,7 +3847,7 @@
 
   /* ================= STATISTICS (round 2) ================= */
   // Per course: accuracy by skill (Listen · Speak · Read · Write) and by tone when speaking, as [right, total]
-  const MODE_SKILL = { listen: "listen", listenPic: "listen", tones: "listen", say: "speak", flash: "read", quiz: "read", picture: "read", choose: "read", match: "read", type: "write", typer: "write", numbers: "write", trace: "write" };
+  const MODE_SKILL = { gender: "read", listen: "listen", listenPic: "listen", tones: "listen", say: "speak", flash: "read", quiz: "read", picture: "read", choose: "read", match: "read", type: "write", typer: "write", numbers: "write", trace: "write" };
   const FLOW_SKILL = { review: "read", listen: "listen", speak: "speak", write: "write" };
   function curSkill() {
     if (flow) return FLOW_SKILL[flow.steps[flow.i].kind] || null;
@@ -3683,7 +3903,7 @@
 
   /* ================= ONBOARDING (round 2): first launch only ================= */
   let obStep = 1;
-  const OB_GLYPH = { zh: "中", ja: "日", ko: "ㅎㅏ", vi: "Việt" };
+  const OB_GLYPH = { zh: "中", ja: "日", ko: "ㅎㅏ", vi: "Việt", de: "De", es: "Es" };
   function renderWelcome(view) {
     setTopbar("", null);
     document.body.classList.add("in-flow");
@@ -3710,7 +3930,7 @@
       return;
     }
     const voices = courseVoices(), q = TTS.voice ? voiceQuality(TTS.voice) : null;
-    const go = ({ zh: "开始", ja: "始めよう", ko: "시작", vi: "Bắt đầu" })[C.id];
+    const go = ({ zh: "开始", ja: "始めよう", ko: "시작", vi: "Bắt đầu", de: "Los geht’s", es: "¡Vamos!" })[C.id];
     view.innerHTML = `
       <div class="ob">
         <div class="ob-top"><button class="fh-close" id="ob-back" type="button" aria-label="${t("back")}">${icon("back")}</button><span class="fh-sub">${t("obStep", 2, 2)}</span></div>
@@ -4019,5 +4239,5 @@
     window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
   }
   // Expose a tiny debug API (handy in the console)
-  window.HSK1 = { state: () => S, get words() { return WORDS; }, get all() { return ALL_WORDS; }, get course() { return C; }, courses: COURSES, switchCourse, speak, navigate, pairs: (id) => minimalPairs(BY_ID[id]).map((x) => x.hz), tones: (py, x, sr) => toneCheck(py, pitchTrack(x, sr)), heard: (text, py) => heardLineHtml(text, py) };
+  window.HSK1 = { state: () => S, get words() { return WORDS; }, get all() { return ALL_WORDS; }, get course() { return C; }, courses: COURSES, switchCourse, speak, navigate, esStress: (w) => esStress(w), typed: (v, hz) => latinTyped(v, hz), pairs: (id) => minimalPairs(BY_ID[id]).map((x) => x.hz), tones: (py, x, sr) => toneCheck(py, pitchTrack(x, sr)), heard: (text, py) => heardLineHtml(text, py) };
 })();

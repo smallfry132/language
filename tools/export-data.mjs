@@ -12,7 +12,7 @@ fs.mkdirSync(OUT, { recursive: true });
 
 const ctx = { window: {} };
 vm.createContext(ctx);
-for (const f of ["data.js", "data-hsk2.js", "data-hsk3.js", "data-vi.js", "data-vi-2.js", "data-ja.js", "korean.js", "data-ko.js", "sounds-data.js", "dialogues.js", "themes.js", "themes-auto.js", "tips.js", "families.js"]) {
+for (const f of ["data.js", "data-hsk2.js", "data-hsk3.js", "data-vi.js", "data-vi-2.js", "data-ja.js", "korean.js", "data-ko.js", "data-de.js", "data-es.js", "sounds-data.js", "dialogues.js", "dialogues-de.js", "dialogues-es.js", "themes.js", "themes-auto.js", "tips.js", "families.js"]) {
   vm.runInContext(fs.readFileSync(path.join(JS, f), "utf8"), ctx, { filename: f });
 }
 const W = ctx.window;
@@ -23,6 +23,7 @@ const slice = (from, to) => { const a = app.indexOf(from), b = app.indexOf(to, a
 vm.runInContext(slice("const KANA = ", "  const JA_WORDS = ").replace(/^\s*const /gm, "var ").replace(/^\s*function /gm, "function "), ctx);
 vm.runInContext(slice("const I18N = {", "  const t = (key").replace(/const (I18N|PF_I18N|COURSE_I18N) =/g, "var $1 ="), ctx);
 
+const gender = (w) => ({ der: "m", die: "f", das: "n", el: "m", la: "f" })[(String(w).match(/^(der|die|das|el|la)\s/) || [])[1]];
 const clean = (o) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined && v !== ""));
 const words = {
   zh: [].concat(
@@ -36,6 +37,9 @@ const words = {
     return { id: "j" + (i + 1), hz: expr, py: reading === expr ? romaji : `${reading} · ${romaji}`, kana: reading, romaji, en: meaning, cat: ctx.jaCategory(expr, meaning), lvl };
   }),
   // Korean: romanization and the spoken form generated from the Hangul (korean.js)
+  // German and Spanish: nouns carry their article; g = gender from the article, pl = plural
+  de: W.DE_WORDS.map((w) => clean({ id: w.id, hz: w.w, en: w.en, cat: "misc", lvl: w.lvl, ex: w.ex, exEn: w.exEn, pl: w.pl, g: /plural only/i.test(w.en) ? undefined : gender(w.w) })),
+  es: W.ES_WORDS.map((w) => clean({ id: w.id, hz: w.w, en: w.en, de: w.de, cat: "misc", lvl: w.lvl, ex: w.ex, exEn: w.exEn, exDe: w.exDe, pl: w.pl, g: gender(w.w) })),
   ko: W.KO_WORDS.map((w) => { const pron = W.KO.pronounce(w.w); return clean({ id: w.id, hz: w.w, py: W.KO.romanize(w.w), en: w.en, de: w.de, cat: "misc", lvl: w.lvl, ex: w.ex, exPy: W.KO.romanize(w.ex), exEn: w.exEn, pron: pron !== w.w ? pron : undefined }); })
 };
 for (const [c, list] of Object.entries(words)) fs.writeFileSync(path.join(OUT, `words-${c}.json`), JSON.stringify(list));

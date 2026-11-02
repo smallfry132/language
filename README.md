@@ -1,6 +1,6 @@
 # Language Trainer
 
-An app for studying vocabulary in four courses: **Chinese, HSK levels 1–3** (150 + 150 + 300 words), **Japanese, JLPT N5–N1** (about 8,000 words), **Vietnamese, A1–C2** (950 words in six levels) and **Korean, A1–A2** (643 words). Switch between them with the button in the top-left corner; each course keeps its own words, levels and progress. The app is optimized for **iPhone** (Safari, installable as a full-screen web app) and **Mac**.
+An app for studying vocabulary in six courses: **Chinese, HSK levels 1–3** (150 + 150 + 300 words), **Japanese, JLPT N5–N1** (about 8,000 words), **Vietnamese, A1–C2** (950 words in six levels), **Korean, A1–A2** (643 words), **German, A1–A2** (773 words) and **Spanish, A1–A2** (703 words). Switch between them with the button in the top-left corner; each course keeps its own words, levels and progress. The app is optimized for **iPhone** (Safari, installable as a full-screen web app) and **Mac**.
 
 It comes in two forms that share the same courses and sync with each other:
 
@@ -48,6 +48,7 @@ The web app's word lists, dialogues, sound charts and texts are the single sourc
 - **First launch** – choose course, level and pinyin first, then check voice and microphone. Clear states when there is no voice, the microphone is off or the sync server can't be reached.
 - **Desktop** – from 860 px the dock becomes a sidebar (with My lessons and Dialogues), Learn becomes a grid with a Typer card, Words opens words in a side pane.
 - **iPhone widgets and Siri** – word of the day on the Home and Lock Screen; “Quiz me” and “Word of the day” for Siri (see ios/README.md).
+- **German and Spanish** – nouns with their article and plural, coloured by gender (der/el blue, die/la red, das green — always with the article, so colour is never the only cue), a Der, die, das? / El or la? exercise, typing with ae oe ue ss for umlauts and optional Spanish accents, the stressed Spanish syllable in the tips (ca-FÉ), number words, six dialogues each. Word lists, examples and dialogues were written for this app.
 - **Progress** – known / learning / new counts, due reviews, streak, daily goal, activity heatmap, progress per category.
 - **Extras** – tone guide with audio, pinyin tips, appearance (auto / light / dark), speech speed.
 - **PWA** – manifest, icons and a service worker so the app works offline once loaded.

@@ -296,3 +296,32 @@ final class TipsTests: XCTestCase {
         XCTAssertEqual(Lingo.viMark("qua", 4), "quả")
     }
 }
+
+final class MinimalPairTests: XCTestCase {
+    func testJapaneseLongVowelsAndKoreanFinals() {
+        XCTAssertEqual(Lingo.jaShort("おばあさん"), Lingo.jaShort("おばさん"))
+        XCTAssertEqual(Lingo.jaShort("コーヒー"), "こひ")
+        XCTAssertEqual(Lingo.jaShort("ようか"), Lingo.jaShort("よっか"))
+        XCTAssertNotEqual(Lingo.jaShort("おじさん"), Lingo.jaShort("おばさん"))
+        XCTAssertTrue(Lingo.koFinalOnly("잔", "장"))
+        XCTAssertTrue(Lingo.koFinalOnly("잔", "자"))
+        XCTAssertFalse(Lingo.koFinalOnly("의", "이"))
+        XCTAssertFalse(Lingo.koFinalOnly("잔", "잔"))
+        var s = AppState(); s.course = "ja"
+        let ja = CourseWords(state: s)
+        let oba = ja.all.first { $0.kana == "おばあさん" }!
+        let pairs = ja.minimalPairs(oba)
+        XCTAssertTrue(pairs.contains { $0.kana?.hasPrefix("おば") == true && $0.kana != "おばあさん" }, pairs.map(\.hz).joined(separator: " "))
+        XCTAssertEqual(ja.pairKind(oba, pairs[0]), "long")
+        s.course = "ko"
+        let ko = CourseWords(state: s)
+        let sal = ko.all.first { $0.hz == "살" }
+        if let sal { XCTAssertFalse(ko.minimalPairs(sal).isEmpty) }
+        XCTAssertFalse(ko.idsWithMinimalPairs(ko.all).isEmpty)
+        XCTAssertTrue(ja.idsWithMinimalPairs(ja.all).contains(oba.id))
+        XCTAssertEqual(Lingo.heardHint(target: "한 잔 주세요", kana: nil, heard: "한 자 주세요", course: "ko"), .koFinalMissing(heard: "자", final: "ㄴ"))
+        XCTAssertEqual(Lingo.heardHint(target: "자", kana: nil, heard: "잔", course: "ko"), .koFinalExtra(heard: "잔", final: "ㄴ"))
+        XCTAssertEqual(Lingo.heardHint(target: "おばあさん", kana: "おばあさん", heard: "おばさん", course: "ja"), .jaHold)
+        XCTAssertNil(Lingo.heardHint(target: "おばあさん", kana: "おばあさん", heard: "おばあさん", course: "ja"))
+    }
+}

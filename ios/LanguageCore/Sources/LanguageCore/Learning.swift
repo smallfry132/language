@@ -193,11 +193,21 @@ extension CourseWords {
     /// different meaning and spelling. Words that sound nothing alike are left out; `fill` tops up from `selected`.
     public func soundAlikes(_ w: Word, count: Int = 3, meaning: (Word) -> String, fill: Bool = true) -> [Word] {
         let key = Self.soundKey(w, course: course.id), m = meaning(w)
+        // Japanese options are shown in kana: two words that read the same (取る / 撮る) would look identical
+        let face = { (x: Word) in self.course.id == "ja" ? (x.kana ?? x.hz) : x.hz }
+        // Minimal pairs first (Japanese long vowel or small っ, Korean final consonant)
+        var pairs: [Word] = [], seen0: Set<String> = [w.hz, face(w), m]
+        for x in minimalPairs(w).shuffled() where pairs.count < count && !seen0.contains(face(x)) && !seen0.contains(meaning(x)) {
+            pairs.append(x); seen0.insert(face(x)); seen0.insert(meaning(x))
+        }
+        if pairs.count >= count { return pairs }
+        // Japanese has 8,000 words: stay within the levels being studied
+        let pool = (course.id == "ja" || course.id == "ko") && selected.count > 200 ? selected : all
         // Close (one sound apart) first; if that finds too few, words that share about half their sound
         var limit = max(1, key.count / 3)
         let wide = max(2, (key.count + 1) / 2)
         var scored: [(Word, Int)] = []
-        for x in all where x.id != w.id && x.hz != w.hz && meaning(x) != m {
+        for x in pool where x.id != w.id && x.hz != w.hz && meaning(x) != m && !pairs.contains(x) {
             let k = Self.soundKey(x, course: course.id)
             guard abs(k.count - key.count) <= wide else { continue }
             let d = Self.distance(k, key)
@@ -205,15 +215,122 @@ extension CourseWords {
         }
         if scored.filter({ $0.1 < (limit + 1) * 10 }).count < count { limit = wide }
         scored = scored.filter { $0.1 < (limit + 1) * 10 }
-        var out: [Word] = [], seen: Set<String> = [w.hz, m]
-        for (x, _) in scored.shuffled().sorted(by: { $0.1 < $1.1 }) where out.count < count && !seen.contains(x.hz) && !seen.contains(meaning(x)) {
-            out.append(x); seen.insert(x.hz); seen.insert(meaning(x))
+        var out = pairs, seen = seen0
+        for (x, _) in scored.shuffled().sorted(by: { $0.1 < $1.1 }) where out.count < count && !seen.contains(face(x)) && !seen.contains(meaning(x)) {
+            out.append(x); seen.insert(face(x)); seen.insert(meaning(x))
         }
         if fill {
-            for x in selected.shuffled() where out.count < count && x.id != w.id && !seen.contains(x.hz) && !seen.contains(meaning(x)) {
-                out.append(x); seen.insert(x.hz); seen.insert(meaning(x))
+            for x in selected.shuffled() where out.count < count && x.id != w.id && !seen.contains(face(x)) && !seen.contains(meaning(x)) {
+                out.append(x); seen.insert(face(x)); seen.insert(meaning(x))
             }
         }
         return out
+    }
+}
+
+// MARK: Minimal pairs (Japanese long vowel / small っ, Korean final consonant)
+
+extension Lingo {
+    static let kanaVowel: [Character: Character] = {
+        var m: [Character: Character] = [:]
+        let rows: [(Character, String)] = [("a", "あかさたなはまやらわがざだばぱぁゃゎ"), ("i", "いきしちにひみりぎじぢびぴぃ"), ("u", "うくすつぬふむゆるぐずづぶぷぅゅ"), ("e", "えけせてねへめれげぜでべぺぇ"), ("o", "おこそとのほもよろをごぞどぼぽぉょ")]
+        for (v, s) in rows { for c in s { m[c] = v } }
+        return m
+    }()
+    /// Japanese kana without long vowels and small っ: おばあさん → おばさん, コーヒー → こひ, ようか / よっか → よか
+    public static func jaShort(_ kana: String) -> String {
+        var out = "", prev: Character? = nil
+        for c in kataToHira(kana) where c != "ー" && c != "っ" {
+            let same = (c == "あ" && prev == "a") || (c == "い" && (prev == "i" || prev == "e")) || (c == "う" && (prev == "u" || prev == "o"))
+                || (c == "え" && prev == "e") || (c == "お" && prev == "o")
+            if !same { out.append(c) }
+            if let v = kanaVowel[c] { prev = v }
+        }
+        return out
+    }
+    /// Korean words of the same length that differ only in the final consonant of one syllable: 잔 · 장 · 자 · 잠
+    public static func koFinalOnly(_ a: String, _ b: String) -> Bool {
+        let x = Array(a), y = Array(b)
+        guard x.count == y.count, a != b else { return false }
+        var diff = 0
+        for k in x.indices where x[k] != y[k] {
+            guard let p = koJamo(x[k]), let q = koJamo(y[k]), p.i == q.i, p.v == q.v else { return false }
+            diff += 1
+        }
+        return diff == 1
+    }
+}
+
+/// What went wrong in a recognised attempt, where the language makes it clear
+public enum HeardHint: Equatable, Sendable {
+    case koFinalMissing(heard: String, final: String)  // 잔 said as 자
+    case koFinalExtra(heard: String, final: String)    // 자 said as 잔
+    case jaHold                                        // おばあさん heard as おばさん
+}
+
+extension Lingo {
+    public static func heardHint(target: String, kana: String?, heard: String, course: String) -> HeardHint? {
+        if course == "ko" {
+            let hangul = { (s: String) in Array(s.filter { ("\u{AC00}"..."\u{D7A3}").contains($0) }) }
+            let want = hangul(target), got = hangul(heard)
+            for k in 0..<min(want.count, got.count) {
+                guard let a = koJamo(want[k]), let b = koJamo(got[k]), a.i == b.i, a.v == b.v, a.f != b.f else { continue }
+                return a.f.isEmpty ? .koFinalExtra(heard: String(got[k]), final: b.f) : .koFinalMissing(heard: String(got[k]), final: a.f)
+            }
+        }
+        if course == "ja", let kana {
+            let h = kataToHira(heard.filter { !"。、！？ ".contains($0) })
+            if h != kataToHira(kana) && jaShort(h) == jaShort(kana) { return .jaHold }
+        }
+        return nil
+    }
+}
+
+extension CourseWords {
+    /// Words that differ from `w` by one long vowel or small っ (Japanese) or one final consonant (Korean)
+    public func minimalPairs(_ w: Word) -> [Word] {
+        switch course.id {
+        case "ja":
+            guard let kana = w.kana else { return [] }
+            let k = Lingo.jaShort(kana)
+            guard k.count > 1 else { return [] }
+            var seen = Set<String>(), out: [Word] = []
+            for x in selected + all.filter({ $0.lvl <= 2 }) where x.id != w.id && !seen.contains(x.id) {
+                guard let xk = x.kana, xk != kana, Lingo.jaShort(xk) == k else { continue }
+                seen.insert(x.id); out.append(x)
+            }
+            return out
+        case "ko": return all.filter { $0.id != w.id && Lingo.koFinalOnly($0.hz, w.hz) }
+        default: return []
+        }
+    }
+    /// The ids of the words in `pool` that have at least one minimal pair (one pass, grouped by key)
+    public func idsWithMinimalPairs(_ pool: [Word]) -> Set<String> {
+        switch course.id {
+        case "ja":
+            var byKey: [String: Set<String>] = [:] // key → the kana spellings that share it
+            var seen = Set<String>()
+            for x in selected + all.filter({ $0.lvl <= 2 }) where seen.insert(x.id).inserted {
+                if let k = x.kana { byKey[Lingo.jaShort(k), default: []].insert(k) }
+            }
+            return Set(pool.filter { w in
+                guard let k = w.kana else { return false }
+                let key = Lingo.jaShort(k)
+                return key.count > 1 && (byKey[key]?.count ?? 0) > 1
+            }.map(\.id))
+        case "ko":
+            // Words with their finals taken off: only those in the same group can differ in one final
+            func bare(_ s: String) -> String { String(s.map { c in Lingo.koJamo(c).map { "\($0.i)\($0.v)" } ?? String(c) }.joined()) }
+            let groups = Dictionary(grouping: all, by: { bare($0.hz) })
+            return Set(pool.filter { w in (groups[bare(w.hz)] ?? []).contains { Lingo.koFinalOnly($0.hz, w.hz) } }.map(\.id))
+        default: return []
+        }
+    }
+    /// "long" or "final" when `x` is a minimal pair of `w`
+    public func pairKind(_ w: Word, _ x: Word) -> String? {
+        guard x.id != w.id else { return nil }
+        if course.id == "ja", let a = w.kana, let b = x.kana, Lingo.jaShort(a) == Lingo.jaShort(b) { return "long" }
+        if course.id == "ko", Lingo.koFinalOnly(w.hz, x.hz) { return "final" }
+        return nil
     }
 }

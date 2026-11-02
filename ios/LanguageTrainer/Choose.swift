@@ -28,7 +28,7 @@ struct ChooseWord: View {
             ProgressHeader(i: i + (picked == nil ? 0 : 1), n: list.count)
             VStack(alignment: .leading, spacing: 6) {
                 CapsLabel(text: store.t("chooseTitle"))
-                Text(gap.sentence == nil ? store.t("chooseNoEx") : store.course.id == "vi" ? store.t("chooseSubTone") : store.t("chooseSub"))
+                Text(hint(w, gap))
                     .font(.subheadline).foregroundStyle(Color.ink2)
             }.padding(.top, 8)
             question(w, gap).padding(.vertical, 8)
@@ -37,7 +37,10 @@ struct ChooseWord: View {
             }
         }
         .safeAreaInset(edge: .bottom) { if let p = picked { feedback(w, p) } }
-        .onAppear { if options.isEmpty { options = optionsFor(w) } }
+        .onAppear {
+            if options.isEmpty { options = optionsFor(w) }
+            if Launch.has("-pick"), picked == nil { answer(w, w) } // for screenshots: the answered state
+        }
     }
 
     // MARK: The sentence with its gap
@@ -72,14 +75,24 @@ struct ChooseWord: View {
         }
     }
 
+    /// Japanese long vowel or Korean final consonant pairs get their own hint
+    func hint(_ w: Word, _ gap: Gap) -> String {
+        if options.contains(where: { store.words.pairKind(w, $0) == "long" }) { return store.t("chooseLong") }
+        if options.contains(where: { store.words.pairKind(w, $0) == "final" }) { return store.t("chooseFinal") }
+        return gap.sentence == nil ? store.t("chooseNoEx") : store.course.id == "vi" ? store.t("chooseSubTone") : store.t("chooseSub")
+    }
+
     // MARK: Options: the word large, its sound, its meaning
 
     func option(_ x: Word, _ w: Word, showMeaning: Bool) -> some View {
         let right = picked != nil && x.id == w.id, wrong = picked?.id == x.id && x.id != w.id
         let stroke: Color = right ? .good : wrong ? .bad : .line
+        let finals = store.course.id == "ko" && options.contains { store.words.pairKind(w, $0) == "final" }
         return Button { answer(x, w) } label: {
             VStack(spacing: 4) {
-                WordFace(word: x, size: 48).lineLimit(1).minimumScaleFactor(0.4)
+                if store.course.id == "ja", let k = x.kana { Text(k).hanziFont(36).lineLimit(1).minimumScaleFactor(0.4) }
+                else { WordFace(word: x, size: 48).lineLimit(1).minimumScaleFactor(0.4) }
+                if finals { finalTiles(x.hz, w.hz) }
                 sound(x)
                 if showMeaning || picked != nil { Text(store.tr(x)).font(.caption).foregroundStyle(Color.ink2).lineLimit(2).multilineTextAlignment(.center) }
             }
@@ -103,8 +116,21 @@ struct ChooseWord: View {
         case "vi":
             let n = Lingo.firstTone(x.hz, course: "vi")
             Text(ViTone.name(n)).font(.footnote.weight(.bold)).foregroundStyle(Look.toneColors ? Color.viTone(n) : Color.ink2)
-        case "ja": Text(x.kana != nil && x.kana != x.hz ? x.kana! : (x.romaji ?? x.py)).font(.footnote.weight(.semibold)).foregroundStyle(Color.ink2)
+        case "ja": Text((x.romaji ?? x.py) + (x.kana != nil && x.kana != x.hz ? " · " + x.hz : "")).font(.footnote.weight(.semibold)).foregroundStyle(Color.ink2)
         default: Text(x.py).font(.footnote.weight(.semibold)).foregroundStyle(Color.ink2)
+        }
+    }
+
+    /// Korean: the letters of the syllable that changes; the final red, dashed when there is none
+    @ViewBuilder func finalTiles(_ hz: String, _ target: String) -> some View {
+        let x = Array(hz), y = Array(target)
+        let k = x.indices.first { $0 >= y.count || x[$0] != y[$0] } ?? max(0, x.count - 1)
+        if k < x.count, let j = Lingo.koJamo(x[k]) {
+            HStack(spacing: 2) {
+                JamoTile(s: j.i, kind: 0, size: 24)
+                JamoTile(s: j.v, kind: 1, size: 24)
+                JamoTile(s: j.f, kind: j.f.isEmpty ? 3 : 2, size: 24)
+            }.accessibilityHidden(true)
         }
     }
 

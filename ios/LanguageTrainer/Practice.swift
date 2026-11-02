@@ -208,7 +208,13 @@ struct PracticeScreen: View {
             var pool = prefs.pool(store)
             if [.picture, .listenPic].contains(mode) { pool = pool.filter { store.words.picture($0.id) != nil } }
             let take = prefs.take(mode, available: pool.count)
-            list = prefs.pools == ["due"] ? Array(pool.prefix(take)) : Array(pool.shuffled().prefix(take))
+            // Japanese and Korean: words that have a minimal pair come first in Choose the word
+            if mode == .choose && ["ja", "ko"].contains(store.course.id) {
+                let ids = store.words.idsWithMinimalPairs(pool), paired = pool.filter { ids.contains($0.id) }
+                list = Array((paired.shuffled() + pool.filter { !ids.contains($0.id) }).prefix(take))
+            } else {
+                list = prefs.pools == ["due"] ? Array(pool.prefix(take)) : Array(pool.shuffled().prefix(take))
+            }
         }
         if mode == .typer { list = Array(store.words.selected.shuffled().prefix(prefs.count == SetupPrefs.all ? 20 : prefs.count)) }
         if list.isEmpty && mode != .numbers { phase = .setup; return }

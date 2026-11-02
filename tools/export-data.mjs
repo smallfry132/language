@@ -12,7 +12,7 @@ fs.mkdirSync(OUT, { recursive: true });
 
 const ctx = { window: {} };
 vm.createContext(ctx);
-for (const f of ["data.js", "data-hsk2.js", "data-hsk3.js", "data-vi.js", "data-vi-2.js", "data-ja.js", "korean.js", "data-ko.js", "sounds-data.js", "dialogues.js", "themes.js", "themes-auto.js", "tips.js"]) {
+for (const f of ["data.js", "data-hsk2.js", "data-hsk3.js", "data-vi.js", "data-vi-2.js", "data-ja.js", "korean.js", "data-ko.js", "sounds-data.js", "dialogues.js", "themes.js", "themes-auto.js", "tips.js", "families.js"]) {
   vm.runInContext(fs.readFileSync(path.join(JS, f), "utf8"), ctx, { filename: f });
 }
 const W = ctx.window;
@@ -66,5 +66,6 @@ fs.writeFileSync(path.join(OUT, "sounds.json"), JSON.stringify(W.SOUNDS));
 fs.writeFileSync(path.join(OUT, "themes.json"), JSON.stringify(Object.fromEntries(Object.entries(W.THEMES).map(([c, ts]) => [c, ts.map((t) => ({ ...t, groups: t.groups.map((g) => ({ name: g.name, ids: g.ids.map(String) })) }))]))));
 fs.writeFileSync(path.join(OUT, "pictures.json"), JSON.stringify(W.PICTURES));
 fs.writeFileSync(path.join(OUT, "tips.json"), JSON.stringify(W.SAY_TIPS));
+fs.writeFileSync(path.join(OUT, "families.json"), JSON.stringify(W.FAMILIES));
 for (const f of ["strokes-zh.json", "ARPHICPL.TXT"]) fs.copyFileSync(path.join(ROOT, "web/data", f), path.join(OUT, f)); // stroke data travels with its licence
 console.log(Object.entries(words).map(([c, l]) => `${c}: ${l.length}`).join(", "), "→", path.relative(ROOT, OUT));

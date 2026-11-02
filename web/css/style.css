@@ -1401,3 +1401,25 @@ html[data-course="vi"] .tip-chip b { color: #0F2A24; } html[data-course="vi"] .b
   .word-pane .wsh-word { font-size: 40px; }
 }
 @media (min-width: 860px) { .w2-chips, #cat-chips { flex-wrap: wrap; overflow: visible; } }
+
+/* ===== Word families ===== */
+.fam-line { font-size: 16px; } .fam-eq { color: var(--text-2); font-weight: 500; }
+.fam-grid { display: grid; gap: 10px; margin: 6px 0 14px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.fam-grid.n3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (min-width: 700px) { .fam-grid.n4 { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.fam-card { position: relative; min-height: 140px; padding: 14px 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-elev); font: inherit; color: var(--text); text-align: center; cursor: pointer; }
+.fam-card.wide { min-height: 0; flex: 1; flex-direction: row; flex-wrap: wrap; gap: 4px 10px; border: 1.5px solid var(--text); }
+.fam-card.correct { border: 2px solid var(--green); } .fam-card.wrong { border: 2px solid var(--red); }
+.fam-pic { font-size: 34px; line-height: 1.1; }
+.fam-word { font-size: 30px; font-weight: 700; line-height: 1.15; } .fam-word.hanzi { font-weight: 500; font-size: 28px; }
+.fam-sub { font-size: 16px; color: var(--text-2); } .fam-tr { font-size: 13px; color: var(--text-2); }
+.fam-play { position: absolute; top: 8px; right: 8px; color: var(--text-3); } .fam-play .ico { width: 14px; height: 14px; }
+.fam-card .tone-chip { margin: 2px 0; }
+.fam-sum { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; } .fam-plus { font-size: 20px; white-space: nowrap; }
+.tr-btns.two { grid-template-columns: 1fr 1fr; margin-top: 14px; }
+.fam-mini { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-elev); }
+.fam-mini-words { display: flex; flex-wrap: wrap; gap: 6px; }
+.fam-chip { display: inline-flex; flex-direction: column; align-items: flex-start; padding: 6px 10px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--bg); font: inherit; color: var(--text); cursor: pointer; }
+.fam-chip.on { border: 1.5px solid var(--text); } .fam-chip b { font-size: 16px; } .fam-chip > span { font-size: 11px; color: var(--text-2); }
+.fam-whole { font-size: 14px; } .fam-whole b { font-size: 16px; }
+.fam-mini .link-btn { align-self: flex-start; font-size: 13px; padding: 0; }

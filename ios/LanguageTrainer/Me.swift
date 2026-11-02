@@ -22,7 +22,7 @@ struct MeView: View {
             // Who and what
             Button { showCourses = true } label: {
                 HStack(spacing: 14) {
-                    Text(Look.current.tabs.isEmpty ? store.course.glyph : Look.current.tabs[3]).hanziFont(28).foregroundStyle(Color.accent)
+                    Text(Look.current.latinTabs ? store.course.glyph : Look.current.tabs[3]).hanziFont(28).foregroundStyle(Color.accent)
                         .frame(width: 56, height: 56).overlay(RoundedRectangle(cornerRadius: Look.current.radius + 2).stroke(Color.accent, lineWidth: 1.5))
                     VStack(alignment: .leading, spacing: 2) {
                         Text(store.course.name).font(.title3.weight(.bold))

@@ -33,8 +33,8 @@ enum Route: Hashable {
     case paste(String?)
 }
 
-/// Practice (round 2): Listen · Speak · Read · Write, each with its word in the language and a note; rows with a short
-/// hint, what is waiting (due words, best speed, dialogues done) and NEW for the newest modes
+/// Practice (round 3): a suggested next step, practice by goal, and all exercises in four groups that open and close;
+/// each group says what is waiting there (due words, dialogues done) and marks the newest modes NEW
 struct PracticeHome: View {
     @Environment(Store.self) var store
     struct Row { let route: Route; let key: String; let sub: String; var isNew = false }
@@ -58,18 +58,109 @@ struct PracticeHome: View {
         ]
         return all.map { ($0.0, $0.1.compactMap { $0 }) }.filter { !$0.1.isEmpty }
     }
-    func meta(_ r: Route, due: Int) -> String {
-        switch r {
-        case .mode(.listen), .mode(.flash): return due > 0 ? store.t("nDue", due) : ""
-        case .mode(.typer): if let b = store.state.typer?[store.course.id], b > 0 { return store.t("bestWpm", b) }; return ""
-        case .dialogues: return "\(store.dialogues.filter { store.state.dialogue($0.id).done }.count) / \(store.dialogues.count)"
-        default: return ""
-        }
-    }
     @ViewBuilder func word(_ k: Int) -> some View {
         let w = Self.skillWord[store.course.id]?[k] ?? ("", "")
         if store.course.id == "zh" { if store.pyFirst { PinyinText(py: w.0, size: 14, weight: .bold) } else { Text(w.1).hanziFont(15) } }
         else { Text(w.1.isEmpty ? w.0 : w.1).hanziFont(14, .semibold).foregroundStyle(Color.ink2) }
+    }
+    /// Which exercise groups are open (Practice remembers it); Speak is open at first
+    @AppStorage("practiceOpen") private var openGroups = "speak"
+
+    /// Practice by what you want to get better at
+    var goals: [(key: String, sub: String, route: Route)] {
+        let c = store.course, last = store.state.lessons(course: c.id).last
+        var g: [(key: String, sub: String, route: Route)] = []
+        if c.gender { g.append(("gender", store.t(c.id == "es" ? "goalSub_genderEs" : "goalSub_gender"), .mode(.gender))) }
+        else if c.toneOptions != nil { g.append(("tones", store.t("goalSub_tones"), .mode(.tones))) }
+        g.append(("new", store.t("goalSub_new"), .mode(.flash)))
+        g.append(("class", last.map { store.t("goalSub_class", $0.lesson.name) } ?? store.t("goalSub_classNone"), last.map { .lessonPractice($0.id) } ?? .myLessons))
+        if !store.noVoice { g.append(("listen", store.t("goalSub_listen"), .mode(.listen))) }
+        g.append(("write", store.t(c.id == "zh" ? "goalSub_write" : "goalSub_writeNoTrace"), .mode(.type)))
+        return g
+    }
+
+    /// The one thing worth doing next: your weakest tone, the cards that are due, articles, or speaking
+    func suggestion(due: Int) -> some View {
+        let s = suggested(due: due)
+        return VStack(alignment: .leading, spacing: 8) {
+            Text(store.t("suggestedNext").uppercased()).font(.caption.weight(.bold)).tracking(1.2).foregroundStyle(Color.accent)
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(s.title).font(.headline).foregroundStyle(Color.ink)
+                    Text(s.sub).font(.footnote).foregroundStyle(Color.ink2)
+                }
+                Spacer(minLength: 8)
+                NavigationLink(value: s.route) {
+                    Text(store.t("start")).font(.subheadline.weight(.bold)).foregroundStyle(Color.onAction).padding(.horizontal, 18).frame(height: 40)
+                        .background(Color.action, in: RoundedRectangle(cornerRadius: max(Look.current.radius, 2) + 2))
+                }
+                .buttonStyle(.card).accessibilityIdentifier("practice-suggested")
+            }
+        }
+        .padding(14).frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.elevated, in: RoundedRectangle(cornerRadius: Look.current.radius + 2))
+        .overlay(RoundedRectangle(cornerRadius: Look.current.radius + 2).stroke(Color.ink, lineWidth: 1.5))
+        .padding(.top, 10)
+    }
+    func suggested(due: Int) -> (title: String, sub: String, route: Route) {
+        let c = store.course
+        if c.id == "zh" && !store.noVoice {
+            let counted = (1...4).map { n in (n, store.state.pairSum(\.tones, String(n))) }.filter { $0.1.total >= 3 }
+            if let weak = counted.min(by: { Double($0.1.right) / Double($0.1.total) < Double($1.1.right) / Double($1.1.total) }) {
+                let pct = Int((Double(weak.1.right) / Double(weak.1.total) * 100).rounded())
+                if pct < 80 { return (store.t("suggestTone", store.t("toneShort\(weak.0)")), store.t("suggestToneSub", pct), .mode(.tones)) }
+            }
+        }
+        if due > 0 { return (store.t("suggestReview", due), store.t("suggestReviewSub", max(2, Int((Double(due) * 0.25).rounded()))), .mode(.flash)) }
+        if c.gender { return (store.t("suggestGender", store.t(c.id == "es" ? "modeGenderEs" : "modeGender")), store.t("suggestGenderSub"), .mode(.gender)) }
+        return (store.t("suggestSay"), store.t("suggestSaySub"), .mode(.say))
+    }
+
+    /// One exercise group: its name, how many, a hint of what waits there; open, its exercises two by two
+    @ViewBuilder func group(_ id: String, _ rows: [Row], due: Int, first: Bool) -> some View {
+        let open = openGroups.split(separator: ",").contains(Substring(id))
+        if !first { Rectangle().fill(Color.line).frame(height: 1) }
+        Button {
+            var set = Set(openGroups.split(separator: ",").map(String.init))
+            if open { set.remove(id) } else { set.insert(id) }
+            withAnimation(.easeOut(duration: 0.2)) { openGroups = set.sorted().joined(separator: ",") }
+        } label: {
+            HStack(spacing: 8) {
+                Text("\(store.t("skill_" + id)) · \(rows.count)").font(.body.weight(.semibold)).foregroundStyle(Color.ink)
+                word(["listen", "speak", "read", "write"].firstIndex(of: id) ?? 0)
+                Spacer(minLength: 6)
+                Text(groupHint(id, due: due)).font(.caption).foregroundStyle(Color.ink2).lineLimit(1)
+                Image(systemName: open ? "chevron.up" : "chevron.down").font(.caption.weight(.bold)).foregroundStyle(Color.ink2)
+            }
+            .padding(.horizontal, 14).frame(minHeight: 52)
+        }
+        .buttonStyle(.card)
+        .accessibilityValue(open ? store.t("expanded") : "")
+        .accessibilityIdentifier("group-" + id)
+        if open {
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)], spacing: 8) {
+                ForEach(Array(rows.enumerated()), id: \.offset) { _, r in
+                    NavigationLink(value: r.route) {
+                        VStack(alignment: .leading, spacing: 3) {
+                            HStack(spacing: 4) { Text(store.t(r.key)).font(.subheadline.weight(.semibold)).foregroundStyle(Color.ink).multilineTextAlignment(.leading); if r.isNew { NewBadge() } }
+                            Text(store.t("sub_" + r.sub)).font(.caption2).foregroundStyle(Color.ink2).lineLimit(2).multilineTextAlignment(.leading)
+                        }
+                        .padding(10).frame(maxWidth: .infinity, minHeight: 64, alignment: .topLeading)
+                        .background(Color.paper, in: RoundedRectangle(cornerRadius: max(2, Look.current.radius - 2)))
+                        .overlay(RoundedRectangle(cornerRadius: max(2, Look.current.radius - 2)).stroke(Color.line))
+                    }.buttonStyle(.card)
+                }
+            }
+            .padding(.horizontal, 12).padding(.bottom, 12)
+        }
+    }
+    func groupHint(_ id: String, due: Int) -> String {
+        switch id {
+        case "listen": return due > 0 ? store.t("nDue", due) : store.t("skillNote_listen")
+        case "speak": return store.dialogues.isEmpty ? store.t("skillNote_speak") : store.t("hint_dialogues", store.dialogues.filter { store.state.dialogue($0.id).done }.count, store.dialogues.count)
+        case "read": return due > 0 ? store.t("hint_cardsDue", due) : store.t("skillNote_read")
+        default: return store.t("skillNote_write")
+        }
     }
     /// Listening exercises wait until there is a voice for the course
     static func needsVoice(_ r: Route) -> Bool { if case .mode(let m) = r { return [.listen, .listenPic, .tones].contains(m) }; return r == .soundDrill }
@@ -93,32 +184,28 @@ struct PracticeHome: View {
                 }
             }
             NoVoiceCard()
-            ForEach(Array(skills.map { sk in (id: sk.id, rows: sk.rows.filter { !(store.noVoice && Self.needsVoice($0.route)) }) }.filter { !$0.rows.isEmpty }.enumerated()), id: \.element.id) { _, sk in
-                let k = ["listen", "speak", "read", "write"].firstIndex(of: sk.id) ?? 0
-                VStack(spacing: 0) {
-                    HStack(alignment: .firstTextBaseline, spacing: 6) {
-                        Text(store.t("skill_" + sk.id)).font(.headline)
-                        word(k)
-                        Spacer()
-                        Text(store.t("skillNote_" + sk.id)).font(.caption).foregroundStyle(Color.ink2)
-                    }.padding(.bottom, 6)
-                    Rectangle().fill(store.course.id == "vi" ? Color.line : Color.ink).frame(height: 2)
-                    ForEach(Array(sk.rows.enumerated()), id: \.offset) { _, r in
-                        NavigationLink(value: r.route) {
-                            HStack(spacing: 10) {
-                                VStack(alignment: .leading, spacing: 1) {
-                                    HStack(spacing: 6) { Text(store.t(r.key)).font(.body.weight(.medium)).foregroundStyle(Color.ink); if r.isNew { NewBadge() } }
-                                    Text(store.t("sub_" + r.sub)).font(.caption).foregroundStyle(Color.ink2).multilineTextAlignment(.leading)
-                                }
-                                Spacer(minLength: 8)
-                                Text(meta(r.route, due: due)).font(.caption).foregroundStyle(Color.ink2)
-                                Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(Color.ink2)
-                            }.padding(.vertical, 9).frame(minHeight: 52).contentShape(Rectangle())
-                        }.buttonStyle(.card)
-                        Rectangle().fill(Color.line).frame(height: 1)
-                    }
-                }.padding(.top, 14)
+            let groups = skills.map { sk in (id: sk.id, rows: sk.rows.filter { !(store.noVoice && Self.needsVoice($0.route)) }) }.filter { !$0.rows.isEmpty }
+            suggestion(due: due)
+            SectionTitle(text: store.t("byGoal"))
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)], spacing: 8) {
+                ForEach(goals, id: \.key) { g in
+                    NavigationLink(value: g.route) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(store.t("goal_" + g.key)).font(.subheadline.weight(.bold)).foregroundStyle(Color.ink)
+                            Text(g.sub).font(.caption).foregroundStyle(Color.ink2).lineLimit(1)
+                        }
+                        .padding(.horizontal, 12).padding(.vertical, 10).frame(maxWidth: .infinity, minHeight: 52, alignment: .leading)
+                        .background(Color.elevated, in: RoundedRectangle(cornerRadius: max(2, Look.current.radius)))
+                        .overlay(RoundedRectangle(cornerRadius: max(2, Look.current.radius)).stroke(Color.line))
+                    }.buttonStyle(.card).accessibilityIdentifier("goal-" + g.key)
+                }
             }
+            SectionTitle(text: store.t("allExercises", groups.reduce(0) { $0 + $1.rows.count }))
+            VStack(spacing: 0) {
+                ForEach(Array(groups.enumerated()), id: \.element.id) { k, sk in group(sk.id, sk.rows, due: due, first: k == 0) }
+            }
+            .background(Color.elevated, in: RoundedRectangle(cornerRadius: Look.current.radius + 2))
+            .overlay(RoundedRectangle(cornerRadius: Look.current.radius + 2).stroke(Color.line))
         }
         .toolbar(.hidden, for: .navigationBar)
     }

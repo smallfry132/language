@@ -196,9 +196,9 @@ struct Tile: View {
 struct WordDetail: View {
     @Environment(Store.self) var store
     let w: Word
+    @State private var pickLesson = false
     var body: some View {
-        let st = store.status(w.id), fav = store.state.favs.contains(WordRef(w.id))
-        let lessons = store.state.lessons(course: store.course.id), last = lessons.last
+        let fav = store.state.favs.contains(WordRef(w.id))
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(alignment: .top, spacing: 12) {
@@ -212,42 +212,44 @@ struct WordDetail: View {
                         switch store.course.id {
                         case "zh": if store.pyFirst { PinyinText(py: w.py, size: 34, weight: .bold) } else { Text(w.hz).hanziFont(36) }
                         case "vi": VietText(text: w.hz, size: 34, weight: .heavy)
-                        case "de", "es": GenderText(word: w, size: 32)
+                        case "de", "es": LatinWord(word: w, size: 34, leading: true)
                         default: Text(w.hz).hanziFont(36)
                         }
                         Text(readingLine).font(.subheadline).foregroundStyle(Color.ink2)
                     }
                     Spacer(minLength: 4)
+                    SquareButton(icon: "speaker.wave.2.fill", label: store.t("playWord", w.hz)) { store.speaker.say(w.hz) }
                     SquareButton(icon: fav ? "star.fill" : "star", label: store.t("favorite"), on: fav) {
                         store.update { if fav { $0.favs.removeAll { $0.id == w.id } } else { $0.favs.append(WordRef(w.id)) } }
                     }
                 }
                 Text(metaLine).font(.footnote).foregroundStyle(Color.ink2)
-                SayLike(word: w)
-                FamilySection(word: w)
-                if let ex = w.ex { ExampleLine(word: w, ex: ex) }
-                CapsLabel(text: store.t("status"))
-                SegBar(options: [("new", store.t("new")), ("learning", store.t("learning")), ("known", store.t("known"))], selected: st.rawValue) { k in
-                    store.update { if k == "new" { $0.resetWord(w.id) } else if k == "learning" { $0.markLearning(w.id) } else { $0.markKnown(w.id) } }
-                }
-                if let last {
-                    let has = last.lesson.words.contains(WordRef(w.id))
-                    Button { store.update { $0.toggleLessonWord(last.id, w.id) } } label: {
-                        Text(has ? "✓ " + store.t("inLesson", last.lesson.name) : "＋ " + store.t("addToLessonX", last.lesson.name)).lineLimit(1).minimumScaleFactor(0.7)
-                    }.buttonStyle(SecondaryButtonStyle(tint: .accent))
-                    if lessons.count > 1 {
-                        WrapLayout(spacing: 6) {
-                            ForEach(lessons.dropLast().reversed(), id: \.id) { l in
-                                let on = l.lesson.words.contains(WordRef(w.id))
-                                ChipButton(label: (on ? "✓ " : "+ ") + l.lesson.name, active: on) { store.update { $0.toggleLessonWord(l.id, w.id) } }
-                            }
-                        }
+                if Lingo.elButFeminine(w) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(store.t("elAguaWhy").uppercased()).font(.caption.weight(.bold)).tracking(1.2).foregroundStyle(Color.gender("f"))
+                        Text(store.t("elAguaText")).font(.subheadline).fixedSize(horizontal: false, vertical: true)
                     }
+                    .padding(12).frame(maxWidth: .infinity, alignment: .leading)
+                    .overlay(RoundedRectangle(cornerRadius: Look.current.radius).stroke(Color.gender("f"), lineWidth: 1.5))
                 }
+                SayLike(word: w)
+                if let ex = w.ex { ExampleLine(word: w, ex: ex) }
+                FamilySection(word: w)
+                CapsLabel(text: store.t("status"))
+                StatusPicker(word: w)
+                Button { pickLesson = true } label: { Label(store.t("addToALesson"), systemImage: "plus").lineLimit(1) }
+                    .buttonStyle(.secondary).accessibilityIdentifier("word-add-lesson")
             }.padding(20)
         }
         .scrollIndicators(.hidden)
         .background(Color.paper)
+        .confirmationDialog(store.t("addToALesson"), isPresented: $pickLesson, titleVisibility: .visible) {
+            ForEach(store.state.lessons(course: store.course.id).reversed(), id: \.id) { l in
+                let on = l.lesson.words.contains(WordRef(w.id))
+                Button((on ? "✓ " : "") + l.lesson.name) { store.update { $0.toggleLessonWord(l.id, w.id) } }
+            }
+            Button(store.t("newLesson")) { let id = store.newLesson(); store.update { $0.toggleLessonWord(id, w.id) }; store.toast(store.t("added")) }
+        }
         .onAppear { if store.state.settings.autoSpeak { store.speaker.say(w.hz) } }
     }
     var readingLine: String {
@@ -263,6 +265,31 @@ struct WordDetail: View {
         if let th = store.words.theme(of: w.id) { parts.append(th.name.get(store.state.lang)) }
         if let t2 = store.tr2(w) { parts.append(t2) }
         return parts.joined(separator: " · ")
+    }
+}
+
+/// New · Learning · Known, as three radio buttons with the status shapes
+struct StatusPicker: View {
+    @Environment(Store.self) var store
+    let word: Word
+    var body: some View {
+        let st = store.status(word.id), r = max(2, Look.current.radius - 2)
+        HStack(spacing: 8) {
+            ForEach([("new", "□"), ("learning", "◧"), ("known", "■")], id: \.0) { k, glyph in
+                let on = st.rawValue == k
+                Button {
+                    store.update { if k == "new" { $0.resetWord(word.id) } else if k == "learning" { $0.markLearning(word.id) } else { $0.markKnown(word.id) } }
+                } label: {
+                    Text("\(glyph) \(store.t(k))").font(.subheadline.weight(on ? .bold : .regular)).foregroundStyle(Color.ink)
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                        .background(Color.elevated, in: RoundedRectangle(cornerRadius: r))
+                        .overlay(RoundedRectangle(cornerRadius: r).stroke(on ? Color.ink : Color.line, lineWidth: on ? 2 : 1))
+                }
+                .buttonStyle(.card)
+                .accessibilityAddTraits(on ? [.isSelected, .isButton] : .isButton)
+            }
+        }
+        .accessibilityElement(children: .contain).accessibilityLabel(store.t("status"))
     }
 }
 

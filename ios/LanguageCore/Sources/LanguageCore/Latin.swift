@@ -61,6 +61,36 @@ extension Lingo {
         if st < 0 { st = "aeiouns".contains(low.last ?? " ") ? max(0, syl.count - 2) : syl.count - 1 }
         return syl.enumerated().map { $0.offset == st ? $0.element.uppercased() : $0.element }.joined(separator: "-")
     }
+
+    /// Spanish: the syllables of one word as written, and which one carries the stress (ma·ña·na → 1)
+    public static func esSyllables(_ word: String) -> (parts: [String], stressed: Int)? {
+        guard !word.contains(" "), !word.isEmpty else { return nil }
+        let marked = esStress(word).split(separator: "-").map(String.init)
+        var parts: [String] = [], rest = Substring(word)
+        for m in marked { guard rest.count >= m.count else { return nil }; parts.append(String(rest.prefix(m.count))); rest = rest.dropFirst(m.count) }
+        guard rest.isEmpty, let st = marked.firstIndex(where: { $0 != $0.lowercased() }) else { return nil }
+        return (parts, st)
+    }
+
+    /// German: a compound in two parts when it ends in another noun of the list (Kühl·schrank, Haus·tür).
+    /// nouns: the nouns of the list without article. The first part has 4+ letters (not Sch·wein, Mon·tag) and
+    /// doesn't end in w (not Ausw·eis). The last part decides the article.
+    public static func deCompound(_ noun: String, nouns: Set<String>) -> [String] {
+        guard !noun.contains(" "), noun.count >= 7 else { return [noun] }
+        let chars = Array(noun)
+        for k in 4...(chars.count - 3) where chars[k - 1] != "w" {
+            let tail = String(chars[k...])
+            if nouns.contains(tail.prefix(1).uppercased() + tail.dropFirst()) { return [String(chars[..<k]), tail] }
+        }
+        return [noun]
+    }
+
+    /// Spanish: a feminine noun that takes el because it starts with a stressed a (el agua, el hacha)
+    public static func elButFeminine(_ w: Word) -> Bool {
+        guard let (art, noun) = w.articleSplit, art == "el" else { return false }
+        let low = noun.lowercased(), starts = low.hasPrefix("a") || low.hasPrefix("á") || low.hasPrefix("ha") || low.hasPrefix("há")
+        return starts && w.en.lowercased().contains("feminine")
+    }
 }
 
 extension Numbers {

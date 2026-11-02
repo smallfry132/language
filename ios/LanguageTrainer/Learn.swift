@@ -28,6 +28,9 @@ struct LearnView: View {
                 header
                 goal
                 lessonCard(p)
+                if p.due.isEmpty && p.fresh.isEmpty && store.state.dayCount(todayKey()) >= store.state.settings.dailyGoal {
+                    Text(store.t("stillCurious")).font(.footnote).foregroundStyle(Color.ink2).frame(maxWidth: .infinity, alignment: .leading)
+                }
                 voiceNotice
                 if let w = wordOfDay {
                     switch course {
@@ -174,17 +177,12 @@ struct LearnView: View {
                 let done = Set(plan.done + plan.steps.filter { $0.list.isEmpty }.map(\.kind))
                 StepSegments(kinds: plan.steps.map(\.kind), done: done, current: plan.todo.first?.kind, onDark: dark).padding(.top, 10)
                 Button { path.append(Route.today) } label: { Text(continueLabel) }.buttonStyle(cardButton).accessibilityIdentifier("Continue").padding(.top, 8)
+            } else if n > 0 || introduced > 0 {
+                dayDone(n: n, unseen: p.unseen, dark: dark)
             } else {
                 if let topic { Text("\(topic.icon)  \(topic.name.get(store.state.lang))").font(.caption).foregroundStyle(dark ? Color.white.opacity(0.75) : Color.ink2) }
-                Text(n > 0 || introduced > 0 ? store.t("sessionDone") : store.t("sessionTitle")).font(.title3.weight(.bold))
-                Text(n > 0 || introduced > 0 ? store.t("sessionDoneSub") : store.t("sessionEmpty")).font(.footnote).foregroundStyle(dark ? Color.white.opacity(0.75) : Color.ink2)
-                // More new words only while today's goal is not reached yet: after that the day is done
-                if p.unseen > 0 && n < store.state.settings.dailyGoal {
-                    Button(store.t("moreNew", min(5, p.unseen))) {
-                        // A new round: today's finished session would otherwise count Meet as done and start nothing
-                        store.extraNew += 5; TodaySession.reset(); path.append(Route.today)
-                    }.buttonStyle(cardButton).padding(.top, 8)
-                }
+                Text(store.t("sessionTitle")).font(.title3.weight(.bold))
+                Text(store.t("sessionEmpty")).font(.footnote).foregroundStyle(dark ? Color.white.opacity(0.75) : Color.ink2)
             }
         }
         switch course {
@@ -205,6 +203,31 @@ struct LearnView: View {
             content.padding(16).frame(maxWidth: .infinity, alignment: .leading)
                 .background(Color.elevated, in: Rectangle()).overlay(Rectangle().stroke(Color.line))
         }
+    }
+    /// After today's session. Goal not reached: the small seal, the goal so far and Learn 5 more.
+    /// Goal reached: nothing more is asked; only when the next reviews are ready.
+    @ViewBuilder func dayDone(n: Int, unseen: Int, dark: Bool) -> some View {
+        let goal = store.state.settings.dailyGoal, reached = n >= goal, sub = dark ? Color.white.opacity(0.75) : Color.ink2
+        HStack(alignment: .center, spacing: 12) {
+            DoneMark(course: course, small: true)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(store.t(reached ? "doneTodayT" : "sessionDoneCard")).font(.title3.weight(.bold))
+                Text(store.t("goalStreak", n, goal, store.state.streak())).font(.footnote).foregroundStyle(sub)
+            }
+        }
+        if reached {
+            Text(tomorrowDue > 0 ? store.t("seeTomorrow", tomorrowDue) : store.t("seeTomorrowNone")).font(.footnote).foregroundStyle(sub).padding(.top, 6)
+        } else if unseen > 0 {
+            Button(store.t("moreNew", min(5, unseen))) {
+                // A new round: today's finished session would otherwise count Meet as done and start nothing
+                store.extraNew += 5; TodaySession.reset(); path.append(Route.today)
+            }.buttonStyle(cardButton).padding(.top, 8).accessibilityIdentifier("LearnMore")
+        }
+    }
+    /// Reviews waiting tomorrow morning (8 o'clock)
+    var tomorrowDue: Int {
+        let start = Calendar.current.startOfDay(for: Date().addingTimeInterval(86_400)).addingTimeInterval(8 * 3600)
+        return store.words.selected.filter { store.state.isDue($0.id, now: start.timeIntervalSince1970 * 1000) }.count
     }
     var cardButton: PrimaryButtonStyle {
         switch course {
@@ -253,7 +276,7 @@ struct LearnView: View {
                 }
                 VStack(alignment: .leading, spacing: 3) {
                     CapsLabel(text: store.t("wordOfDay"))
-                    GenderText(word: w, size: 26)
+                    LatinWord(word: w, size: 28, leading: true)
                     Text(store.tr(w)).font(.subheadline.weight(.medium)).lineLimit(2)
                 }
                 Spacer(minLength: 0)

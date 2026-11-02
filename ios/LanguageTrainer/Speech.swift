@@ -291,6 +291,8 @@ final class Microphone {
     var phase: Phase = .idle
     private(set) var recognitionOK = true
     private(set) var permitted: Bool?
+    /// How loud the microphone is right now, 0–1 (the level bars while listening)
+    private(set) var level: Float = 0
     private let engine = AVAudioEngine()
 
     /// One recording. Each has its own recogniser task and results, so a recording that is still finishing
@@ -366,7 +368,12 @@ final class Microphone {
         input.removeTap(onBus: 0)
         input.installTap(onBus: 0, bufferSize: 2048, format: format) { [weak self, weak s] pcm, _ in
             req?.append(pcm)
-            if buf.add(pcm) { Task { @MainActor in if let s, self?.session === s { self?.stop() } } }
+            let end = buf.add(pcm), level = buf.level
+            Task { @MainActor in
+                guard let s, self?.session === s else { return }
+                self?.level = level
+                if end { self?.stop() }
+            }
         }
         engine.prepare()
         do { try engine.start() } catch { input.removeTap(onBus: 0); s.done?(nil); return }
@@ -384,11 +391,20 @@ final class Microphone {
         }
     }
 
+    /// Whether the words can be checked: speech recognition allowed and Apple's recogniser there for the language
+    /// (it is missing offline for some languages). Without it you hear yourself next to the model and rate it.
+    func canRecognise(_ course: Course) -> Bool {
+        if Launch.has("-norecog") { return false } // screenshots
+        guard recognitionOK, let r = SFSpeechRecognizer(locale: Locale(identifier: course.tts)) else { return false }
+        return r.isAvailable
+    }
+
     /// Stops listening (the second tap, or by itself after a pause)
     func stop() {
         guard isListening, let s = session else { return }
         session = nil
         phase = .idle
+        level = 0
         s.watchdog?.cancel()
         engine.inputNode.removeTap(onBus: 0)
         engine.stop()
@@ -429,7 +445,10 @@ final class SampleBuffer: @unchecked Sendable {
     private var chunks: [[Float]] = []
     private var pause: PauseDetector
     private var stopped = false
+    private var lastRMS: Float = 0
     var rate = 48_000.0
+    /// The loudness of the last chunk on a 0–1 scale (quiet speech ≈ 0.3, loud ≈ 1)
+    var level: Float { lock.lock(); defer { lock.unlock() }; return min(1, (lastRMS * 12).squareRoot()) }
     init(maxSeconds: Double = 6, quiet: Double = 0.8) { pause = PauseDetector(maxSeconds: maxSeconds, quiet: quiet) }
 
     /// Returns true once it is time to stop
@@ -442,6 +461,7 @@ final class SampleBuffer: @unchecked Sendable {
         let rms = n > 0 ? (s / Float(n)).squareRoot() : 0
         lock.lock(); defer { lock.unlock() }
         chunks.append(x)
+        lastRMS = rms
         if !stopped && pause.feed(rms: rms, seconds: Double(n) / rate) { stopped = true; return true }
         return false
     }

@@ -122,7 +122,7 @@ struct FlowScreen: View {
     var body: some View {
         Group {
             if steps.isEmpty { Color.paper }
-            else if i >= steps.count { FlowDone(results: results, again: againRound) { dismiss() } }
+            else if i >= steps.count { FlowDone(results: results, again: againRound, more: lessonId == nil ? moreRound : nil) { dismiss() } }
             else {
                 run(steps[i]).id(steps[i].id)
                     .environment(\.flowInfo, FlowInfo(steps: steps, step: i, close: { dismiss() }))
@@ -156,6 +156,12 @@ struct FlowScreen: View {
         if steps.isEmpty { dismiss() }
     }
 
+    /// Learn 5 more: a new round of today's session with five more new words
+    func moreRound() {
+        store.extraNew += 5; TodaySession.reset()
+        results = []; i = 0; round += 1; build()
+    }
+
     /// Practise these again: listening and typing over the words of the Watch these list
     func againRound(_ words: [Word]) {
         results = []; persist = false; i = 0; round += 1
@@ -175,94 +181,6 @@ struct FlowScreen: View {
         case "listen": ChoiceQuiz(list: s.list, direction: .listen, done: done)
         case "speak": SayWord(list: s.list, done: done)
         default: TypeWord(list: s.list, done: done)
-        }
-    }
-}
-
-/// The end of a session: a seal stamp, four numbers, the words to watch and why, Practise these again
-struct FlowDone: View {
-    @Environment(Store.self) var store
-    let results: [(FlowStep, SessionResult)]
-    let again: ([Word]) -> Void
-    let close: () -> Void
-
-    var body: some View {
-        let course = store.course.id
-        let by = { (k: String) in results.filter { $0.0.kind == k }.map(\.1) }
-        let total = { (rs: [SessionResult]) in rs.reduce(0) { $0 + $1.total } }
-        let correct = { (rs: [SessionResult]) in rs.reduce(0) { $0 + $1.correct } }
-        let reviewed = total(by("review")) + total(by("meet")), fresh = total(by("meet"))
-        let say = by("speak"), graded = results.filter { $0.0.kind != "meet" }.map(\.1)
-        let pct = total(graded) > 0 ? Int((Double(correct(graded)) / Double(total(graded)) * 100).rounded()) : 100
-        let sayPct = total(say) > 0 && (course == "zh" || course == "vi") ? Int((Double(correct(say)) / Double(total(say)) * 100).rounded()) : nil
-        let mistakes = Array(results.flatMap { $0.1.mistakes }.reduce(into: [Word]()) { a, w in if !a.contains(where: { $0.id == w.id }) { a.append(w) } }.prefix(12))
-        let why = results.reduce(into: [String: String]()) { a, r in a.merge(r.1.why) { x, _ in x } }
-        let seal = ["zh": ("完成", "Wánchéng!", "完成"), "ja": ("完了", "Kanryō!", "完了"), "ko": ("완료", "Wallyo!", "완료"), "vi": ("Xong", "Xong rồi!", ""), "de": ("Fertig", "Fertig!", ""), "es": ("Hecho", "¡Hecho!", "")][course] ?? ("完成", "Wánchéng!", "完成")
-        Page {
-            VStack(spacing: 16) {
-                SealStamp(text: seal.0, latin: ["vi", "de", "es"].contains(course)).padding(.top, 24)
-                VStack(spacing: 2) {
-                    Text(seal.1).font(.system(size: 34, weight: .bold)).foregroundStyle(course == "zh" ? Color.tone(2) : Color.ink)
-                    Text(seal.2.isEmpty ? store.t("sessionIsDone") : "\(seal.2) · \(store.t("sessionIsDone"))").font(.subheadline).foregroundStyle(Color.ink2)
-                }
-                Grid(horizontalSpacing: 0, verticalSpacing: 0) {
-                    GridRow { cell("\(reviewed)", store.t("cardsReviewed")); cell("+\(fresh)", store.t("newWordsLower")) }
-                    GridRow {
-                        if let sayPct { cell("\(sayPct)%", store.t("tonesRight")) } else { cell("\(pct)%", store.t("rightAnswers")) }
-                        cell("\(store.state.streak())", store.t("dayStreak"), hot: true)
-                    }
-                }
-                .overlay(alignment: .top) { Rectangle().fill(Color.line).frame(height: 1) }
-                .overlay(alignment: .leading) { Rectangle().fill(Color.line).frame(width: 1) }
-                if !mistakes.isEmpty {
-                    VStack(alignment: .leading, spacing: 8) {
-                        CapsLabel(text: store.t("watchThese", mistakes.count))
-                        WrapLayout(spacing: 8, lineSpacing: 8) {
-                            ForEach(mistakes) { w in
-                                Button { store.speaker.say(w.hz) } label: {
-                                    HStack(spacing: 6) {
-                                        word(w)
-                                        Text(why[w.id] ?? store.tr(w)).font(.caption).foregroundStyle(Color.ink2)
-                                    }
-                                    .padding(.horizontal, 10).padding(.vertical, 6)
-                                    .background(Color.elevated, in: RoundedRectangle(cornerRadius: Look.current.radius))
-                                    .overlay(RoundedRectangle(cornerRadius: Look.current.radius).stroke(Color.line))
-                                }.buttonStyle(.card)
-                            }
-                        }
-                    }.frame(maxWidth: .infinity, alignment: .leading)
-                }
-                HStack(spacing: 6) {
-                    Circle().fill(Color.tone(3)).frame(width: 8, height: 8)
-                    Text(store.device.code != nil ? store.t("savedSynced") : store.t("savedHere")).font(.caption).foregroundStyle(Color.ink2)
-                    Spacer()
-                }
-            }
-            VStack(spacing: 10) {
-                if !mistakes.isEmpty {
-                    Button(store.t("practiseThese", mistakes.count)) { again(mistakes) }
-                        .buttonStyle(SecondaryButtonStyle(tint: .accent))
-                        .overlay(RoundedRectangle(cornerRadius: max(Look.current.radius, 2) + 2).stroke(Color.accent, lineWidth: 1.5))
-                }
-                Button(store.t("done")) { close() }.buttonStyle(.primary).accessibilityIdentifier("FlowDone")
-            }.padding(.top, 20)
-        }
-    }
-    func cell(_ big: String, _ small: String, hot: Bool = false) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text(big).font(.system(size: 24, weight: .bold)).foregroundStyle(hot ? Color.accent : Color.ink)
-            Text(small).font(.caption).foregroundStyle(Color.ink2)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading).padding(12)
-        .overlay(alignment: .trailing) { Rectangle().fill(Color.line).frame(width: 1) }
-        .overlay(alignment: .bottom) { Rectangle().fill(Color.line).frame(height: 1) }
-    }
-    @ViewBuilder func word(_ w: Word) -> some View {
-        switch store.course.id {
-        case "zh": PinyinText(py: w.py, size: 14, weight: .bold)
-        case "vi": VietText(text: w.hz, size: 14, weight: .bold)
-        case "de", "es": GenderText(word: w, size: 14)
-        default: Text(w.hz).hanziFont(14, .bold)
         }
     }
 }

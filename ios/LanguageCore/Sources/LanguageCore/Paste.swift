@@ -89,6 +89,20 @@ public enum PasteList {
             let ps = raw.split(whereSeparator: \.isWhitespace).map { match(String($0), words: pool, course: c) }
             if ps.allSatisfy({ !$0.hits.isEmpty }) { split = ps.map { $0.hits[0] } }
         }
+        // Chinese characters without spaces: the longest list words from the left (中国人 → 中国 + 人)
+        if hits.isEmpty, split == nil, c == "zh", native.count >= 2, latin.isEmpty { split = segment(native, words: pool) }
         return PastePiece(id: id, raw: raw, hits: hits, parts: split, ownHz: ownHz, ownPy: ownPy, ownEn: ownEn)
+    }
+
+    /// Characters as list words, longest first from the left; nil when a character is left over or it is one word
+    public static func segment(_ s: String, words: [Word]) -> [Word]? {
+        let byHz = Dictionary(words.map { ($0.hz, $0) }, uniquingKeysWith: { a, _ in a })
+        let chars = Array(s)
+        var out: [Word] = [], i = 0
+        while i < chars.count {
+            guard let n = (1...min(4, chars.count - i)).reversed().first(where: { n in n < chars.count && byHz[String(chars[i..<(i + n)])] != nil }) else { return nil }
+            out.append(byHz[String(chars[i..<(i + n)])]!); i += n
+        }
+        return out.count >= 2 ? out : nil
     }
 }

@@ -468,6 +468,10 @@ final class FamilyTests: XCTestCase {
         let own = PasteList.match("Àodìlì 奥地利 Austria", words: ws, course: "zh")
         XCTAssertTrue(own.hits.isEmpty)
         XCTAssertEqual(own.ownHz, "奥地利"); XCTAssertEqual(own.ownPy, "Àodìlì"); XCTAssertEqual(own.ownEn, "Austria")
+        // Characters without spaces: the list words they are made of
+        XCTAssertEqual(PasteList.match("你好", words: ws, course: "zh").parts?.map(\.hz), ["你", "好"])
+        XCTAssertNil(PasteList.match("老师", words: ws, course: "zh").parts)
+        XCTAssertNil(PasteList.segment("老师", words: ws), "one list word is not split")
     }
     func testPasteMatchOtherCourses() {
         XCTAssertEqual(PasteList.match("cam on", words: words("vi"), course: "vi").hits.first?.hz, "cảm ơn")
@@ -542,5 +546,25 @@ final class FamilyTests: XCTestCase {
         var st = AppState(); st.course = "de"
         let fam = CourseWords(state: st).families
         XCTAssertTrue(fam.contains { $0.items.map(\.hz) == ["groß", "klein"] })
+    }
+
+    func testLatinLooks() {
+        // Spanish: syllables as written, with the stressed one
+        XCTAssertEqual(Lingo.esSyllables("mañana")?.parts, ["ma", "ña", "na"])
+        XCTAssertEqual(Lingo.esSyllables("mañana")?.stressed, 1)
+        XCTAssertEqual(Lingo.esSyllables("café")?.stressed, 1)
+        XCTAssertEqual(Lingo.esSyllables("leche")?.parts, ["le", "che"])
+        XCTAssertEqual(Lingo.esSyllables("leche")?.stressed, 0)
+        XCTAssertNil(Lingo.esSyllables("café con leche"))
+        // German: compounds end in another noun of the list
+        let nouns: Set<String> = ["Schrank", "Tür", "Haus", "Bahnhof", "Hof", "Bahn"]
+        XCTAssertEqual(Lingo.deCompound("Kühlschrank", nouns: nouns), ["Kühl", "schrank"])
+        XCTAssertEqual(Lingo.deCompound("Haustür", nouns: nouns), ["Haus", "tür"])
+        XCTAssertEqual(Lingo.deCompound("Hauptbahnhof", nouns: nouns), ["Haupt", "bahnhof"])
+        XCTAssertEqual(Lingo.deCompound("Schrank", nouns: nouns), ["Schrank"])
+        // el agua is feminine
+        let es = Library.shared.words["es"] ?? []
+        XCTAssertTrue(es.contains { $0.hz == "el agua" && Lingo.elButFeminine($0) })
+        XCTAssertFalse(es.contains { $0.hz == "el hermano" && Lingo.elButFeminine($0) })
     }
 }

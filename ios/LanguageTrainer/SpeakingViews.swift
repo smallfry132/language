@@ -148,11 +148,19 @@ struct HeardLine: View {
 struct PitchChart: View {
     @Environment(Store.self) var store
     let result: Pitch.Result
+    /// Only the curve (Say the word explains each syllable above it)
+    var compact = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             if result.none {
                 Text(store.t("noVoice")).foregroundStyle(Color.bad)
+            } else if compact {
+                Canvas { ctx, size in draw(ctx, size) }
+                    .frame(height: 140)
+                    .frame(maxWidth: CGFloat(result.syllables.count) * 150)
+                    .accessibilityLabel(store.t("pitchHint"))
+                if result.sandhi { Text(store.t("sandhiNote")).font(.footnote).foregroundStyle(Color.ink2) }
             } else {
                 Canvas { ctx, size in draw(ctx, size) }
                     .frame(height: 140)

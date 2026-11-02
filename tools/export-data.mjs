@@ -66,4 +66,5 @@ fs.writeFileSync(path.join(OUT, "sounds.json"), JSON.stringify(W.SOUNDS));
 fs.writeFileSync(path.join(OUT, "themes.json"), JSON.stringify(Object.fromEntries(Object.entries(W.THEMES).map(([c, ts]) => [c, ts.map((t) => ({ ...t, groups: t.groups.map((g) => ({ name: g.name, ids: g.ids.map(String) })) }))]))));
 fs.writeFileSync(path.join(OUT, "pictures.json"), JSON.stringify(W.PICTURES));
 fs.writeFileSync(path.join(OUT, "tips.json"), JSON.stringify(W.SAY_TIPS));
+for (const f of ["strokes-zh.json", "ARPHICPL.TXT"]) fs.copyFileSync(path.join(ROOT, "web/data", f), path.join(OUT, f)); // stroke data travels with its licence
 console.log(Object.entries(words).map(([c, l]) => `${c}: ${l.length}`).join(", "), "→", path.relative(ROOT, OUT));

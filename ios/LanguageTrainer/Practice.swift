@@ -5,12 +5,12 @@ import LanguageCore
  * is folded into "Adjust". Results lead back here; in a guided session they lead to the next step. */
 
 enum Mode: String, CaseIterable, Hashable {
-    case flash, quiz, type, typer, listen, match, tones, numbers, say, picture, listenPic, choose
+    case flash, quiz, type, typer, listen, match, tones, numbers, say, picture, listenPic, choose, trace
     var key: String {
         switch self {
         case .flash: "modeFlash"; case .quiz: "modeQuiz"; case .type: "modeType"; case .typer: "modeTyper"; case .listen: "modeListen"
         case .match: "modeMatch"; case .tones: "modeTones"; case .numbers: "modeNumbers"; case .say: "modeSay"
-        case .picture: "modePicture"; case .listenPic: "modeListenPic"; case .choose: "modeChoose"
+        case .picture: "modePicture"; case .listenPic: "modeListenPic"; case .choose: "modeChoose"; case .trace: "modeTrace"
         }
     }
 }
@@ -48,7 +48,7 @@ struct PracticeHome: View {
                        free.map { Row(route: $0, key: "modeFree", sub: "freePlay", isNew: true) }, Row(route: .sounds, key: "soundChart", sub: "soundChart")]),
             ("read", [Row(route: .mode(.choose), key: "modeChoose", sub: "choose"), pics ? Row(route: .mode(.picture), key: "modePicture", sub: "picture") : nil,
                       Row(route: .mode(.flash), key: "modeFlash", sub: "flash"), Row(route: .mode(.quiz), key: "modeQuiz", sub: "quiz"), Row(route: .mode(.match), key: "modeMatch", sub: "match")]),
-            ("write", [Row(route: .mode(.type), key: "modeType", sub: "type"), c.id == "ja" ? nil : Row(route: .mode(.typer), key: "modeTyper", sub: "typer"), Row(route: .mode(.numbers), key: "modeNumbers", sub: "numbers")])
+            ("write", [Row(route: .mode(.type), key: "modeType", sub: "type"), c.id == "ja" ? nil : Row(route: .mode(.typer), key: "modeTyper", sub: "typer"), Row(route: .mode(.numbers), key: "modeNumbers", sub: "numbers"), c.id == "zh" ? Row(route: .mode(.trace), key: "modeTrace", sub: "trace", isNew: true) : nil])
         ]
         return all.map { ($0.0, $0.1.compactMap { $0 }) }.filter { !$0.1.isEmpty }
     }
@@ -161,6 +161,7 @@ func exercise(_ mode: Mode, _ list: [Word], direction: QuizDirection = .hzTr, do
     case .numbers: NumberDrill(done: done)
     case .typer: TyperRun(list: list, done: done)
     case .choose: ChooseWord(list: list, done: done)
+    case .trace: TraceRun(list: list, done: done)
     }
 }
 
@@ -177,9 +178,10 @@ struct PracticeScreen: View {
         Group {
             switch phase {
             case .setup:
-                if [.match, .tones, .numbers].contains(mode) { Color.paper.onAppear { begin() } }
+                if [.match, .tones, .numbers, .trace].contains(mode) { Color.paper.onAppear { begin() } }
                 else { SetupView(mode: mode, prefs: prefs) { begin() }.onAppear {
                     if Launch.has("-autostart") { begin() }
+                    else if IntentRouter.shared.quickStart { IntentRouter.shared.quickStart = false; prefs.count = 5; prefs.mins = 0; prefs.pools = ["due"]; begin() }
                     if Launch.has("-result") { // screenshots: a finished round with three mistakes
                         let ws = Array(store.words.selected.prefix(10)), wrong = Array(ws.suffix(3))
                         store.marks = ws.map { !wrong.contains($0) }
@@ -204,6 +206,10 @@ struct PracticeScreen: View {
             let pool = store.course.id == "zh" ? store.words.selected.filter { $0.hz.count == 1 && Lingo.firstTone($0.py, course: "zh") != 5 } : store.words.selected.filter { !$0.hz.contains(" ") }
             list = Array(pool.shuffled().prefix(10))
         case .numbers: list = []
+        case .trace: // lesson words first, then words you have met (Trace characters)
+            let ok = { (w: Word) in Strokes.shared.covers(w.hz) }
+            let lw = store.words.lessonWords(store.state, newestFirst: true).filter(ok)
+            list = Array((lw.isEmpty ? store.words.selected.filter(ok).sorted { (store.status($0.id) == .new ? 1 : 0) < (store.status($1.id) == .new ? 1 : 0) } : lw).prefix(6))
         default:
             var pool = prefs.pool(store)
             if [.picture, .listenPic].contains(mode) { pool = pool.filter { store.words.picture($0.id) != nil } }

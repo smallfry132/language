@@ -1,6 +1,27 @@
 import XCTest
 @testable import LanguageCore
 
+final class StrokeTests: XCTestCase {
+    func testTraceCheck() {
+        let ren = Strokes.shared.char("人")!
+        XCTAssertEqual(ren.s.count, 2)
+        let m = ren.m[0], pts = m.map { (x: $0[0], y: $0[1]) }
+        XCTAssertTrue(Strokes.matches(pts, median: m))
+        XCTAssertFalse(Strokes.matches(pts.reversed(), median: m), "drawn backwards")
+        XCTAssertFalse(Strokes.matches([(100, 100), (900, 800)], median: m))
+        XCTAssertEqual(Strokes.direction(ren.m[1]), "dirDownRight")
+        XCTAssertTrue(Strokes.shared.covers("中国"))
+        // Word of the day (widgets, Siri): the same all day, a level-1 word, every course
+        for c in ["zh", "vi", "ja", "ko"] {
+            let a = WordOfDay.pick(course: c, date: Date(timeIntervalSince1970: 1_800_000_000)), b = WordOfDay.pick(course: c, date: Date(timeIntervalSince1970: 1_800_000_000 + 600))
+            XCTAssertEqual(a?.word.id, b?.word.id); XCTAssertEqual(a?.word.lvl, 1); XCTAssertEqual(a?.word.course, c)
+        }
+        XCTAssertNil(WidgetSnapshot.read(), "no App Group in tests")
+        let han = { (c: Character) in c.unicodeScalars.first!.properties.isIdeographic }
+        XCTAssertEqual(Library.shared.words["zh"]!.filter { w in w.hz.contains(where: han) && !Strokes.shared.covers(String(w.hz.filter(han))) }.count, 0)
+    }
+}
+
 final class PinyinTests: XCTestCase {
     func testParts() {
         let p = Lingo.pyParts("Tā jīnnián èrshíwǔ suì.")

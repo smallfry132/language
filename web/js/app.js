@@ -388,6 +388,22 @@
       whyAgain: "card · Again", whyTyped: (s) => `typed ${s}`, whyPicked: (s) => `picked ${s}`, whyTones: "tones need work", whyNotHeard: "not heard yet",
       sessionPlan: (r, n) => `${r} reviews + ${n} new words`, sessionPlanReviews: (r) => `${r} reviews`, sessionPlanNew: (n) => `${n} new words`, topicLine: (x) => `Topic · ${x}`, todaysSession: "Today’s session",
       hearIt: "Hear it", typeThePinyin: "Type the pinyin", typeTheWord: "Type the word", typePickHint: "Letters only — then tap each tone below. Tone numbers (de2guo2) and tone marks work too.", eachSyllable: "Each syllable needs a tone · neutral tone: leave it unselected", dontKnow: "I don’t know — show me", flow_write_word: "Type the word", typePickHintVi: "Letters only — then tap each tone below. Telex (traf → trà) works too.", eachSyllableVi: "Each syllable needs a tone · no mark = ngang",
+      cancel: "Cancel", listeningTitle: "Listening…", listeningSub: "Say it when you're ready. I stop when you pause.",
+      nothingTitle: "I didn't hear anything", nothingSub: "No problem — that's usually distance or a quiet start. Nothing was counted.", nothingTip1: "Hold the phone or laptop about a hand away", nothingTip2: "Start speaking right after the tap", rateMyselfInstead: "Rate myself instead",
+      judgeNoCheck: "Speech check isn't available right now (offline or not supported). You're the judge this time.", judgeSelf: "You're the judge this time.", judgeHear: "Hear the model", judgeRecord: "Say it — and compare", recordMine: "Record mine", judgeHow: "How did it sound?", judgeNote: "Your answer only decides when this word comes back.",
+      verdictRight: "Right.", verdictAlmost: "Almost.", verdictNot: "Not yet.", understoodFix: (n) => `Your word was understood — ${n === 1 ? "one tone" : n + " tones"} to fix.`, toneFix: (n) => (n === 1 ? "One tone to fix." : n ? `${n} tones to fix.` : "Listen to the model, then try again."),
+      sylGood1: "high and level — good", sylGood2: "rises — good", sylGood3: "dips low — good", sylGood4: "falls — good", sylLight: "light — not scored",
+      sylBad: (got, want) => `${["", "stayed flat", "rose", "dipped", "fell"][got]} — should ${["", "stay high", "rise", "dip low", "fall"][want]}`,
+      whatToChange: "What to change", hearDiff: "Hear the difference · model, then you", whyCurve: "Why? Show the curve",
+      toneHow1: (x) => `Keep ${x} high and level — like singing one note.`, toneHow2: (x) => `Make ${x} rise: start low, end high — like asking “huh?”`, toneHow3: (x) => `Take ${x} low and let it dip — like a doubtful “hmm”.`, toneHow4: (x) => `Make ${x} fall from high to low — like a firm “No!”`,
+      suggestedNext: "Suggested next", byGoal: "By goal", allExercises: (n) => `All ${n} exercises`, sugTone: (n, x) => `Tone drill · ${["", "1st", "2nd", "3rd", "4th"][n]} tone ${x}`, sugToneSub: (p) => `Your weakest tone (${p}%) · 5 min`, sugToneHint: (n) => `${["", "1st", "2nd", "3rd", "4th"][n]} tone needs work`,
+      sugGenderSub: "10 nouns · the article is the cue", sugLessonSub: "Your newest lesson · ≈ 10 min",
+      goalTones: "Tones", goalTonesSub: "drill + say", goalArticles: "Articles", goalNew: "New words", goalNewSub: "meet + cards", goalClass: "Before class", goalClassSub: (l) => `${l} · 10 min`, goalListen: "Listening", goalListenSub: "ears only", goalWrite: "Writing", goalWriteSub: "type the word", goalWriteSubZh: "type + trace",
+      doneForToday: "You’re done for today", streakDays: (n) => (n === 1 ? "1-day streak" : `${n}-day streak`), seeTomorrow: (n) => (n ? `See you tomorrow — ${n} reviews will be ready in the morning.` : "See you tomorrow."), stillCurious: "Still curious? Practice is always open — no new words are pushed.",
+      goalToGo: (n, g) => `${n} of ${g} XP today · ${g - n} to go if you feel like it`, goalReachedSub: (n, g) => `${n} / ${g} XP · done for today`, xpToGo: (n) => `${n} XP to go`,
+      whichVoice: "Which voice", hearVoice: (v) => `Hear ${v}`, advancedSound: "Advanced sound", advancedSoundWeb: "Pitch of this voice", eqIphoneOnly: "Equaliser and natural sound are on iPhone only — browsers don’t give apps access to the voice’s audio.",
+      addWords: "Add words", toLesson: (l) => `to ${l}`, addWhat: "What did you learn today?", addHint: "Paste your tutor’s message, or type a few words — reading, script or English. Anything not in the list becomes your own word.", pasteBtn: "Paste", browseList: "Browse the word list", addKeys: "⌘ V to paste · ⌘ ↵ to add", pasteKeys: "Press ⌘ V (or long-press → Paste) in the box", foundN: (n) => `Found · ${n}`, chooseN: "Choose", ownWordN: "Own word · not in the list", addEmpty: "The words you type or paste show up here — found, to choose, or your own.", addNTo: (n, l) => `Add ${n} to ${l}`,
+      addToALesson: "Add to a lesson…",
       practiceEyebrow: "Practice", twoVoices: "Two voices in dialogues", twoVoicesWith: (v) => `The second person speaks with ${v}.`, twoVoicesPitch: "Only one voice installed: the second person speaks a little lower. Download another voice for a real second speaker.", eqTitle: "Sound", eqNatural: "Natural sound", eqNaturalSub: "The voice speaks at its own speed and is slowed smoothly afterwards; a light clarity boost. Removes the trembling of slow speech.", eqBass: "Bass", eqClarity: "Clarity", eqBright: "Brightness", eqPitch: "Pitch", eqReset: "Reset", eqHint: "Saved for this voice on this device.", voicePitch: "Pitch of this voice", lower: "lower", higher: "higher", voicePitchHint: "Some voices sound more natural a little lower or higher. On the iPhone app you also get an equaliser and smoother slow speech.", plural: "Plural", modeGender: "Der, die, das?", modeGenderEs: "El or la?", sub_gender: "Pick the article", gender_m: "masculine", gender_f: "feminine", gender_n: "neuter", heardWord: "Heard", notInLists: "not in your word lists", heardDiff: (a, b) => `${a} sounded like ${b}`, curveOverruled: (x) => `The curve looked off, but the recogniser heard exactly ${x} — counted as right.`, pasteList: "Paste a list", pasteShort: "Paste list", pasteNewLesson: "Goes into a new lesson", pasteLabel: "Words from your tutor", pastePhZh: "nǐ hǎo, xièxie, 老师 teacher …", pastePh: "One word per line, or with commas", pasteHint: "Pinyin, characters or meanings — one per line or separated by commas. Each word is looked up for you.", skipped: "skipped", undo: "Undo", pasteWhich: "Which one?", pasteParts: "Not one word in the list — add its parts?", noneOwn: "None — my own word", notInListShort: "Not in the word list — add it as your own:", pasteCount: (n) => (n === 1 ? "1 word to add" : `${n} words to add`), pasteOpen: (n) => `${n} still open`, lessonDated: (n, d) => `Lesson ${n} · ${d}`, modeFamilies: "Word families", sub_families: "Similar words side by side", famSub: (n) => `${n} families · see the difference`, fam_pair: "Opposites", fam_tone: "Same sound, other tone", fam_build: "One part, many words", fam_final: "One final consonant", together: "Together:", compare: "Compare", whichOne: "Which one?", nextFamily: "Next family", famQListen: "Which one did you hear?", famQMeaning: "Which one means this?", wordFamily: "Word family", bestOnMac: "Best on the Mac · Typer", typerRaceZh: "Typing race · pinyin + tones", typerRace: "Typing race", typerHintZh: "type de2guo2 or the marks.", typerHintVi: "Telex or VNI keyboard.", typerHintKo: "Korean keyboard.", loading: "Loading…", traceOffline: "The stroke data could not be loaded. Connect once to download it.", trace_trace: "Trace", trace_copy: "Copy", trace_memory: "From memory", strokeOf: (i, n) => `Stroke ${i} of ${n}`, traceAria: (c) => `Writing grid for ${c}`, traceStart: (d) => `Start at the red dot and ${d}.`, strokeGood: (n) => `Stroke ${n} looks good.`, dirDot: "make a short dot", dirRight: "go across to the right", dirDownRight: "sweep down to the right", dirDown: "go straight down", dirDownLeft: "sweep down to the left", dirUpRight: "flick up to the right", dirLeft: "go to the left", traceAgain: "Not quite — start at the red dot and follow the stroke.", traceHelp: "Here is the next stroke — follow the dashed line.", traceDone: "Character done", order: "Order", showMe: "Show me", clear: "Clear", whyStrokes: "strokes", koFinalMissing: (h, f) => `Heard ${h} — the final ${f} was missing.`, koFinalExtra: (h, f) => `Heard ${h} — there is no final ${f} here.`, jaHold: (r) => `Hold the long vowels and small っ: ${r}.`, cardPicKo: "Picture → Korean", cardKanji: "Kanji → reading & meaning", picture: "Picture", chooseLong: "One long vowel changes the meaning.", chooseFinal: "Only the final consonant changes.", micOffTitle: "The microphone is off for this app", micOffText: "Turn it on in your browser’s or the system’s settings to get tone feedback — or say it aloud and rate yourself.", rateMyself: "Rate myself", rateSelfAloud: "Say it aloud after the model, then rate yourself:", getVoice: "Get a voice · 2 min", listenHidden: "Listening exercises are hidden until a voice is installed.", cantReach: "Can’t reach the sync server", offlineWord: "Offline", savedHereSync: "Your progress is saved on this device and syncs when you’re back online.", tryAgain: "Try again", syncCode: "Sync code", syncing: "Syncing…", obStep: (i, n) => `Step ${i} of ${n}`, obWhat: "What do you want to learn?", obWhatSub: "Each language has its own look. You can switch any time.", wordsN: (n) => `${n.toLocaleString("en")} words`, obStarting: "Just starting", obDone: (l) => `${l} done`, obPfSub: "Recommended if you can’t read characters yet", obContinue: (l) => `Continue with ${l}`, obReady: "Let’s get your ears and voice ready", obVoice: (l) => `${l} voice`, obVoiceDefault: "Default voice found · a more natural one is free", obVoiceGood: (q) => `${q} voice found`, obHow: "Show me how · 2 min", obMic: "Microphone", obMicSub: "For Say the word, dialogues and role play", obMicText: "The app listens only while you use the mic button. Your pitch is compared with the model on this device; the words themselves are recognised by Apple’s or your browser’s speech recogniser.", obAllowMic: "Allow microphone", obMicOn: "Microphone on", obPlan: (n, m) => `${n} new words + reviews · ≈ ${m} min`, change: "Change", obStart: "Start learning", obLater: "Not now — I’ll tap and type instead", showAllVoices: (n) => `Show all ${n} voices`, inUse: "in use", noVoiceTitle: (l) => `No ${l} voice on this device`, noVoiceText: "You can keep learning — words show their reading and tone marks. Add a free voice to hear them.", speed: "Speed", speedSlow: "Slow", speedLearner: "Learner", speedNative: "Native", naturalVoice: "Get a natural voice · free, ≈ 2 min", naturalVoiceText: (l) => `Your device has better ${l} voices than the default — they just need downloading once.`, voiceStepsIos: ["Open Settings → Accessibility → Spoken Content.", "Tap Voices → {0}.", "Pick a voice marked Enhanced or Premium and tap download.", "Come back here — the new voice shows up in this list.", "Tap Test voice to hear the difference."], voiceStepsMac: ["Open System Settings → Accessibility → Spoken Content.", "Click System voice → Manage Voices… → {0}.", "Tick a voice marked Enhanced or Premium to download it.", "Reload this page — the new voice shows up in this list.", "Click Test voice to hear the difference."], testVoice: "Test voice", statsTitle: (l) => `Statistics · ${l}`, ofKnown: (n) => `of ${n} known`, accuracyLower: "accuracy", last12: "Last 12 weeks", daysStudied: (n) => (n === 1 ? "1 day studied" : `${n} days studied`), heatAria: "Study heatmap for the last 12 weeks", less: "less", more: "more", byLevel: "By level", lvMeta: (k, l, n) => `${k} known · ${l} learning · of ${n}`, lvNotStarted: (n) => `not started · ${n} words`, tonesSpeaking: "Tones when speaking", weakestTone: (x) => `The ${x} tone is your weakest — there’s a drill for it in Practice → Tone drill.`, tonesEmpty: "Say a few words with the microphone (Practice → Say the word) to see how each tone comes out.", bySkill: "By skill", lessonN: (n) => `Lesson ${n}`, pctLearned: (n) => `${n}% learned`, pickFromList: "Pick from list", typeMyOwn: "Type my own", ownTyped: (n) => (n === 1 ? "1 typed in by you" : `${n} typed in by you`), ownTag: "Own", removeX: (x) => `Remove ${x}`, ownPrompt: "Pinyin, English or characters", ownPromptOther: "The word or its meaning", alreadyIn: "Already in this lesson", notInList: "Not in the word list — add it as your own word:", addOwn: "Add as my word", lessonsSub: "Words from your tutor classes", newShort: "New", ownN: (n) => `${n} own`, practiseLessonN: (n) => `Practise lesson ${n}`, noLessonsYet: "No lessons yet", noLessonsText: "After your next class, add the new words here so they come up in your daily session.", firstLesson: "First lesson", afterClass: "After class", afterClassText: "Add new words while they’re fresh. Pick them from the list, or type your own — the reading and audio are filled in for you.", dlgTopicsDone: (n, d) => `${n} topics · ${d} done`, timed: "timed", linesN: (n) => `${n} lines`, freeSub: "Random partner, uses only words you know", noDialogues: "No dialogues for this language yet.", searchWords: "Search words", review: "Review", wordsInOrder: (n) => `${n} words · in learning order`, sayItLike: "Say it like", wordDetail: "Word detail", favorite: "Favourite", status: "Status", inLesson: (x) => `In ${x}`, addToLessonX: (x) => `Add to ${x}`, tapTile: "Tap a tile to hear it", voiceNorth: "Northern voice", voiceSouth: "Southern voice", nsNote: "d, gi and r sound like “z” in the North and like “y” in the South.", telexNote: "Telex: <b>dd</b> → đ · <b>aa</b> → â · <b>ow</b> → ơ · tones <b>f s r x j</b>", result: "Result", resultCells: (c, w) => `${c} correct, ${w} wrong`, mistakesN: (n) => `Mistakes · ${n}`, addedToReviews: "Added to today’s reviews", retryMistakes: "Retry mistakes", rateSelfQ: "No speech recogniser on this device? Rate yourself:", notYet: "Not yet", closeEnough: "Close", gotIt: "Got it", sayHint: "Tap the mic and say the word.", tonesRightShort: "tones right", heardShort: "heard", model: "Model", you: "You", setUpRound: "set up this round", allN: (n) => `All ${n}`, orByTime: "or by time", minShort: "min", wordsMatch: (n) => (n === 1 ? "1 word matches" : `${n} words match`), perRound: (k, m) => `${k} per round · ≈ ${m} min`, skillNote_listen: "Ears first", skillNote_speak: "Your tutor’s focus", skillNote_read: "Characters, gently", skillNote_write: "Typing is best on the Mac",
       sub_listen: "Hear a word, pick the meaning", sub_listenPic: "No reading needed", sub_tones: "Which tone did you hear?", sub_soundDrill: "zh / z / j · q / ch / c", sub_say: "Mic + pitch curve per syllable", sub_dialogues: "Listen · read aloud · role play", sub_freePlay: "Random partner, any topic", sub_soundChart: "Pinyin initials & finals",
       sub_choose: "Sound-alikes in a sentence", sub_picture: "See it, pick the pinyin", sub_flash: "Spaced repetition", sub_quiz: "4 directions", sub_match: "Pinyin ↔ meaning", sub_type: "Pinyin + tone picker", sub_typer: "Timed typing race", sub_numbers: "yī èr sān … to 99", sub_trace: "Stroke order, when you start reading",
@@ -526,6 +542,22 @@
       whyAgain: "Karte · Nochmal", whyTyped: (s) => `getippt: ${s}`, whyPicked: (s) => `gewählt: ${s}`, whyTones: "Töne üben", whyNotHeard: "noch nicht erkannt",
       sessionPlan: (r, n) => `${r} Wiederholungen + ${n} neue Wörter`, sessionPlanReviews: (r) => `${r} Wiederholungen`, sessionPlanNew: (n) => `${n} neue Wörter`, topicLine: (x) => `Thema · ${x}`, todaysSession: "Heutige Einheit",
       hearIt: "Anhören", typeThePinyin: "Pinyin tippen", typeTheWord: "Wort tippen", typePickHint: "Nur Buchstaben – dann unten jeden Ton antippen. Tonzahlen (de2guo2) und Tonzeichen gehen auch.", eachSyllable: "Jede Silbe braucht einen Ton · neutraler Ton: nichts wählen", dontKnow: "Weiß ich nicht – zeig es mir", flow_write_word: "Wort tippen", typePickHintVi: "Nur Buchstaben – dann unten jeden Ton antippen. Telex (traf → trà) geht auch.", eachSyllableVi: "Jede Silbe braucht einen Ton · ohne Zeichen = ngang",
+      cancel: "Abbrechen", listeningTitle: "Ich höre zu …", listeningSub: "Sprich, wenn du bereit bist. Ich stoppe, wenn du eine Pause machst.",
+      nothingTitle: "Ich habe nichts gehört", nothingSub: "Kein Problem – meist ist es der Abstand oder ein leiser Anfang. Nichts wurde gezählt.", nothingTip1: "Halte Handy oder Laptop etwa eine Hand breit entfernt", nothingTip2: "Fang direkt nach dem Tippen an zu sprechen", rateMyselfInstead: "Lieber selbst bewerten",
+      judgeNoCheck: "Die Sprachprüfung ist gerade nicht verfügbar (offline oder nicht unterstützt). Diesmal entscheidest du.", judgeSelf: "Diesmal entscheidest du.", judgeHear: "Vorbild anhören", judgeRecord: "Sprich es – und vergleiche", recordMine: "Mich aufnehmen", judgeHow: "Wie klang es?", judgeNote: "Deine Antwort bestimmt nur, wann das Wort wiederkommt.",
+      verdictRight: "Richtig.", verdictAlmost: "Fast.", verdictNot: "Noch nicht.", understoodFix: (n) => `Dein Wort wurde verstanden – ${n === 1 ? "ein Ton" : n + " Töne"} zum Verbessern.`, toneFix: (n) => (n === 1 ? "Ein Ton zum Verbessern." : n ? `${n} Töne zum Verbessern.` : "Hör dir das Vorbild an und versuch es noch einmal."),
+      sylGood1: "hoch und gerade – gut", sylGood2: "steigt – gut", sylGood3: "taucht tief – gut", sylGood4: "fällt – gut", sylLight: "leicht – nicht gewertet",
+      sylBad: (got, want) => `${["", "blieb flach", "stieg", "tauchte ab", "fiel"][got]} – sollte ${["", "hoch bleiben", "steigen", "tief tauchen", "fallen"][want]}`,
+      whatToChange: "Was du ändern kannst", hearDiff: "Unterschied hören · Vorbild, dann du", whyCurve: "Warum? Kurve zeigen",
+      toneHow1: (x) => `Halte ${x} hoch und gerade – wie ein gesungener Ton.`, toneHow2: (x) => `Lass ${x} steigen: tief anfangen, hoch enden – wie ein fragendes „hä?“`, toneHow3: (x) => `Geh mit ${x} tief und lass es durchhängen – wie ein zweifelndes „hmm“.`, toneHow4: (x) => `Lass ${x} von hoch nach tief fallen – wie ein bestimmtes „Nein!“`,
+      suggestedNext: "Als Nächstes", byGoal: "Nach Ziel", allExercises: (n) => `Alle ${n} Übungen`, sugTone: (n, x) => `Ton-Training · ${n}. Ton ${x}`, sugToneSub: (p) => `Dein schwächster Ton (${p} %) · 5 Min.`, sugToneHint: (n) => `${n}. Ton braucht Übung`,
+      sugGenderSub: "10 Nomen · der Artikel ist der Schlüssel", sugLessonSub: "Deine neueste Lektion · ≈ 10 Min.",
+      goalTones: "Töne", goalTonesSub: "Training + Sprechen", goalArticles: "Artikel", goalNew: "Neue Wörter", goalNewSub: "kennenlernen + Karten", goalClass: "Vor dem Unterricht", goalClassSub: (l) => `${l} · 10 Min.`, goalListen: "Hören", goalListenSub: "nur die Ohren", goalWrite: "Schreiben", goalWriteSub: "das Wort tippen", goalWriteSubZh: "tippen + nachziehen",
+      doneForToday: "Für heute bist du fertig", streakDays: (n) => (n === 1 ? "1 Tag in Folge" : `${n} Tage in Folge`), seeTomorrow: (n) => (n ? `Bis morgen – ${n} Wiederholungen warten morgen früh.` : "Bis morgen."), stillCurious: "Noch neugierig? Üben ist immer offen – neue Wörter werden nicht aufgedrängt.",
+      goalToGo: (n, g) => `${n} von ${g} XP heute · noch ${g - n}, wenn du Lust hast`, goalReachedSub: (n, g) => `${n} / ${g} XP · fertig für heute`, xpToGo: (n) => `noch ${n} XP`,
+      whichVoice: "Welche Stimme", hearVoice: (v) => `${v} anhören`, advancedSound: "Klang für Fortgeschrittene", advancedSoundWeb: "Tonhöhe dieser Stimme", eqIphoneOnly: "Equalizer und natürlicher Klang gibt es nur auf dem iPhone – Browser lassen Apps nicht an den Ton der Stimme.",
+      addWords: "Wörter hinzufügen", toLesson: (l) => `zu ${l}`, addWhat: "Was hast du heute gelernt?", addHint: "Füge die Nachricht deiner Lehrkraft ein oder tippe ein paar Wörter – Lesung, Schrift oder Deutsch/Englisch. Was nicht in der Liste steht, wird dein eigenes Wort.", pasteBtn: "Einfügen", browseList: "Wortliste durchsuchen", addKeys: "⌘ V einfügen · ⌘ ↵ hinzufügen", pasteKeys: "Drück ⌘ V (oder lange tippen → Einfügen) im Feld", foundN: (n) => `Gefunden · ${n}`, chooseN: "Auswählen", ownWordN: "Eigenes Wort · nicht in der Liste", addEmpty: "Die Wörter, die du tippst oder einfügst, erscheinen hier – gefunden, zur Auswahl oder als eigenes Wort.", addNTo: (n, l) => `${n} zu ${l} hinzufügen`,
+      addToALesson: "Zu einer Lektion hinzufügen …",
       practiceEyebrow: "Üben", twoVoices: "Zwei Stimmen in Dialogen", twoVoicesWith: (v) => `Die zweite Person spricht mit ${v}.`, twoVoicesPitch: "Nur eine Stimme installiert: die zweite Person spricht etwas tiefer. Lade eine weitere Stimme für einen echten zweiten Sprecher.", eqTitle: "Klang", eqNatural: "Natürlicher Klang", eqNaturalSub: "Die Stimme spricht in ihrem eigenen Tempo und wird danach sanft verlangsamt; dazu etwas mehr Klarheit. Nimmt das Zittern beim langsamen Sprechen.", eqBass: "Bass", eqClarity: "Klarheit", eqBright: "Helligkeit", eqPitch: "Tonhöhe", eqReset: "Zurücksetzen", eqHint: "Für diese Stimme auf diesem Gerät gespeichert.", voicePitch: "Tonhöhe dieser Stimme", lower: "tiefer", higher: "höher", voicePitchHint: "Manche Stimmen klingen etwas tiefer oder höher natürlicher. In der iPhone-App gibt es zusätzlich einen Equalizer und weicheres langsames Sprechen.", plural: "Plural", modeGender: "Der, die, das?", modeGenderEs: "El oder la?", sub_gender: "Den Artikel wählen", gender_m: "maskulin", gender_f: "feminin", gender_n: "neutral", heardWord: "Gehört", notInLists: "nicht in deinen Wortlisten", heardDiff: (a, b) => `${a} klang wie ${b}`, curveOverruled: (x) => `Die Kurve sah nicht ganz richtig aus, aber die Erkennung hat genau ${x} gehört – zählt als richtig.`, pasteList: "Liste einfügen", pasteShort: "Liste einfügen", pasteNewLesson: "Kommt in eine neue Lektion", pasteLabel: "Wörter aus dem Unterricht", pastePhZh: "nǐ hǎo, xièxie, 老师 Lehrer …", pastePh: "Ein Wort pro Zeile oder mit Kommas", pasteHint: "Pinyin, Zeichen oder Bedeutungen – eins pro Zeile oder mit Kommas getrennt. Jedes Wort wird für dich nachgeschlagen.", skipped: "übersprungen", undo: "Rückgängig", pasteWhich: "Welches?", pasteParts: "Kein einzelnes Wort der Liste – die Teile hinzufügen?", noneOwn: "Keins – mein eigenes Wort", notInListShort: "Nicht in der Wortliste – als eigenes Wort hinzufügen:", pasteCount: (n) => (n === 1 ? "1 Wort zum Hinzufügen" : `${n} Wörter zum Hinzufügen`), pasteOpen: (n) => `${n} noch offen`, lessonDated: (n, d) => `Lektion ${n} · ${d}`, modeFamilies: "Wortfamilien", sub_families: "Ähnliche Wörter nebeneinander", famSub: (n) => `${n} Familien · sieh den Unterschied`, fam_pair: "Gegensätze", fam_tone: "Gleicher Laut, anderer Ton", fam_build: "Ein Teil, viele Wörter", fam_final: "Ein Endkonsonant", together: "Zusammen:", compare: "Vergleichen", whichOne: "Welches ist es?", nextFamily: "Nächste Familie", famQListen: "Welches hast du gehört?", famQMeaning: "Welches bedeutet das?", wordFamily: "Wortfamilie", bestOnMac: "Am besten am Mac · Schreibmaschine", typerRaceZh: "Tipp-Rennen · Pinyin + Töne", typerRace: "Tipp-Rennen", typerHintZh: "tippe de2guo2 oder die Zeichen.", typerHintVi: "Telex- oder VNI-Tastatur.", typerHintKo: "Koreanische Tastatur.", loading: "Lädt …", traceOffline: "Die Strichdaten konnten nicht geladen werden. Einmal online gehen, um sie zu laden.", trace_trace: "Nachziehen", trace_copy: "Abschreiben", trace_memory: "Aus dem Kopf", strokeOf: (i, n) => `Strich ${i} von ${n}`, traceAria: (c) => `Schreibfeld für ${c}`, traceStart: (d) => `Beim roten Punkt anfangen und ${d}.`, strokeGood: (n) => `Strich ${n} sieht gut aus.`, dirDot: "einen kurzen Punkt setzen", dirRight: "nach rechts ziehen", dirDownRight: "nach rechts unten schwingen", dirDown: "gerade nach unten ziehen", dirDownLeft: "nach links unten schwingen", dirUpRight: "nach rechts oben schnellen", dirLeft: "nach links ziehen", traceAgain: "Nicht ganz – beim roten Punkt anfangen und dem Strich folgen.", traceHelp: "Hier ist der nächste Strich – folge der gestrichelten Linie.", traceDone: "Zeichen fertig", order: "Reihenfolge", showMe: "Zeig es mir", clear: "Löschen", whyStrokes: "Striche", koFinalMissing: (h, f) => `Gehört: ${h} – der Endkonsonant ${f} fehlte.`, koFinalExtra: (h, f) => `Gehört: ${h} – hier gibt es kein ${f} am Ende.`, jaHold: (r) => `Lange Vokale und kleines っ halten: ${r}.`, cardPicKo: "Bild → Koreanisch", cardKanji: "Kanji → Lesung & Bedeutung", picture: "Bild", chooseLong: "Ein langer Vokal ändert die Bedeutung.", chooseFinal: "Nur der Endkonsonant ändert sich.", micOffTitle: "Das Mikrofon ist für diese App aus", micOffText: "Schalte es in den Einstellungen des Browsers oder Systems ein, um Rückmeldung zu den Tönen zu bekommen – oder sprich laut und bewerte dich selbst.", rateMyself: "Selbst bewerten", rateSelfAloud: "Sprich es nach der Vorlage laut, dann bewerte dich:", getVoice: "Stimme holen · 2 Min.", listenHidden: "Hörübungen sind ausgeblendet, bis eine Stimme installiert ist.", cantReach: "Sync-Server nicht erreichbar", offlineWord: "Offline", savedHereSync: "Dein Fortschritt ist auf diesem Gerät gespeichert und wird synchronisiert, sobald du wieder online bist.", tryAgain: "Erneut versuchen", syncCode: "Sync-Code", syncing: "Synchronisiere …", obStep: (i, n) => `Schritt ${i} von ${n}`, obWhat: "Was möchtest du lernen?", obWhatSub: "Jede Sprache hat ihr eigenes Aussehen. Du kannst jederzeit wechseln.", wordsN: (n) => `${n.toLocaleString("de")} Wörter`, obStarting: "Ganz neu", obDone: (l) => `${l} geschafft`, obPfSub: "Empfohlen, wenn du noch keine Zeichen lesen kannst", obContinue: (l) => `Weiter mit ${l}`, obReady: "Ohren und Stimme vorbereiten", obVoice: (l) => `Stimme für ${l}`, obVoiceDefault: "Standardstimme gefunden · eine natürlichere gibt es kostenlos", obVoiceGood: (q) => `${q}-Stimme gefunden`, obHow: "Zeig mir wie · 2 Min.", obMic: "Mikrofon", obMicSub: "Für Wort sprechen, Dialoge und Rollenspiel", obMicText: "Die App hört nur zu, während du die Mikrofon-Taste benutzt. Deine Tonhöhe wird auf diesem Gerät mit der Vorlage verglichen; die Wörter erkennt die Spracherkennung von Apple oder deines Browsers.", obAllowMic: "Mikrofon erlauben", obMicOn: "Mikrofon an", obPlan: (n, m) => `${n} neue Wörter + Wiederholungen · ≈ ${m} Min.`, change: "Ändern", obStart: "Loslegen", obLater: "Jetzt nicht – ich tippe lieber", showAllVoices: (n) => `Alle ${n} Stimmen zeigen`, inUse: "aktiv", noVoiceTitle: (l) => `Keine Stimme für ${l} auf diesem Gerät`, noVoiceText: "Du kannst weiterlernen – Wörter zeigen Lesung und Tonzeichen. Lade eine kostenlose Stimme, um sie zu hören.", speed: "Tempo", speedSlow: "Langsam", speedLearner: "Lernend", speedNative: "Normal", naturalVoice: "Natürliche Stimme holen · kostenlos, ≈ 2 Min.", naturalVoiceText: (l) => `Dein Gerät hat bessere Stimmen für ${l} als die Standardstimme – sie müssen nur einmal geladen werden.`, voiceStepsIos: ["Einstellungen → Bedienungshilfen → Gesprochene Inhalte öffnen.", "Stimmen → {0} tippen.", "Eine Stimme mit „Erweitert“ oder „Premium“ wählen und laden.", "Hierher zurückkommen – die neue Stimme erscheint in der Liste.", "Auf „Stimme testen“ tippen und den Unterschied hören."], voiceStepsMac: ["Systemeinstellungen → Bedienungshilfen → Gesprochene Inhalte öffnen.", "Systemstimme → Stimmen verwalten … → {0}.", "Eine Stimme mit „Erweitert“ oder „Premium“ ankreuzen und laden.", "Diese Seite neu laden – die neue Stimme erscheint in der Liste.", "Auf „Stimme testen“ klicken und den Unterschied hören."], testVoice: "Stimme testen", statsTitle: (l) => `Statistik · ${l}`, ofKnown: (n) => `von ${n} gelernt`, accuracyLower: "richtig", last12: "Letzte 12 Wochen", daysStudied: (n) => (n === 1 ? "1 Lerntag" : `${n} Lerntage`), heatAria: "Lernkalender der letzten 12 Wochen", less: "weniger", more: "mehr", byLevel: "Nach Stufe", lvMeta: (k, l, n) => `${k} gelernt · ${l} in Arbeit · von ${n}`, lvNotStarted: (n) => `nicht begonnen · ${n} Wörter`, tonesSpeaking: "Töne beim Sprechen", weakestTone: (x) => `Der ${x} Ton ist dein schwächster – dafür gibt es unter Üben → Ton-Training eine Übung.`, tonesEmpty: "Sprich ein paar Wörter ins Mikrofon (Üben → Wort sprechen), dann siehst du, wie jeder Ton gelingt.", bySkill: "Nach Fertigkeit", lessonN: (n) => `Lektion ${n}`, pctLearned: (n) => `${n} % gelernt`, pickFromList: "Aus der Liste", typeMyOwn: "Selbst tippen", ownTyped: (n) => (n === 1 ? "1 von dir eingetippt" : `${n} von dir eingetippt`), ownTag: "Eigen", removeX: (x) => `${x} entfernen`, ownPrompt: "Pinyin, Deutsch oder Zeichen", ownPromptOther: "Das Wort oder seine Bedeutung", alreadyIn: "Schon in dieser Lektion", notInList: "Nicht in der Wortliste – als eigenes Wort hinzufügen:", addOwn: "Als mein Wort hinzufügen", lessonsSub: "Wörter aus deinem Unterricht", newShort: "Neu", ownN: (n) => `${n} eigene`, practiseLessonN: (n) => `Lektion ${n} üben`, noLessonsYet: "Noch keine Lektionen", noLessonsText: "Füge nach der nächsten Stunde die neuen Wörter hier hinzu, dann kommen sie in deiner täglichen Einheit dran.", firstLesson: "Erste Lektion", afterClass: "Nach dem Unterricht", afterClassText: "Neue Wörter eintragen, solange sie frisch sind. Aus der Liste wählen oder selbst tippen – Lesung und Ton werden ergänzt.", dlgTopicsDone: (n, d) => `${n} Themen · ${d} fertig`, timed: "mit Zeit", linesN: (n) => `${n} Zeilen`, freeSub: "Zufälliger Partner, nur Wörter, die du kennst", noDialogues: "Für diese Sprache gibt es noch keine Dialoge.", searchWords: "Wörter suchen", review: "Wiederholen", wordsInOrder: (n) => `${n} Wörter · in Lernreihenfolge`, sayItLike: "So klingt es", wordDetail: "Wortdetails", favorite: "Favorit", status: "Status", inLesson: (x) => `In ${x}`, addToLessonX: (x) => `Zu ${x} hinzufügen`, tapTile: "Tippe eine Kachel an, um sie zu hören", voiceNorth: "Nördliche Stimme", voiceSouth: "Südliche Stimme", nsNote: "d, gi und r klingen im Norden wie ein stimmhaftes „s“, im Süden wie „j“.", telexNote: "Telex: <b>dd</b> → đ · <b>aa</b> → â · <b>ow</b> → ơ · Töne <b>f s r x j</b>", result: "Ergebnis", resultCells: (c, w) => `${c} richtig, ${w} falsch`, mistakesN: (n) => `Fehler · ${n}`, addedToReviews: "Zu den heutigen Wiederholungen hinzugefügt", retryMistakes: "Fehler wiederholen", rateSelfQ: "Keine Spracherkennung auf diesem Gerät? Bewerte dich selbst:", notYet: "Noch nicht", closeEnough: "Fast", gotIt: "Geschafft", sayHint: "Tippe aufs Mikrofon und sag das Wort.", tonesRightShort: "Töne richtig", heardShort: "erkannt", model: "Vorlage", you: "Du", setUpRound: "Runde einrichten", allN: (n) => `Alle ${n}`, orByTime: "oder nach Zeit", minShort: "Min.", wordsMatch: (n) => (n === 1 ? "1 Wort passt" : `${n} Wörter passen`), perRound: (k, m) => `${k} pro Runde · ≈ ${m} Min.`, skillNote_listen: "Erst die Ohren", skillNote_speak: "Schwerpunkt im Unterricht", skillNote_read: "Zeichen, ganz sanft", skillNote_write: "Tippen geht am Mac am besten",
       sub_listen: "Wort hören, Bedeutung wählen", sub_listenPic: "Ohne Lesen", sub_tones: "Welchen Ton hast du gehört?", sub_soundDrill: "zh / z / j · q / ch / c", sub_say: "Mikro + Tonkurve je Silbe", sub_dialogues: "Hören · laut lesen · Rollenspiel", sub_freePlay: "Zufälliger Partner, beliebiges Thema", sub_soundChart: "Pinyin-Anlaute und -Auslaute",
       sub_choose: "Ähnlich klingende Wörter im Satz", sub_picture: "Bild sehen, Pinyin wählen", sub_flash: "Verteilte Wiederholung", sub_quiz: "4 Richtungen", sub_match: "Pinyin ↔ Bedeutung", sub_type: "Pinyin + Tonwahl", sub_typer: "Tipp-Rennen auf Zeit", sub_numbers: "yī èr sān … bis 99", sub_trace: "Strichfolge, wenn du mit Zeichen anfängst",
@@ -886,7 +918,7 @@
       u.lang = C.tts;
       // The second person of a dialogue: another voice of the language, or the same one a little lower
       const second = opts && opts.who === 1 && S.settings.twoVoices !== false;
-      const v2 = second ? secondVoice() : null, voice = v2 || TTS.voice;
+      const v2 = second ? secondVoice() : null, voice = (opts && opts.voice) || v2 || TTS.voice;
       if (voice) { try { u.voice = voice; } catch (e) { /* stale voice object: fall back to lang-based selection */ } }
       u.rate = (opts && opts.rate) || S.settings.rate;
       // A pitch set for this voice (Me → Voice); browsers allow no equaliser on the system voices
@@ -1209,6 +1241,7 @@
     else if (C.gender) shape = `<div class="say-like-latin">${C.id === "es" && !/\s/.test(w.hz.replace(/^(el|la)\s+/, "")) ? esc(esStress(w.hz.replace(/^(el|la)\s+/, ""))) : genderHtml(w)}${w.g ? ` <span class="muted small">· ${t("gender_" + w.g)}${w.pl && w.pl !== "–" ? ` · ${t("plural")}: ${esc(w.pl)}` : ""}</span>` : ""}</div>`;
     return `<div class="say-like"><div class="eyebrow">${t("sayItLike")}</div>${shape}${tipText ? `<div class="sl-tip"><span class="grow">${esc(tipText)}</span><button class="sq-btn" id="d-speak" type="button" aria-label="${t("play")} ${esc(w.hz)}">${icon("speaker")}</button></div>` : `<div class="sl-tip"><span class="grow"></span><button class="sq-btn" id="d-speak" type="button" aria-label="${t("play")}">${icon("speaker")}</button></div>`}</div>`;
   }
+  let wsLessons = null; // the word whose lesson list under "Add to a lesson…" is open
   function wordSheetHtml(w) {
     const id = w.id, st = status(id), fav = S.favs.includes(id);
     const ls = courseLessons(), last = ls[ls.length - 1];
@@ -1226,9 +1259,11 @@
         ${familiesOf(id).length ? `<div class="eyebrow">${t("wordFamily")}</div>${familiesOf(id).slice(0, 2).map((f) => familyCardHtml(f, id)).join("")}` : ""}
         ${ex}
         <div class="eyebrow">${t("status")}</div>
-        <div class="seg" id="d-status">${["new", "learning", "known"].map((k) => `<button class="${st === k ? "on" : ""}" data-st="${k}" type="button" aria-pressed="${st === k}">${t(k)}</button>`).join("")}</div>
-        ${last ? `<button class="btn block fd-again" id="d-add" type="button">${last.words.includes(id) ? "✓ " + t("inLesson", esc(last.name)) : "＋ " + t("addToLessonX", esc(last.name))}</button>
-          ${ls.length > 1 ? `<div class="chips">${ls.slice(0, -1).reverse().map((l) => `<button class="chip ${l.words.includes(id) ? "active" : ""}" data-lesson="${l.id}" type="button">${l.words.includes(id) ? "✓ " : "+ "}${esc(l.name)}</button>`).join("")}</div>` : ""}` : ""}
+        <div class="seg" id="d-status" role="radiogroup" aria-label="${esc(t("status"))}">${[["new", "□"], ["learning", "◧"], ["known", "■"]].map(([k, g]) => `<button class="${st === k ? "on" : ""}" data-st="${k}" type="button" role="radio" aria-checked="${st === k}">${g} ${t(k)}</button>`).join("")}</div>
+        ${(() => { const inL = ls.filter((l) => l.words.includes(id));
+          // One button; the lessons fold out under it
+          return `<button class="btn block" id="d-add" type="button" aria-expanded="${wsLessons === id}">${inL.length ? "✓ " + t("inLesson", esc(inL[inL.length - 1].name)) + (inL.length > 1 ? ` +${inL.length - 1}` : "") : t("addToALesson")}</button>
+          ${wsLessons === id ? `<div class="ws-lessons">${ls.slice().reverse().map((l) => `<button class="ws-lesson ${l.words.includes(id) ? "on" : ""}" data-lesson="${l.id}" type="button" role="checkbox" aria-checked="${l.words.includes(id)}"><i></i>${esc(l.name)}</button>`).join("")}<button class="ws-lesson new" id="d-newl" type="button">＋ ${t("lessonNew")}</button></div>` : ""}`; })()}
       </div>`;
   }
   function bindWordSheet(w, again) {
@@ -1238,7 +1273,8 @@
     $("#d-fav").onclick = () => { S.favs = S.favs.includes(id) ? S.favs.filter((x) => x !== id) : S.favs.concat(id); save(); again(); };
     $$("#d-status [data-st]").forEach((b) => (b.onclick = () => { const k = b.dataset.st; if (k === "new") resetWord(id); else if (k === "learning") markLearning(id); else markKnown(id); again(); }));
     const ls = courseLessons(), last = ls[ls.length - 1];
-    if ($("#d-add")) $("#d-add").onclick = () => { toggleLessonWord(last.id, id); again(); };
+    $("#d-add").onclick = () => { wsLessons = wsLessons === id ? null : id; again(); };
+    if ($("#d-newl")) $("#d-newl").onclick = () => { const lid = newId("l"); S.lessons[lid] = { course: C.id, name: t("lessonDated", ls.length + 1, lessonDate(Date.now())), words: [id], created: Date.now() }; save(); toast(t("added")); again(); };
     $$("[data-lesson]", $(".wsh")).forEach((b) => (b.onclick = () => { toggleLessonWord(b.dataset.lesson, id); again(); }));
     $$(".wsh [data-go]").forEach((b) => (b.onclick = () => { closeSheet(); navigate(b.dataset.go); }));
   }
@@ -1301,6 +1337,7 @@
     if (mode === "gender") return C.gender ? setupSession(view, mode, { pool: true, count: [10, 20, 40], nouns: true }) : renderTrainHome(view);
     if (mode === "picture" || mode === "listenPic") return hasPics() ? setupSession(view, mode, { pool: true, count: [10, 20, 40], pics: true }) : renderTrainHome(view);
   }
+  const openSkills = new Set();
   function renderTrainHome(view) {
     setTopbar(t("train"), null);
     document.body.classList.add("home");
@@ -1312,20 +1349,41 @@
       : r === "dialogues" ? `${dl.filter((d) => dlgDone(d.id)).length} / ${dl.length}` : "";
     const word = (k) => { const x = SKILL_WORD[C.id][k]; return C.id === "zh" ? (pyFirst() ? `<span class="py-face">${pyHtml(x[0])}</span>` : `<span class="hanzi">${x[1]}</span>`) : `<span class="${x[1] ? "hanzi" : ""}">${esc(x[1] || x[0])}</span>`; };
     const pw = PRACTICE_WORD[C.id];
+    // Suggested next: the weakest tone, then nouns whose article slips, then due cards, then the newest lesson
+    const tones = C.toneOptions && C.id === "zh" ? [1, 2, 3, 4].map((n) => ({ n, p: pairSum("tones", n) })).filter((x) => x.p[1] >= 5).map((x) => ({ ...x, acc: x.p[0] / x.p[1] })).sort((a, b) => a.acc - b.acc) : [];
+    const weak = tones[0] && tones[0].acc < 0.8 ? tones[0] : null;
+    const ls = courseLessons(), lastL = ls[ls.length - 1];
+    const sug = weak ? { title: t("sugTone", weak.n, ["", "mā", "má", "mǎ", "mà"][weak.n]), sub: t("sugToneSub", Math.round(weak.acc * 100)), go: "train/tones" }
+      : C.gender && !nv ? { title: t(C.id === "es" ? "modeGenderEs" : "modeGender"), sub: t("sugGenderSub"), go: "train/gender" }
+      : due ? { title: t("modeFlash"), sub: t("nDue", due), go: "train/flash" }
+      : lastL ? { title: esc(lastL.name), sub: t("sugLessonSub"), go: "lessons/" + lastL.id + "/practice" } : null;
+    const goals = [
+      C.toneOptions ? { name: t("goalTones"), sub: t("goalTonesSub"), go: nv ? "train/say" : "train/tones" } : C.gender ? { name: t("goalArticles"), sub: t(C.id === "es" ? "modeGenderEs" : "modeGender"), go: "train/gender" } : null,
+      { name: t("goalNew"), sub: t("goalNewSub"), go: "today/session" },
+      lastL ? { name: t("goalClass"), sub: t("goalClassSub", lastL.name.split(":")[0]), go: "lessons/" + lastL.id + "/practice" } : null,
+      nv ? null : { name: t("goalListen"), sub: t("goalListenSub"), go: "train/listen" },
+      { name: t("goalWrite"), sub: C.id === "zh" ? t("goalWriteSubZh") : t("goalWriteSub"), go: "train/type" }
+    ].filter(Boolean);
+    const hint = (id) => id === "read" && due ? t("nDue", due) : id === "listen" && weak ? t("sugToneHint", weak.n) : id === "speak" && dl.length ? `${t("dialogues")} ${dl.filter((d) => dlgDone(d.id)).length} / ${dl.length}` : t("skillNote_" + id);
     view.innerHTML = `
       <div class="page-head"><span class="eyebrow">${t("practiceEyebrow")}</span>
         <div class="row"><span class="ph-title grow">${C.id === "zh" ? `${pyHtml(pw[0])} <span class="hanzi ph-sub">${pw[1]}</span>` : `<span class="${pw[1] ? "hanzi" : ""}">${esc(pw[1] || pw[0])}</span>`}</span>
         ${C.id === "vi" ? `<button class="accent-btn" id="accent" type="button">${t("accentLabel")} · ${t(S.settings.viAccent === "s" ? "accentS" : "accentN")}</button>` : ""}</div></div>
       ${nv ? `<div class="state-card warn"><b>${t("noVoiceTitle", t("langName"))}</b><p>${t("noVoiceText")}</p><button class="btn primary" data-go="more/voice" type="button">${t("getVoice")}</button><p class="small">${t("listenHidden")}</p></div>` : ""}
+      ${sug ? `<section class="sug-card"><div class="eyebrow">${t("suggestedNext")}</div><div class="row"><div class="grow"><b>${sug.title}</b><div class="small muted">${esc(sug.sub)}</div></div><button class="btn primary" data-go="${sug.go}" type="button">${t("start")}</button></div></section>` : ""}
+      <div class="eyebrow">${t("byGoal")}</div>
+      <div class="goal-chips">${goals.map((g) => `<button class="goal-chip" data-go="${g.go}" type="button"><b>${esc(g.name)}</b><span>${esc(g.sub)}</span></button>`).join("")}</div>
+      <div class="eyebrow">${t("allExercises", SKILLS.reduce((a, sk) => a + sk.rows.filter(([r]) => !hidden(r)).length, 0))}</div>
       ${SKILLS.map((sk, k) => !sk.rows.some(([r]) => !hidden(r)) ? "" : `
-        <section class="skill2">
-          <div class="sk2-head"><span class="sk2-name">${t("skill_" + sk.id)} ${word(k)}</span><span class="sk2-note">${esc(t("skillNote_" + sk.id))}</span></div>
-          ${sk.rows.filter(([r]) => !hidden(r)).map(([r, key, sub, isNew]) => `<button class="sk2-row" data-go="${r}" type="button"><span class="grow"><span class="sk2-t">${t(key === "modeGender" && C.id === "es" ? "modeGenderEs" : key)}${isNew ? `<span class="new-badge">${t("newBadge")}</span>` : ""}</span><span class="sk2-s">${esc(t("sub_" + sub))}</span></span><span class="sk2-m">${meta(r)}</span>${icon("chev")}</button>`).join("")}
-        </section>`).join("")}`;
+        <details class="skill3" data-sk="${sk.id}"${openSkills.has(sk.id) ? " open" : ""}>
+          <summary><span class="sk2-name">${t("skill_" + sk.id)} ${word(k)} <span class="muted">· ${sk.rows.filter(([r]) => !hidden(r)).length}</span></span><span class="sk2-note">${esc(hint(sk.id))}</span></summary>
+          <div class="sk3-grid">${sk.rows.filter(([r]) => !hidden(r)).map(([r, key, sub, isNew]) => `<button class="sk2-row" data-go="${r}" type="button"><span class="grow"><span class="sk2-t">${t(key === "modeGender" && C.id === "es" ? "modeGenderEs" : key)}${isNew ? `<span class="new-badge">${t("newBadge")}</span>` : ""}</span><span class="sk2-s">${esc(t("sub_" + sub))}</span></span><span class="sk2-m">${meta(r)}</span>${icon("chev")}</button>`).join("")}</div>
+        </details>`).join("")}`;
     $$("[data-go]").forEach((b) => (b.onclick = () => {
       if (b.dataset.go === "free") { const d = dl[Math.floor(Math.random() * dl.length)]; return navigate("lessons/d/" + d.id + "/turn"); }
       navigate(b.dataset.go);
     }));
+    $$("details.skill3").forEach((d) => d.addEventListener("toggle", () => { if (d.open) openSkills.add(d.dataset.sk); else openSkills.delete(d.dataset.sk); }));
     if ($("#accent")) $("#accent").onclick = () => { S.settings.viAccent = S.settings.viAccent === "s" ? "n" : "s"; save(); pickVoice(); render(); };
   }
 
@@ -2575,8 +2633,11 @@
           <div class="cc-title">${planText}</div>${topic ? `<div class="cc-sub">${t("topicLine", esc(L(topic.name)))}</div>` : ""}
           ${segs}
           <button class="btn block cc-btn" id="go-session" type="button">${esc(cont)}</button>`
-        : `<div class="cc-title">${n || introducedToday() ? t("sessionDone") : t("sessionTitle")}</div><div class="cc-sub">${n || introducedToday() ? t("sessionDoneSub") : t("sessionEmpty")}</div>
-          ${p.unseen && n < goal ? `<button class="btn block cc-btn" id="more-new" type="button">${t("moreNew", Math.min(5, p.unseen))}</button>` : ""}`}
+        : !(n || introducedToday()) ? `<div class="cc-title">${t("sessionTitle")}</div><div class="cc-sub">${t("sessionEmpty")}</div>`
+        // Done: a small seal; below the goal one offer of 5 more, at the goal nothing more is asked
+        : `<div class="cc-done">${sealHtml("sm")}<div class="grow"><div class="cc-title">${n >= goal ? t("doneForToday") : t("sessionIsDone")}</div><div class="cc-sub">${n} / ${goal} XP · ${t("streakDays", st)}</div></div></div>
+          ${n >= goal ? `<p class="cc-sub">${t("seeTomorrow", dueTomorrow())}</p><p class="cc-sub muted">${t("stillCurious")}</p>`
+          : p.unseen ? `<button class="btn block cc-btn" id="more-new" type="button">${t("moreNew", Math.min(5, p.unseen))}</button>` : ""}`}
       </div>`;
     const label = `<span class="wod-label">${t("wordOfDay")}</span>`;
     const say = wd ? `<span class="speak-btn sm" data-speak="${esc(wd.hz)}" aria-label="${t("speak")}">🔊</span>` : "";
@@ -2790,6 +2851,8 @@
     S.lessons[id] = { course: C.id, name: t("lessonDefault", courseLessons().length + 1), words: [], created: Date.now() };
     save(); navigate("lessons/" + id);
   }
+  // Round 3: a new lesson starts with Add words (one box for a pasted message or a few typed words)
+  const addWordsNew = () => navigate("lessons/paste");
   function renderLessons(view) {
     if (route[1] === "d" && route[2]) return renderDialogue(view, route[2], route[3]);
     if (route[1] === "paste") return renderPaste(view, null);
@@ -2805,8 +2868,8 @@
         : `<div class="state-card"><div class="sc-ico">${icon("lessons")}</div><b>${t("noLessonsYet")}</b><p>${t("noLessonsText")}</p><div class="row" style="justify-content:center"><button class="btn primary" id="first-lesson" type="button">＋ ${t("firstLesson")}</button><button class="btn" data-go="lessons/paste" type="button">${t("pasteShort")}</button></div></div>`}
       <div class="say-tip"><b>${t("afterClass")}</b> · ${t("afterClassText")}</div>`;
     $("#pg-back").onclick = () => navigate("today");
-    $("#new-lesson").onclick = newLesson;
-    if ($("#first-lesson")) $("#first-lesson").onclick = newLesson;
+    $("#new-lesson").onclick = addWordsNew;
+    if ($("#first-lesson")) $("#first-lesson").onclick = addWordsNew;
     $$("[data-go]").forEach((b) => (b.onclick = () => navigate(b.dataset.go)));
     $$("[data-lesson]").forEach((b) => (b.onclick = () => navigate("lessons/" + b.dataset.lesson)));
     $$("[data-practise]").forEach((b) => (b.onclick = () => navigate("lessons/" + b.dataset.practise + "/practice")));
@@ -3113,7 +3176,8 @@
       proc.onaudioprocess = (e) => {
         const x = e.inputBuffer.getChannelData(0); cap.chunks.push(new Float32Array(x));
         let s = 0; for (let i = 0; i < x.length; i++) s += x[i] * x[i];
-        if (Math.sqrt(s / x.length) > 0.02) { cap.heard = true; cap.quiet = 0; } else if (cap.heard) cap.quiet += x.length / ctx.sampleRate;
+        cap.level = Math.sqrt(s / x.length);
+        if (cap.level > 0.02) { cap.heard = true; cap.quiet = 0; } else if (cap.heard) cap.quiet += x.length / ctx.sampleRate;
         if (!cap.done && ((cap.heard && cap.quiet > 0.8) || Date.now() - cap.t0 > 6000)) { cap.done = true; if (onAutoStop) onAutoStop(); }
       };
       src.connect(proc); proc.connect(ctx.destination); // the processor only runs when connected; its output is silent
@@ -3289,13 +3353,17 @@
           if (MIC.rec) { MIC.rec.stop(); return; }
           b.classList.add("live"); label.textContent = t("listening");
           const t0 = Date.now();
+          let cancelled = false;
+          if (opts && opts.onListen) opts.onListen({ stop: () => MIC.rec && MIC.rec.stop(), cancel: () => { cancelled = true; if (MIC.rec) MIC.rec.abort(); idle(); }, level: () => null });
           try {
             const alts = await hearOnce();
+            if (cancelled) return;
+            if (!alts.length && opts && opts.onNothing) { idle(); return opts.onNothing(); }
             done(k, { mode: "sr", ...matchHeard(target.hz, alts, target.py), ms: Date.now() - t0 });
           } catch (err) {
             idle();
             if (["not-allowed", "service-not-allowed", "start", "audio-capture", "network", "language-not-supported"].includes(err)) { MIC.srBroken = true; idle(); if (opts && opts.onDenied && /not-allowed|audio-capture/.test(err)) opts.onDenied(); else toast(t("micBlocked")); }
-            else if (err === "no-speech") toast(t("heardNo"));
+            else if (err === "no-speech" && !cancelled) { if (opts && opts.onNothing) opts.onNothing(); else toast(t("heardNo")); }
           }
           return;
         }
@@ -3324,6 +3392,7 @@
             return;
           }
           // Recording without a check: listen to yourself next to the model and rate it
+          if (opts && opts.onRecorded) return opts.onRecorded(rec);
           const box = document.createElement("div"); box.className = "self-rate";
           box.innerHTML = `<div class="row">${playBtns(rec.url)}<button class="btn sm" data-p="model" type="button">▶ ${t("playModel")}</button></div>
             <div class="small muted">${t("rateSelfQ")}</div><div class="rate3"><button class="btn" data-r="0" type="button">${t("notYet")}</button><button class="btn" data-r="0.6" type="button">${t("closeEnough")}</button><button class="btn" data-r="1" type="button">${t("gotIt")}</button></div>`;
@@ -3334,6 +3403,7 @@
           $$("[data-r]", box).forEach((x) => (x.onclick = () => { box.remove(); done(k, { mode: "rec", url: rec.url, ms: rec.ms, self: x.dataset.r === "1", score: +x.dataset.r }); }));
         };
         b.classList.add("live"); label.textContent = t("listening");
+        if (opts && opts.onListen) opts.onListen({ stop: () => cap.finish(), cancel: () => { cap.aborted = true; cap.finish(); idle(); if (MIC.rec) MIC.rec.abort(); }, level: () => cap.level || 0 });
         cap.ready.catch(() => cap.finish());
       };
     });
@@ -3397,23 +3467,38 @@
   }
   document.addEventListener("click", (e) => { const b = e.target.closest("[data-say-model]"); if (b) speak(b.dataset.sayModel); });
 
-  /* --- Say the word (round 2): the word, then after speaking: tones right, the model and your curve,
-   * what was heard, one tip, Play mine / Play model; without a recogniser you rate yourself (Not yet · Close · Got it) --- */
+  /* --- Say the word (round 3): listening (level bars, Stop, Cancel) → the verdict first: one sentence, a card per
+   * syllable with a short reason, what to change with "Hear the difference" (model, then you); the curve and what
+   * was heard fold out under "Why?". Heard nothing → nothing counted, tips, try again or rate yourself; without a
+   * recogniser: Play, Record mine, rate (your answer only decides when the word comes back) --- */
+  const TONE_HOW = { 1: "toneHow1", 2: "toneHow2", 3: "toneHow3", 4: "toneHow4" };
+  function sylCardsHtml(tones) {
+    return `<div class="syl-cards">${tones.res.map((r) => {
+      const why = r.ok === null ? t("sylLight") : r.ok ? t("sylGood" + r.want) : t("sylBad", r.got, r.want);
+      return `<div class="syl-card ${r.ok === null ? "" : r.ok ? "ok" : "bad"}"><b class="tn${r.want}">${esc(r.text)}</b> <span class="mark">${r.ok === null ? "·" : r.ok ? "✓" : "✕"}</span><span>${esc(why)}</span></div>`;
+    }).join("")}</div>`;
+  }
   function runSay(view, list) {
-    let i = 0, correct = 0, skipped = 0; const mistakes = [];
+    let i = 0, correct = 0, skipped = 0, stopBars = null; const mistakes = [];
+    const rateHtml = () => `<div class="rate3"><button class="btn" data-r="0" type="button">${t("notYet")}</button><button class="btn" data-r="0.6" type="button">${t("closeEnough")}</button><button class="btn" data-r="1" type="button">${t("gotIt")}</button></div>`;
     function draw() {
+      if (stopBars) { stopBars(); stopBars = null; }
       if (i >= list.length) { if (cleanup) { cleanup(); cleanup = null; } return showResult(view, { correct, total: list.length - skipped, mistakes, onAgain: () => navigate("train/say") }); }
-      const w = list[i]; let res = null;
+      const w = list[i]; let res = null, mine = null;
       const reading = C.id === "zh" ? (pyFirst() ? `<div class="say-word">${pyHtml(w.py)}</div><div class="say-sub"><span class="hanzi">${esc(w.hz)}</span> · ${esc(tr(w))}</div>` : `<div class="say-word hanzi">${esc(w.hz)}</div><div class="say-sub">${pyHtml(w.py)} · ${esc(tr(w))}</div>`)
         : C.id === "vi" ? `<div class="say-word">${viHtml(w.hz)}</div><div class="say-sub">${esc(tr(w))}</div>`
         : `<div class="say-word hanzi">${esc(w.hz)}</div><div class="say-sub">${esc(w.py)} · ${esc(tr(w))}</div>`;
       view.innerHTML = `${sessionHead(i, list.length, `✓ ${correct}`)}
         <div class="say2">
-          <div class="say2-card">${picHtml(w, "say-pic")}<div class="grow">${reading}</div><div class="say-score" id="say-score" hidden></div></div>
-          <div id="say-res"><div class="say-idle"><button class="btn" id="m-say" type="button">${icon("play")} ${t("playModel")}</button><div class="small muted">${t("sayHint")}</div></div></div>
+          <div class="say2-card">${picHtml(w, "say-pic")}<div class="grow">${reading}</div></div>
+          <div id="say-res"></div>
         </div>
-        <div class="say2-foot"><button class="btn ghost" id="s-skip" type="button">${t("skip")}</button><div class="say-mic">${micButton("w")}</div><button class="btn" id="s-next" type="button">${t("next")} →</button></div>`;
-      $("#m-say").onclick = () => speak(w.hz);
+        <div class="say2-foot"><button class="btn ghost" id="s-skip" type="button">${t("skip")}</button><div class="say-mic">${micButton("w")}<div class="small muted" id="s-miclbl">${t("speakBtn")}</div></div><button class="btn" id="s-next" type="button">${t("next")} →</button></div>`;
+      const box = $("#say-res"), mic = $(".say-mic .mic-btn");
+      const idle = () => { box.innerHTML = `<div class="say-idle"><button class="btn" id="m-say" type="button">${icon("play")} ${t("playModel")}</button><div class="small muted">${t("sayHint")}</div></div>`; $("#m-say").onclick = () => speak(w.hz); };
+      const settle = (r) => { res = r; $("#s-next").classList.add("primary"); $("#s-miclbl").textContent = t("tryAgain"); };
+      const bindRate = (after) => $$("[data-r]", box).forEach((b) => (b.onclick = () => { $$("[data-r]", box).forEach((x) => x.classList.toggle("on", x === b)); settle({ mode: "self", score: +b.dataset.r }); if (after) after(); }));
+      idle();
       $("#s-skip").onclick = () => { skipped++; i++; draw(); };
       $("#s-next").onclick = () => {
         if (!res) { skipped++; i++; return draw(); }
@@ -3422,23 +3507,69 @@
         if (ok) correct++; else { mistakes.push(w); noteMiss(w, res.tones && res.tones.res && res.tones.res.some((x) => x.ok === false) ? t("whyTones") : t("whyNotHeard")); }
         i++; draw();
       };
-      bindMics(view, () => w, (_, r) => {
-        res = r;
-        const box = $("#say-score");
-        if (r.mode === "pitch" && !r.tones.none) { const sc = r.tones.res.filter((x) => x.ok !== null); box.innerHTML = `<b>${sc.filter((x) => x.ok).length} / ${sc.length}</b><span>${t("tonesRightShort")}</span>`; box.hidden = false; }
-        else if (r.mode === "sr") { box.innerHTML = `<b>${Math.round(r.score * 100)}%</b><span>${t("heardShort")}</span>`; box.hidden = false; }
-        $("#say-res").innerHTML = (r.mode === "pitch" ? `<div class="pc-legend"><span><i></i>${t("model")}</span><span><i class="you"></i>${t("you")}</span></div>` : "") + resultHtml(w, r)
-          + (r.mode === "pitch" ? "" : `<div class="row" style="margin-top:8px"><button class="btn sm" data-say-model="${esc(w.hz)}" type="button">▶ ${t("playModel")}</button></div>`);
-        $("#s-next").classList.add("primary");
-      }, { rateHost: "#say-res", onDenied: () => {
-        $("#say-res").innerHTML = `<div class="state-card warn"><b>${t("micOffTitle")}</b><p>${t("micOffText")}</p><button class="btn" id="s-rate" type="button">${t("rateMyself")}</button></div>`;
-        $(".say-mic .mic-btn").disabled = true;
-        $("#s-rate").onclick = () => {
-          speak(w.hz);
-          $("#say-res").innerHTML = `<div class="self-rate"><div class="small muted">${t("rateSelfAloud")}</div><div class="rate3"><button class="btn" data-r="0" type="button">${t("notYet")}</button><button class="btn" data-r="0.6" type="button">${t("closeEnough")}</button><button class="btn" data-r="1" type="button">${t("gotIt")}</button></div></div>`;
-          $$("#say-res [data-r]").forEach((b) => (b.onclick = () => { res = { mode: "self", score: +b.dataset.r }; $("#say-res").innerHTML = `<div class="heard ${res.score >= 1 ? "ok" : "bad"}">${res.score >= 1 ? "✓ " + t("gotIt") : res.score > 0 ? "≈ " + t("closeEnough") : "↺ " + t("notYet")}</div>`; $("#s-next").classList.add("primary"); }));
-        };
-      }, pitch: w.py.split(/\s+/).length <= 2 && pyParts(w.py).filter((x) => !x.sep).length <= 4 });
+      function listening(h) {
+        if (stopBars) stopBars();
+        box.innerHTML = `<div class="say-state listen" role="status"><div class="lvl" aria-hidden="true">${"<i></i>".repeat(9)}</div><b>${t("listeningTitle")}</b><p>${t("listeningSub")}</p><div class="row"><button class="btn sm" id="s-stop" type="button">■ ${t("stopRec")}</button><button class="btn sm ghost" id="s-cancel" type="button">${t("cancel")}</button></div></div>`;
+        $("#s-stop").onclick = () => h.stop();
+        $("#s-cancel").onclick = () => { h.cancel(); stopBars(); stopBars = null; if (res) settle(res); idle(); };
+        // Bars follow the microphone; the recogniser gives no level, so they breathe on their own
+        const bars = $$(".lvl i", box); let on = true, k = 0;
+        const tick = () => { if (!on) return; const lv = h.level(); k++; bars.forEach((b, j) => { const v = lv == null ? 0.35 + 0.3 * Math.sin(k / 6 + j) : Math.min(1, lv * 14 * (0.6 + 0.4 * Math.abs(Math.sin(k / 3 + j * 1.7)))); b.style.transform = `scaleY(${Math.max(0.12, v).toFixed(2)})`; }); requestAnimationFrame(tick); };
+        if (!matchMedia("(prefers-reduced-motion: reduce)").matches) requestAnimationFrame(tick);
+        stopBars = () => { on = false; };
+      }
+      function nothing() {
+        if (stopBars) { stopBars(); stopBars = null; }
+        box.innerHTML = `<div class="say-state"><b>${t("nothingTitle")}</b><p>${t("nothingSub")}</p><ul class="say-tips"><li>${t("nothingTip1")}</li><li>${t("nothingTip2")}</li></ul>
+          <div class="row"><button class="btn sm" id="s-hear" type="button">${icon("play")} ${t("hearIt")}</button><button class="btn sm ghost" id="s-self" type="button">${t("rateMyselfInstead")}</button></div></div>`;
+        $("#s-hear").onclick = () => speak(w.hz);
+        $("#s-self").onclick = () => judge(t("judgeSelf"));
+        $("#s-miclbl").textContent = t("tryAgain");
+      }
+      // Rate yourself: hear the model, record yourself if the microphone works, then decide
+      function judge(lead, canRecord) {
+        if (stopBars) { stopBars(); stopBars = null; }
+        box.innerHTML = `<div class="say-state judge"><p>${esc(lead)}</p><ol class="steps3">
+          <li><span>1</span><div class="grow">${t("judgeHear")}</div><button class="btn sm" id="j-play" type="button">▶ ${t("play")}</button></li>
+          ${canRecord ? `<li><span>2</span><div class="grow">${t("judgeRecord")}</div><div id="j-mine"><button class="btn sm" id="j-rec" type="button">● ${t("recordMine")}</button></div></li>` : ""}
+          <li class="col"><div class="row"><span>${canRecord ? 3 : 2}</span><div class="grow"><b>${t("judgeHow")}</b></div></div>${rateHtml()}</li></ol>
+          <div class="small muted">${t("judgeNote")}</div></div>`;
+        $("#j-play").onclick = () => speak(w.hz);
+        if (canRecord) $("#j-rec").onclick = () => mic.click();
+        bindRate();
+      }
+      function shown(r) {
+        if (stopBars) { stopBars(); stopBars = null; }
+        if (r.mode === "pitch" && r.tones.none && !r.exact) return nothing();
+        settle(r);
+        const tn = r.mode === "pitch" && !r.tones.none ? r.tones : null;
+        const bad = tn ? tn.res.filter((x) => x.ok === false) : [];
+        const right = r.score >= 0.8;
+        const verdict = right ? t("verdictRight") : r.score > 0 || bad.length ? t("verdictAlmost") : t("verdictNot");
+        const sentence = tn ? (right ? (r.exact && bad.length ? t("curveOverruled", w.py) : t("toneAllGood").replace(/^✓ /, "")) : r.heard && r.heard.score >= 0.8 ? t("understoodFix", bad.length) : t("toneFix", bad.length))
+          : r.mode === "rec" ? (r.score >= 1 ? t("gotIt") : r.score > 0 ? t("closeEnough") : t("notYet"))
+          : right ? t("heardGreat") : r.score >= 0.4 ? t("heardAlmost") : t("heardNo");
+        const fix = bad[0];
+        const change = fix ? `<div class="say-fix"><div class="eyebrow">${t("whatToChange")}</div><p>${t(TONE_HOW[fix.want], `<b class="tn${fix.want}">${esc(fix.text)}</b>`)}</p>
+          ${r.url ? `<button class="btn sm" id="s-diff" type="button">${icon("play")} ${t("hearDiff")}</button>` : ""}</div>` : !right && r.mode === "sr" && r.text ? heardHint(w, r.text) : "";
+        // Words without a curve show what was heard right away; the curve and its Heard line fold out under Why?
+        const heardNow = r.mode === "sr" && r.text ? `<div class="heard ${right ? "ok" : "bad"}">${heardLineHtml(r.text, w.py)}</div>` : "";
+        box.innerHTML = `<div class="say-verdict ${right ? "ok" : "bad"}"><h3>${verdict}</h3><p>${esc(sentence)}</p></div>
+          ${tn ? sylCardsHtml(tn) : heardNow}${change}
+          ${tn ? `<details class="say-why"><summary>${t("whyCurve")}</summary><div class="pc-legend"><span><i></i>${t("model")}</span><span><i class="you"></i>${t("you")}</span></div>${resultHtml(w, r)}</details>` : ""}
+          ${r.url && !tn ? `<div class="row">${playBtns(r.url)}<button class="btn sm" data-say-model="${esc(w.hz)}" type="button">▶ ${t("playModel")}</button></div>` : !tn ? `<div class="row"><button class="btn sm" data-say-model="${esc(w.hz)}" type="button">▶ ${t("playModel")}</button></div>` : ""}`;
+        const d = $("#s-diff");
+        if (d) d.onclick = () => speak(w.hz, { onend: () => new Audio(r.url).play() });
+      }
+      bindMics(view, () => w, (_, r) => shown(r), {
+        onListen: listening, onNothing: nothing,
+        // No recogniser: the recording is yours to compare
+        onRecorded: (rec) => { mine = rec; if (!$("#j-mine")) judge(t("judgeNoCheck"), true); $("#j-mine").innerHTML = playBtns(rec.url); new Audio(rec.url).play(); },
+        onDenied: () => { mic.disabled = true; judge(`${t("micOffTitle")}. ${t("judgeSelf")}`, false); },
+        pitch: w.py.split(/\s+/).length <= 2 && pyParts(w.py).filter((x) => !x.sep).length <= 4 });
+      // No recogniser and no curve for this word: you are the judge from the start
+      if (!SR_OK() && !(C.id === "zh" && CAN_RECORD && w.py.split(/\s+/).length <= 2)) judge(t("judgeNoCheck"), CAN_RECORD);
+      if (!SR_OK() && !CAN_RECORD) $(".say-mic").hidden = true;
     }
     draw();
   }
@@ -3490,6 +3621,16 @@
     flowDone(view, f);
   }
   const SEAL = { zh: ["完成", "Wánchéng!", "完成"], ja: ["完了", "Kanryō!", "完了"], ko: ["완료", "Wallyo!", "완료"], vi: ["Xong", "Xong rồi!", ""], de: ["Fertig", "Fertig!", ""], es: ["Hecho", "¡Hecho!", ""] };
+  // The seal of the course; "sm" for the Learn card
+  function sealHtml(size) {
+    const seal = SEAL[C.id] || SEAL.zh;
+    return `<div class="seal-stamp ${C.id} ${C.script === "latin" ? "latin" : ""} ${size || ""}" role="img" aria-label="${esc(seal[0])}">${(C.script === "latin" ? [seal[0]] : Array.from(seal[0])).map((c) => `<span>${esc(c)}</span>`).join("")}</div>`;
+  }
+  // Reviews that will be waiting tomorrow (due by the end of tomorrow)
+  function dueTomorrow() {
+    const end = new Date(); end.setHours(0, 0, 0, 0); end.setDate(end.getDate() + 2);
+    return ALL_WORDS.filter((w) => { const c = S.srs[w.id]; return c && c.due && c.due < end.getTime(); }).length;
+  }
   function flowDone(view, f) {
     const by = (k) => f.results.filter((r) => r.step.kind === k);
     const sum = (rs, key) => rs.reduce((s, r) => s + r[key], 0);
@@ -3498,13 +3639,13 @@
     const say = by("speak"), sayPct = sum(say, "total") ? Math.round((sum(say, "correct") / sum(say, "total")) * 100) : null;
     const graded = f.results.filter((r) => r.step.kind !== "meet"), pct = sum(graded, "total") ? Math.round((sum(graded, "correct") / sum(graded, "total")) * 100) : 100;
     const mistakes = [...new Map(f.results.flatMap((r) => r.mistakes).map((w) => [w.id, w])).values()].slice(0, 12);
-    const seal = SEAL[C.id] || SEAL.zh, st = streak();
+    const seal = SEAL[C.id] || SEAL.zh, st = streak(), n = dayCount(todayKey()), goal = S.settings.dailyGoal, more = f.back === "today" && n < goal && planToday().unseen;
     const cell = (big, small, hot) => `<div class="fd-cell"><b class="${hot ? "hot" : ""}">${big}</b><span>${small}</span></div>`;
     view.innerHTML = `
       <div class="flow-done">
-        <div class="seal-stamp ${C.id} ${C.script === "latin" ? "latin" : ""}" role="img" aria-label="${esc(seal[0])}">${(C.script === "latin" ? [seal[0]] : Array.from(seal[0])).map((c) => `<span>${esc(c)}</span>`).join("")}</div>
+        ${sealHtml()}
         <div class="fd-title">${esc(seal[1])}</div>
-        <div class="fd-sub">${seal[2] ? `<span class="hanzi">${seal[2]}</span> · ` : ""}${t("sessionIsDone")}</div>
+        <div class="fd-sub">${seal[2] ? `<span class="hanzi">${seal[2]}</span> · ` : ""}${n >= goal ? t("goalReachedSub", n, goal) : t("goalToGo", n, goal)}</div>
         <div class="fd-grid">
           ${cell(reviewed, t("cardsReviewed"))}${cell("+" + fresh, t("newWordsLower"))}
           ${sayPct !== null && (C.id === "zh" || C.id === "vi") ? cell(sayPct + "%", t("tonesRight")) : cell(pct + "%", t("rightAnswers"))}
@@ -3514,10 +3655,12 @@
         <div class="fd-saved"><i></i>${DEV.code ? t("savedSynced") : t("savedHere")}</div>
       </div>
       <div class="stack fd-btns">
-        ${mistakes.length ? `<button class="btn block fd-again" id="fd-again" type="button">${t("practiseThese", mistakes.length)}</button>` : ""}
-        <button class="btn primary block" id="r-back" type="button">${t("done")}</button>
+        <button class="btn primary block" id="r-back" type="button">${f.back === "today" ? t("backToday") : t("done")}</button>
+        ${more ? `<button class="btn block" id="fd-more" type="button">${t("moreNew", Math.min(5, more))} · ${t("xpToGo", goal - n)}</button>` : ""}
+        ${mistakes.length ? `<button class="btn ghost block fd-again" id="fd-again" type="button">${t("practiseThese", mistakes.length)}</button>` : ""}
       </div>`;
     $("#r-back").onclick = () => navigate(f.back);
+    if ($("#fd-more")) $("#fd-more").onclick = () => { extraNew += 5; try { localStorage.removeItem(FLOW_KEY); } catch (e) { /* private mode */ } navigate("today/session"); };
     if ($("#fd-again")) $("#fd-again").onclick = () => startFlow(view, [
       { kind: "listen", list: shuffle(mistakes), run: (v, l) => runQuiz(v, l, "listen") },
       { kind: "write", list: shuffle(mistakes), run: runType }
@@ -3675,10 +3818,10 @@
    * else becomes your own word with what could be read from the line. One tap adds them to a lesson. --- */
   const HAN = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]+/gu;
   function parseList(text) {
-    return text.split(/[\n\r,，、;；\t|]+|\s{2,}/).map((x) => x.replace(/^\s*(?:\d+[.)]|[-•*·])\s*/, "").trim()).filter((x) => x && !/^\d+$/.test(x)).slice(0, 80);
+    return text.split(/[\n\r,，、;；\t|]+|\s{2,}/).map((x) => x.replace(/^[^:：]{0,40}[:：]\s*(?=\S)/, "").replace(/^\s*(?:\d+[.)]|[-•*·])\s*/, "").trim()).filter((x) => x && !/^\d+$/.test(x)).slice(0, 80);
   }
   function matchPiece(raw) {
-    const pool = ALL_WORDS.filter((w) => !isOwn(w.id)), native = (raw.match(HAN) || []).join(""), latin = raw.replace(HAN, " ").replace(/\s+/g, " ").trim();
+    const pool = ALL_WORDS.filter((w) => !isOwn(w.id)), native = (raw.match(HAN) || []).join(""), latin = raw.replace(HAN, " ").replace(/[()（）[\]]/g, " ").replace(/\s+/g, " ").trim();
     const low = raw.toLowerCase(), q = norm(raw);
     let hits = [];
     if (native && C.id !== "vi") hits = pool.filter((w) => w.hz === native || w.hz.split(/\s*;\s*/).includes(native) || (w.kana && w.kana === native));
@@ -3701,25 +3844,40 @@
     // Not one word, but each part is (nǐ hǎo → 你 + 好): offer to add the parts
     let parts = null;
     if (!hits.length && /\s/.test(raw.trim())) { const ps = raw.trim().split(/\s+/).map((x) => matchPiece(x)); if (ps.every((x) => x.hits.length)) parts = ps.map((x) => x.hits[0].id); }
+    // Characters run together (你好, 中国人): the longest list words from the left
+    if (!hits.length && !parts && native.length > 1 && (C.id === "zh" || C.id === "ja")) {
+      const cs = Array.from(native), ids = [];
+      for (let i = 0; i < cs.length;) {
+        let w = null, len = 1;
+        for (let n = Math.min(4, cs.length - i); n >= 1; n--) { const h = cs.slice(i, i + n).join(""); w = pool.find((x) => x.hz === h || x.hz.split(/\s*;\s*/).includes(h)); if (w) { len = n; break; } }
+        if (!w) { ids.length = 0; break; }
+        ids.push(w.id); i += len;
+      }
+      if (ids.length > 1) parts = ids;
+    }
     return { raw, hits, parts, pick: hits.length === 1 ? hits[0].id : null, own, skip: false };
   }
   function renderPaste(view, lid) {
     const l = lid && S.lessons[lid];
-    setTopbar(t("pasteList"), lid ? "lessons/" + lid : "lessons");
+    setTopbar(t("addWords"), lid ? "lessons/" + lid : "lessons");
+    const target = l ? l.name : t("lessonDated", courseLessons().length + 1, lessonDate(Date.now()));
     document.body.classList.add("home");
     let rows = [];
     const draft = () => { try { return sessionStorage.getItem("lt.paste") || ""; } catch (e) { return ""; } };
     view.innerHTML = `
-      <div class="page-top"><button class="fh-close" id="pg-back" type="button" aria-label="${t("back")}">${icon("back")}</button><div class="grow"><div class="fh-title">${t("pasteList")}</div><div class="fh-sub">${l ? esc(l.name) : t("pasteNewLesson")}</div></div></div>
-      <label class="su-label" for="p-text">${t("pasteLabel")}</label>
-      <textarea class="paste-box" id="p-text" rows="6" placeholder="${esc(t(C.id === "zh" ? "pastePhZh" : "pastePh"))}" lang="${C.tts}" autocapitalize="off" autocorrect="off" spellcheck="false">${esc(draft())}</textarea>
-      <div class="list-hint">${t("pasteHint")}</div>
-      <div id="p-rows"></div>
+      <div class="page-top"><button class="fh-close" id="pg-back" type="button" aria-label="${t("back")}">${icon("back")}</button><div class="grow"><div class="fh-title">${t("addWords")}</div><div class="fh-sub">${esc(t("toLesson", target))}</div></div></div>
+      <div class="add-panes"><div class="add-in">
+        <label class="su-label" for="p-text">${t("addWhat")}</label>
+        <textarea class="paste-box" id="p-text" rows="6" placeholder="${esc(t(C.id === "zh" ? "pastePhZh" : "pastePh"))}" lang="${C.tts}" autocapitalize="off" autocorrect="off" spellcheck="false">${esc(draft())}</textarea>
+        <div class="list-hint">${t("addHint")}</div>
+        <div class="row add-tools">${navigator.clipboard && navigator.clipboard.readText ? `<button class="btn sm" id="p-paste" type="button">${t("pasteBtn")}</button>` : ""}<button class="btn sm ghost" id="p-browse" type="button">${t("browseList")}</button><span class="grow"></span><span class="small muted desk-only">${t("addKeys")}</span></div>
+      </div><div class="add-out" id="p-rows"></div></div>
       <div class="su-bar" id="p-bar" hidden><div class="grow"><b id="p-count"></b><span id="p-sub"></span></div><button class="btn primary" id="p-add" type="button">${t("add")}</button></div>`;
     const box = $("#p-text");
     const line = (w) => C.id === "zh" ? `<b class="py-face">${pyHtml(w.py)}</b> <span class="hanzi">${esc(w.hz)}</span> · ${esc(tr(w))}` : C.id === "vi" ? `<b>${viHtml(w.hz)}</b> · ${esc(tr(w))}` : `<b class="hanzi">${esc(w.hz)}</b> ${esc(w.py)} · ${esc(tr(w))}`;
     function drawRows() {
-      $("#p-rows").innerHTML = rows.map((r, k) => {
+      const kind = (r) => r.skip ? "skip" : r.multi || r.pick ? "found" : r.hits.length || (r.parts && !r.ownChosen) ? "choose" : "own";
+      const html = rows.map((r, k) => {
         const inLesson = l && r.pick && l.words.includes(r.pick);
         const head = `<span class="p-raw">${esc(r.raw)}</span>`;
         if (r.skip) return `<div class="p-row skip">${head}<span class="grow muted small">${t("skipped")}</span><button class="link-btn" data-undo="${k}" type="button">${t("undo")}</button></div>`;
@@ -3729,7 +3887,10 @@
         if (r.hits.length) return `<div class="p-row ask">${head}<span class="grow"><span class="small muted">${t("pasteWhich")}</span><span class="p-choices">${r.hits.map((w) => `<button class="chip" data-pick="${k}:${w.id}" type="button">${C.id === "zh" ? `${pyHtml(w.py)} <span class="hanzi">${esc(w.hz)}</span>` : esc(w.hz)} · ${esc(tr(w).split(/[;,(]/)[0].trim())}</button>`).join("")}<button class="chip" data-ownit="${k}" type="button">${t("noneOwn")}</button></span></span></div>`;
         return `<div class="p-row own">${head}<span class="grow"><span class="small muted">${t("notInListShort")}</span>
           <span class="p-own">${C.id === "zh" ? `<input data-own="${k}:py" value="${esc(r.own.py || "")}" placeholder="${esc(t("ownPy"))}" aria-label="${esc(t("ownPy"))}"><input data-own="${k}:hz" value="${esc(r.own.hz || "")}" placeholder="${esc(t("ownHz"))}" aria-label="${esc(t("ownHz"))}" lang="zh-CN">` : `<input data-own="${k}:hz" value="${esc(r.own.hz || "")}" placeholder="${esc(t("ownWord"))}" aria-label="${esc(t("ownWord"))}" lang="${C.tts}">`}<input data-own="${k}:en" value="${esc(r.own.en || "")}" placeholder="${esc(t("ownEn"))}" aria-label="${esc(t("ownEn"))}"></span></span><button class="sq-btn sm" data-skip="${k}" type="button" aria-label="${t("skip")}">${icon("close")}</button></div>`;
-      }).join("");
+      });
+      const group = (k, title) => { const ks = rows.map((r, i) => (kind(r) === k ? i : -1)).filter((i) => i >= 0); return ks.length ? `<section class="p-group ${k}"><div class="eyebrow">${title(ks.length)}</div>${ks.map((i) => html[i]).join("")}</section>` : ""; };
+      $("#p-rows").innerHTML = rows.length ? group("found", (n) => t("foundN", n)) + group("choose", () => t("chooseN")) + group("own", () => t("ownWordN")) + group("skip", (n) => t("skipped") + " · " + n)
+        : `<div class="add-empty muted small">${t("addEmpty")}</div>`;
       const live = rows.filter((r) => !r.skip);
       const add = live.filter((r) => r.pick && !(l && l.words.includes(r.pick))).length + live.reduce((n, r) => n + (r.multi ? r.multi.length : 0), 0);
       const own = live.filter((r) => !r.pick && !r.multi && !r.hits.length && !(r.parts && !r.ownChosen) && (r.own.hz || r.own.py) && r.own.en).length;
@@ -3738,6 +3899,7 @@
       $("#p-count").textContent = t("pasteCount", add + own);
       $("#p-sub").textContent = [own ? t("ownN", own) : "", open ? t("pasteOpen", open) : ""].filter(Boolean).join(" · ") || (l ? esc(l.name) : t("pasteNewLesson"));
       $("#p-add").disabled = !(add + own);
+      $("#p-add").textContent = add + own ? t("addNTo", add + own, target.split(/ ·|:/)[0]) : t("add");
       $$("[data-pick]").forEach((b) => (b.onclick = () => { const [k, id] = b.dataset.pick.split(":"); rows[+k].pick = wid(id); drawRows(); }));
       $$("[data-repick]").forEach((b) => (b.onclick = () => { rows[+b.dataset.repick].pick = null; drawRows(); }));
       $$("[data-ownit]").forEach((b) => (b.onclick = () => { const r = rows[+b.dataset.ownit]; r.hits = []; r.ownChosen = true; drawRows(); }));
@@ -3752,11 +3914,18 @@
     let timer = 0;
     const parse = () => { const txt = box.value; try { sessionStorage.setItem("lt.paste", txt); } catch (e) { /* private mode */ } const old = new Map(rows.map((r) => [r.raw, r])); rows = parseList(txt).map((p) => old.get(p) || matchPiece(p)); drawRows(); };
     box.oninput = () => { clearTimeout(timer); timer = setTimeout(parse, 250); };
-    if (box.value) parse(); else box.focus();
+    box.onkeydown = (e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey) && !$("#p-add").disabled) { e.preventDefault(); $("#p-add").click(); } };
+    if ($("#p-paste")) $("#p-paste").onclick = async () => { try { const x = await navigator.clipboard.readText(); if (x) { box.value = (box.value ? box.value + "\n" : "") + x; parse(); } } catch (e) { box.focus(); toast(t("pasteKeys")); } };
+    $("#p-browse").onclick = () => {
+      let id = lid;
+      if (!id) { id = newId("l"); S.lessons[id] = { course: C.id, name: target, words: [], created: Date.now() }; save(); }
+      lessonAdd = "list"; navigate("lessons/" + id);
+    };
+    if (box.value) parse(); else { drawRows(); box.focus(); }
     $("#pg-back").onclick = () => navigate(lid ? "lessons/" + lid : "lessons");
     $("#p-add").onclick = () => {
       let id = lid;
-      if (!id) { id = newId("l"); S.lessons[id] = { course: C.id, name: t("lessonDated", courseLessons().length + 1, lessonDate(Date.now())), words: [], created: Date.now() }; }
+      if (!id) { id = newId("l"); S.lessons[id] = { course: C.id, name: target, words: [], created: Date.now() }; }
       const lesson = S.lessons[id];
       rows.filter((r) => !r.skip).forEach((r) => {
         if (r.pick) { if (!lesson.words.includes(r.pick)) lesson.words.push(r.pick); return; }
@@ -3982,27 +4151,32 @@
     const voices = voiceAll || !good.length ? courseVoices() : good.concat(cur && !good.includes(cur) ? [cur] : []);
     const steps = isMac ? t("voiceStepsMac") : t("voiceStepsIos");
     const rank = { Premium: 0, Enhanced: 1, Default: 2 };
+    const tune = cur && S.settings.voiceTune && S.settings.voiceTune[cur.voiceURI];
+    const hear = (uri) => `<button class="v-hear" data-hear="${esc(uri)}" type="button" aria-label="${esc(t("hearVoice", uri ? (courseVoices().find((v) => v.voiceURI === uri) || {}).name || "" : t("voiceAuto")))}">${icon("play")}</button>`;
+    // Round 3: which voice, speed and a test sentence first; how to get a better voice and the sound details fold away
     view.innerHTML = `
-      <div class="page-top"><button class="fh-close" id="pg-back" type="button" aria-label="${t("back")}">${icon("back")}</button><div class="grow"><div class="fh-title">${t("voice")}</div></div></div>
+      <div class="page-top"><button class="fh-close" id="pg-back" type="button" aria-label="${t("back")}">${icon("back")}</button><div class="grow"><div class="fh-title">${t("voice")}</div><div class="fh-sub">${esc(t("langName"))}</div></div></div>
+      <div class="eyebrow">${t("whichVoice")}</div>
       ${voices.length ? `<div class="voice-list">
-        <button class="vrow ${!chosen ? "on" : ""}" data-voice="" type="button" aria-pressed="${!chosen}"><i></i><span class="grow"><b>${t("voiceAuto")}</b><span>${cur ? esc(cur.name) : ""}</span></span></button>
+        <div class="vrow-wrap"><button class="vrow ${!chosen ? "on" : ""}" data-voice="" type="button" aria-pressed="${!chosen}"><i></i><span class="grow"><b>${t("voiceAuto")}</b><span>${cur ? esc(cur.name) : ""}</span></span></button>${cur ? hear("") : ""}</div>
         ${voices.slice().sort((a, b) => rank[voiceQuality(a)] - rank[voiceQuality(b)]).map((v) => { const on = chosen && cur && v.voiceURI === cur.voiceURI, q = voiceQuality(v);
-          return `<button class="vrow ${on ? "on" : ""}" data-voice="${esc(v.voiceURI)}" type="button" aria-pressed="${!!on}"><i></i><span class="grow"><b>${esc(v.name)}</b><span>${esc(v.lang)}${cur && v.voiceURI === cur.voiceURI ? " · " + t("inUse") : ""}</span></span><span class="q-badge q-${q.toLowerCase()}">${q}</span></button>`; }).join("")}
+          return `<div class="vrow-wrap"><button class="vrow ${on ? "on" : ""}" data-voice="${esc(v.voiceURI)}" type="button" aria-pressed="${!!on}"><i></i><span class="grow"><b>${esc(v.name)}</b><span>${esc(v.lang)}${cur && v.voiceURI === cur.voiceURI ? " · " + t("inUse") : ""}</span></span><span class="q-badge q-${q.toLowerCase()}">${q}</span></button>${hear(v.voiceURI)}</div>`; }).join("")}
       </div>${!voiceAll && voices.length < courseVoices().length ? `<button class="link-btn" id="v-all" type="button">${t("showAllVoices", courseVoices().length)}</button>` : ""}` : `<div class="state-card"><b>${t("noVoiceTitle", t("langName"))}</b><p>${t("noVoiceText")}</p></div>`}
-      ${cur ? `<div class="st-sec"><div class="rule-head"><span>${t("voicePitch")}</span><span>${esc(cur.name)}</span></div>
-        <div class="row"><span class="small muted">${t("lower")}</span><input class="grow" type="range" id="v-pitch" min="0.8" max="1.2" step="0.02" value="${(S.settings.voiceTune && S.settings.voiceTune[cur.voiceURI] && S.settings.voiceTune[cur.voiceURI].pitch) || 1}" aria-label="${t("voicePitch")}"><span class="small muted">${t("higher")}</span></div>
-        <div class="list-hint">${t("voicePitchHint")}</div></div>` : ""}
-      <div class="list"><div class="list-item static"><span class="grow"><div class="li-title">${t("twoVoices")}</div><div class="li-sub">${secondVoice() ? t("twoVoicesWith", esc(secondVoice().name)) : t("twoVoicesPitch")}</div></span><button class="switch ${S.settings.twoVoices !== false ? "on" : ""}" id="sw-two" type="button" role="switch" aria-checked="${S.settings.twoVoices !== false}" aria-label="${t("twoVoices")}"></button></div></div>
-      <div class="st-sec"><div class="rule-head"><span>${t("speed")}</span></div>
-        <div class="seg">${[[0.6, "speedSlow"], [0.8, "speedLearner"], [1, "speedNative"]].map(([r, k]) => `<button class="${Math.abs(S.settings.rate - r) < 0.04 ? "on" : ""}" data-rate="${r}" type="button">${t(k)} ${r}×</button>`).join("")}</div></div>
-      <div class="guide">
-        <b>${t("naturalVoice")}</b><p>${t("naturalVoiceText", t("langName"))}</p>
+      <details class="guide v-guide"${voices.length && good.length ? "" : " open"}><summary><b>${t("naturalVoice")}</b></summary><p>${t("naturalVoiceText", t("langName"))}</p>
         <ol class="guide-steps">${steps.map((s, k) => `<li><span class="${k === 0 ? "on" : ""}">${k + 1}</span>${esc(s.replace("{0}", t("langName")))}</li>`).join("")}</ol>
-        <div class="row"><button class="btn primary grow" id="v-test" type="button">${t("testVoice")}</button><button class="btn grow" id="v-refresh" type="button">${t("refreshVoices")}</button></div>
-      </div>`;
+        <button class="btn" id="v-refresh" type="button">${t("refreshVoices")}</button></details>
+      <div class="st-sec"><div class="eyebrow">${t("speed")}</div>
+        <div class="seg">${[[0.6, "speedSlow"], [0.8, "speedLearner"], [1, "speedNative"]].map(([r, k]) => `<button class="${Math.abs(S.settings.rate - r) < 0.04 ? "on" : ""}" data-rate="${r}" type="button">${t(k)} ${r}×</button>`).join("")}</div>
+        <div class="v-sample"><span class="grow">“${esc(C.testPhrase)}”</span><button class="btn primary" id="v-test" type="button">${t("testVoice")}</button></div></div>
+      <div class="list"><div class="list-item static"><span class="grow"><div class="li-title">${t("twoVoices")}</div><div class="li-sub">${secondVoice() ? t("twoVoicesWith", esc(secondVoice().name)) : t("twoVoicesPitch")}</div></span><button class="switch ${S.settings.twoVoices !== false ? "on" : ""}" id="sw-two" type="button" role="switch" aria-checked="${S.settings.twoVoices !== false}" aria-label="${t("twoVoices")}"></button></div></div>
+      ${cur ? `<details class="v-adv"${tune && tune.pitch && tune.pitch !== 1 ? " open" : ""}><summary><span class="grow"><b>${t("advancedSound")}</b><span>${t("advancedSoundWeb")}</span></span></summary>
+        <div class="rule-head"><span>${t("voicePitch")}</span><span>${esc(cur.name)}</span></div>
+        <div class="row"><span class="small muted">${t("lower")}</span><input class="grow" type="range" id="v-pitch" min="0.8" max="1.2" step="0.02" value="${(tune && tune.pitch) || 1}" aria-label="${t("voicePitch")}"><span class="small muted">${t("higher")}</span></div>
+        <div class="list-hint">${t("eqIphoneOnly")}</div></details>` : ""}`;
     $("#pg-back").onclick = () => navigate("more");
     $$("[data-voice]").forEach((b) => (b.onclick = () => { S.settings.voices = S.settings.voices || {}; if (b.dataset.voice) S.settings.voices[C.id] = b.dataset.voice; else delete S.settings.voices[C.id]; save(); TTS.voice = null; pickVoice(); render(); speak(C.testPhrase); }));
     $$("[data-rate]").forEach((b) => (b.onclick = () => { S.settings.rate = +b.dataset.rate; save(); speak(C.testPhrase); render(); }));
+    $$("[data-hear]").forEach((b) => (b.onclick = () => speak(C.testPhrase, { voice: b.dataset.hear ? courseVoices().find((v) => v.voiceURI === b.dataset.hear) : TTS.voice })));
     $("#v-test").onclick = () => speak(C.testPhrase);
     $("#sw-two").onclick = () => { S.settings.twoVoices = S.settings.twoVoices === false; save(); render(); if (S.settings.twoVoices !== false) speak(C.testPhrase, { who: 1 }); };
     if ($("#v-pitch")) $("#v-pitch").onchange = (e) => { S.settings.voiceTune = S.settings.voiceTune || {}; S.settings.voiceTune[cur.voiceURI] = { pitch: +e.target.value }; save(); speak(C.testPhrase); };

@@ -1463,3 +1463,99 @@ html[data-course="de"] .wt-main, html[data-course="es"] .wt-main { white-space: 
 .say-like-latin { font-size: 22px; font-weight: 700; letter-spacing: .02em; } .say-like-latin .small { font-weight: 400; letter-spacing: 0; }
 input[type="range"] { accent-color: var(--seal); }
 .bubble.right .tip-chip b, html[data-course] .bubble.right .tip-chip b { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+
+/* Round 3 · Say: listening, heard nothing, judge yourself, verdict first */
+.say-state { display: flex; flex-direction: column; gap: 8px; padding: 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-elev); }
+.say-state p { margin: 0; color: var(--text-2); font-size: 14px; }
+.say-state.listen { align-items: center; text-align: center; }
+.say-state .lvl { display: flex; align-items: center; gap: 5px; height: 40px; }
+.say-state .lvl i { display: block; width: 5px; height: 100%; border-radius: 3px; background: var(--seal); transform: scaleY(.3); transition: transform 80ms linear; }
+.say-tips { margin: 0; padding-left: 18px; font-size: 14px; color: var(--text-2); }
+.steps3 { list-style: none; margin: 4px 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.steps3 li { display: flex; align-items: center; gap: 10px; }
+.steps3 li.col { flex-direction: column; align-items: stretch; }
+.steps3 li > span, .steps3 li .row > span { flex: none; width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--seal); color: var(--seal); display: grid; place-items: center; font-size: 13px; font-weight: 700; }
+.rate3 .btn.on { border-color: var(--accent); background: var(--accent); color: var(--accent-text); }
+.say-verdict h3 { margin: 0; font-size: 24px; }
+.say-verdict p { margin: 2px 0 0; color: var(--text-2); }
+.say-verdict.ok h3 { color: var(--green, var(--accent)); }
+.syl-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
+.syl-card { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 6px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--bg-elev); }
+.syl-card b { font-size: 20px; }
+.syl-card span:last-child { flex-basis: 100%; font-size: 13px; color: var(--text-2); }
+.syl-card.ok .mark { color: var(--green, var(--accent)); }
+.syl-card.bad { border-color: var(--seal); }
+.syl-card.bad .mark { color: var(--seal); font-weight: 700; }
+.say-fix { padding: 12px 14px; border-radius: var(--radius-sm); background: var(--bg-sunken); display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.say-fix p { margin: 0; }
+.say-fix .btn .ico, .say-state .btn .ico { width: 12px; height: 12px; fill: currentColor; }
+.say-why summary { cursor: pointer; color: var(--text-2); font-size: 14px; padding: 6px 0; }
+.say-why[open] summary { margin-bottom: 6px; }
+.say-mic { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+@media (prefers-reduced-motion: reduce) { .say-state .lvl i { transition: none; } }
+#say-res { display: flex; flex-direction: column; gap: 12px; }
+
+/* Round 3 · Practice: suggested next, by goal, every exercise folded by skill */
+.sug-card { padding: 14px 16px; border: 1.5px solid var(--seal); border-radius: var(--radius); background: var(--bg-elev); margin-bottom: 18px; }
+.sug-card .row { gap: 12px; margin-top: 6px; }
+.sug-card b { font-size: 17px; }
+.goal-chips { display: flex; gap: 8px; overflow-x: auto; padding: 6px 0 18px; scrollbar-width: none; }
+.goal-chip { flex: none; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 10px 14px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--bg-elev); color: var(--text); cursor: pointer; font: inherit; }
+.goal-chip b { font-size: 15px; } .goal-chip span { font-size: 12px; color: var(--text-2); }
+.goal-chip:hover { border-color: var(--accent); }
+.skill3 { border-bottom: 1px solid var(--line); }
+.skill3:first-of-type { border-top: 1px solid var(--line); margin-top: 6px; }
+.skill3 summary { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 14px 2px; cursor: pointer; list-style: none; }
+.skill3 summary::-webkit-details-marker { display: none; }
+.skill3 summary::after { content: "▾"; color: var(--text-2); margin-left: 4px; }
+.skill3[open] summary::after { content: "▴"; }
+.skill3 summary .sk2-note { margin-left: auto; text-align: right; }
+.sk3-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding-bottom: 14px; }
+.sk3-grid .sk2-row { border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--bg-elev); }
+.sk3-grid .sk2-row { padding: 10px 12px; }
+
+/* Round 3 · Done: the small seal on Learn; at the goal nothing more is asked */
+.seal-stamp.sm { zoom: 0.5; flex: none; }
+.cc-done { display: flex; align-items: center; gap: 14px; }
+.lesson-card p.cc-sub { margin: 10px 0 0; }
+
+/* Round 3 · Voice: hear each voice, speed with a test sentence, sound details folded */
+.vrow-wrap { display: flex; align-items: center; border-bottom: 1px solid var(--line); }
+.vrow-wrap:last-child { border-bottom: none; }
+.vrow-wrap .vrow { flex: 1; border-bottom: none; min-width: 0; }
+.v-hear { flex: none; width: 40px; height: 40px; margin-right: 8px; border-radius: 50%; border: 1px solid var(--line); background: var(--bg-elev); color: var(--accent); display: grid; place-items: center; cursor: pointer; }
+.v-hear .ico { width: 14px; height: 14px; fill: currentColor; }
+.v-guide summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; }
+.v-guide summary::after, .v-adv summary::after { content: "›"; color: var(--text-2); font-size: 20px; line-height: 1; }
+.v-guide[open] summary::after, .v-adv[open] summary::after { transform: rotate(90deg); }
+.v-guide summary::-webkit-details-marker, .v-adv summary::-webkit-details-marker { display: none; }
+.v-guide:not([open]) { gap: 0; }
+.v-sample { display: flex; align-items: center; gap: 12px; margin-top: 12px; padding: 12px 14px; border-radius: var(--radius-sm); background: var(--bg-sunken); font-size: 15px; }
+.v-adv { margin-top: 16px; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-elev); }
+.v-adv summary { display: flex; align-items: center; cursor: pointer; list-style: none; }
+.v-adv summary .grow { display: flex; flex-direction: column; } .v-adv summary .grow span { font-size: 13px; color: var(--text-2); }
+.v-adv[open] summary { margin-bottom: 12px; }
+.v-sample + * , .st-sec + .list { margin-top: 16px; }
+
+/* Round 3 · Add words: one box; found · choose · own word; side by side on wide screens */
+.add-tools { margin: 10px 0 4px; gap: 8px; align-items: center; }
+.add-out { display: flex; flex-direction: column; gap: 14px; margin-top: 16px; }
+.p-group { display: flex; flex-direction: column; gap: 6px; }
+.p-group .eyebrow { margin-bottom: 2px; }
+.p-group.choose .p-choices { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 6px; margin-top: 6px; }
+.p-group.choose .p-choices .chip { border-radius: var(--radius-sm); justify-content: flex-start; text-align: left; min-height: 44px; }
+.add-empty { padding: 18px; border: 1px dashed var(--line); border-radius: var(--radius-sm); }
+@media (min-width: 900px) {
+  .add-panes { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+  .add-panes .paste-box { min-height: 320px; }
+  .add-out { margin-top: 0; position: sticky; top: 16px; }
+}
+.p-row.ok .grow { display: block; line-height: 1.5; }
+
+/* Round 3 · Word sheet: status as a radio group, one "Add to a lesson…" with the lessons folded out */
+.ws-lessons { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: var(--radius-sm); overflow: hidden; margin-top: 6px; }
+.ws-lesson { display: flex; align-items: center; gap: 10px; padding: 11px 14px; border: none; border-bottom: 1px solid var(--line); background: var(--bg-elev); color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+.ws-lesson:last-child { border-bottom: none; }
+.ws-lesson i { width: 16px; height: 16px; border: 1.5px solid var(--text-2); border-radius: 4px; flex: none; }
+.ws-lesson.on i { background: var(--accent); border-color: var(--accent); box-shadow: inset 0 0 0 3px var(--bg-elev); }
+.ws-lesson.new { color: var(--accent); font-weight: 600; }

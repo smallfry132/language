@@ -1461,3 +1461,4 @@ html[data-course="es"] .lesson-card .cc-btn { background: var(--seal); color: #f
 html[data-course="de"] .lesson-card .cc-btn { background: var(--text); color: var(--bg); }
 html[data-course="de"] .wt-main, html[data-course="es"] .wt-main { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.2; }
 .say-like-latin { font-size: 22px; font-weight: 700; letter-spacing: .02em; } .say-like-latin .small { font-weight: 400; letter-spacing: 0; }
+input[type="range"] { accent-color: var(--seal); }

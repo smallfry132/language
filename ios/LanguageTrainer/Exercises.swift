@@ -797,6 +797,11 @@ struct SayWord: View {
             HStack(spacing: 12) {
                 Button(store.t("skip")) { store.mic.cancel(); skipped += 1; advance() }.buttonStyle(.secondary)
                 MicButton(key: "w\(i)", target: w.hz, py: w.py, pitch: pitch, big: true) { spoken = $0; selfScore = nil }
+                    .onAppear { // screenshots only: -heard 诚实 pretends the recogniser wrote that for the first word
+                        if i == 0, spoken == nil, let fake = Launch.value("-heard") {
+                            spoken = Spoken(heard: Check.matchHeard(w.hz, [fake], course: store.course.id, py: w.py), tones: nil, wav: Data(), ms: 1)
+                        }
+                    }
                 Button(store.t("next") + " →") { next() }.buttonStyle(spoken != nil ? AnyButtonStyle(.primary) : AnyButtonStyle(.secondary))
             }
             .padding(.horizontal, 16).padding(.vertical, 10)

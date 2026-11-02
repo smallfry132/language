@@ -96,7 +96,8 @@ struct SpokenResult: View {
                                 if n == h.hit.count && n > 0 { Text(PinyinText.attributed(py, missed: h.hit.map { !$0 })).font(.title3) }
                             }
                         }
-                        if !h.text.isEmpty { Text(store.t("heardAs", h.text)).font(.footnote).foregroundStyle(Color.ink3) }
+                        if !h.text.isEmpty { HeardLine(text: h.text, targetPy: py) }
+                        if spoken.curveOverruled { Text(store.t("curveOverruled", py)).font(.footnote).foregroundStyle(Color.good) }
                         if h.score < 1, !h.text.isEmpty { HeardHintText(hz: hz, heard: h.text) }
                     }
                 }
@@ -117,6 +118,29 @@ struct SpokenResult: View {
             }.font(.subheadline).tint(.ink)
         }
         .onAppear { if spoken.heard == nil && spoken.tones == nil { store.speaker.play(spoken.wav) } }
+    }
+}
+
+/// What the recogniser heard, read back with its reading and meaning ("Heard: 诚实 · chéngshí · honest"), and in
+/// Chinese which syllable sounded different ("shì sounded like shí")
+struct HeardLine: View {
+    @Environment(Store.self) var store
+    let text: String
+    let targetPy: String
+    var body: some View {
+        let c = store.course.id, r = Check.reading(of: text, course: c, lang: store.state.lang)
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text(store.t("heardWord")).font(.footnote).foregroundStyle(Color.ink3)
+                Text(r.text).hanziFont(17)
+                if !r.py.isEmpty { if c == "zh" { PinyinText(py: r.py, size: 15, weight: .semibold) } else { Text(r.py).font(.footnote) } }
+                Text("· " + (r.meaning.isEmpty ? store.t("notInLists") : r.meaning)).font(.footnote).foregroundStyle(Color.ink2)
+            }
+            if c == "zh" {
+                let d = Check.heardDiff(targetPy: targetPy, heardPy: r.py)
+                if !d.isEmpty { Text(d.map { store.t("heardDiff", $0.0, $0.1) }.joined(separator: " · ")).font(.footnote).foregroundStyle(Color.ink2) }
+            }
+        }
     }
 }
 

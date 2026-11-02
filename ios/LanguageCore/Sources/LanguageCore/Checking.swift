@@ -40,6 +40,37 @@ public enum Check {
         }
         return out
     }()
+    /// What the recogniser wrote, read back: the reading (pinyin, romanization) and the meaning, from the word lists.
+    /// Chinese is split into the longest list words (城市 → chéngshì "city"); characters outside the lists get the
+    /// system's pinyin and no meaning.
+    public struct HeardReading: Equatable { public let text: String; public let py: String; public let meaning: String }
+    static var listCache: [String: [String: Word]] = [:]
+    public static func reading(of text: String, course: String, lang: String) -> HeardReading {
+        let words = Library.shared.words[course] ?? []
+        let byHz = listCache[course] ?? { let d = Dictionary(words.map { ($0.hz, $0) }, uniquingKeysWith: { a, _ in a }); listCache[course] = d; return d }()
+        let mean = { (w: Word) in (lang == "de" ? (w.de ?? w.en) : w.en).components(separatedBy: CharacterSet(charactersIn: ";,(")).first?.trimmingCharacters(in: .whitespaces) ?? "" }
+        let clean = text.trimmingCharacters(in: .whitespacesAndNewlines.union(.punctuationCharacters))
+        if let w = byHz[clean] { return HeardReading(text: clean, py: w.py, meaning: mean(w)) }
+        guard course == "zh" else { return HeardReading(text: clean, py: "", meaning: "") }
+        let chars = units(clean, course: "zh")
+        var i = 0, pys: [String] = [], means: [String] = []
+        while i < chars.count {
+            var found: Word?, len = 1
+            for l in stride(from: min(4, chars.count - i), through: 1, by: -1) { if let w = byHz[chars[i..<(i + l)].joined()] { found = w; len = l; break } }
+            if let w = found { pys.append(w.py); means.append(mean(w)) }
+            else { pys.append(chars[i].applyingTransform(.mandarinToLatin, reverse: false) ?? zhReadings[chars[i]]?.sorted().first ?? "?") } // the system's own pinyin
+            i += len
+        }
+        return HeardReading(text: clean, py: pys.joined(separator: " "), meaning: means.filter { !$0.isEmpty }.joined(separator: " · "))
+    }
+    /// Chinese: syllables heard with another tone (target shì, heard shí → ("shì", "shí")), same syllable count only
+    public static func heardDiff(targetPy: String, heardPy: String) -> [(String, String)] {
+        let a = Lingo.pyParts(targetPy).filter { !$0.sep }.map { $0.text.lowercased() }, b = Lingo.pyParts(heardPy).filter { !$0.sep }.map { $0.text.lowercased() }
+        guard a.count == b.count else { return [] }
+        // Only the same syllable with another tone is worth pointing out (shì → shí); a different word is just different
+        let bare = { (x: String) in x.folding(options: .diacriticInsensitive, locale: nil) }
+        return zip(a, b).filter { $0 != $1 && bare($0) == bare($1) }.map { ($0, $1) }
+    }
     public static func matchHeard(_ target: String, _ alts: [String], course: String, py: String? = nil) -> Heard {
         let tc = units(target, course: course)
         let syl = py.map { Lingo.pyParts($0).filter { !$0.sep }.map { $0.text.lowercased() } } ?? []

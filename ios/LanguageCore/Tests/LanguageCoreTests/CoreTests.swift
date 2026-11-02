@@ -475,6 +475,16 @@ final class FamilyTests: XCTestCase {
         XCTAssertEqual(PasteList.match("물", words: words("ko"), course: "ko").hits.first?.hz, "물")
     }
 
+    func testHeardReadingAndDiff() {
+        let r = Check.reading(of: "城市。", course: "zh", lang: "en")
+        XCTAssertEqual(r.text, "城市"); XCTAssertEqual(r.py, "chéngshì"); XCTAssertEqual(r.meaning, "city")
+        let h = Check.reading(of: "诚实", course: "zh", lang: "en") // not in the lists: the system's pinyin
+        XCTAssertEqual(h.py.replacingOccurrences(of: " ", with: ""), "chéngshí")
+        XCTAssertEqual(Check.heardDiff(targetPy: "chéngshì", heardPy: h.py).map { $0.1 }, ["shí"])
+        XCTAssertEqual(Check.heardDiff(targetPy: "chéngshì", heardPy: "chéng shí").map { $0.1 }, ["shí"])
+        XCTAssertTrue(Check.heardDiff(targetPy: "chéngshì", heardPy: "chéngshì").isEmpty)
+        XCTAssertTrue(Check.heardDiff(targetPy: "māma", heardPy: "chéng shí").isEmpty) // another word altogether
+    }
     func testHeardHomophonesCount() {
         // The recogniser may write 事 for 是 or 她 for 他: said right, so it counts
         XCTAssertEqual(Check.matchHeard("是", ["事"], course: "zh", py: "shì").score, 1)

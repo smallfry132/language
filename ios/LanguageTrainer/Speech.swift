@@ -118,7 +118,12 @@ struct Spoken {
     var tones: Pitch.Result?      // the tone curve (Chinese words)
     var wav: Data                 // your voice, to play back
     var ms: Double
-    var score: Double { tones.map { $0.none ? 0 : $0.score } ?? heard?.score ?? 0 }
+    /// The recogniser wrote exactly the word, with the right tones (in Chinese a homophone with the same tones counts)
+    var heardExact: Bool { (heard?.score ?? 0) >= 1 && !(heard?.text.isEmpty ?? true) }
+    /// The tone curve decides, but when the recogniser heard exactly the word it counts as right: Apple's recogniser
+    /// tells tones apart well, and the curve can misjudge a syllable split or a short 4th tone
+    var score: Double { tones.map { $0.none ? (heardExact ? 1 : 0) : max($0.score, heardExact ? 1 : 0) } ?? heard?.score ?? 0 }
+    var curveOverruled: Bool { heardExact && (tones.map { !$0.none && $0.score < 0.8 } ?? false) }
 }
 
 @Observable @MainActor

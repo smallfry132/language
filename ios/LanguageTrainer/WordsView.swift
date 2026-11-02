@@ -179,10 +179,10 @@ struct Tile: View {
             // German and Spanish: no letter in the empty picture slot (it says nothing in Latin script), more room for the word
             if store.words.hasPicture(w.id) || !store.course.gender {
                 Group {
-                    if store.words.hasPicture(w.id) { WordPic(id: w.id, size: 24, box: 44) }
+                    if store.words.hasPicture(w.id) { WordPic(id: w.id, size: 24, box: picBox(w.id, 44, 60)) }
                     else { Text(String(w.hz.prefix(1))).hanziFont(20).foregroundStyle(Color.ink3) }
                 }
-                .frame(width: 44, height: 44)
+                .frame(width: picBox(w.id, 44, 60), height: picBox(w.id, 44, 60))
                 .background(Color.paper, in: RoundedRectangle(cornerRadius: max(2, r - 2)))
                 .overlay(RoundedRectangle(cornerRadius: max(2, r - 2)).stroke(Color.line))
             }
@@ -224,28 +224,23 @@ struct WordDetail: View {
         let fav = store.state.favs.contains(WordRef(w.id))
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
+                // A drawn picture is large: the word goes underneath it instead of squeezing in beside it
+                let drawn = Library.shared.art[w.id] != nil
                 HStack(alignment: .top, spacing: 12) {
                     if store.words.hasPicture(w.id) {
-                        WordPic(id: w.id, size: 40, box: 72).frame(width: 72, height: 72)
+                        WordPic(id: w.id, size: 40, box: picBox(w.id, 72, 120)).frame(width: picBox(w.id, 72, 120), height: picBox(w.id, 72, 120))
                             .background(Color.paper, in: RoundedRectangle(cornerRadius: max(2, Look.current.radius - 2)))
                             .overlay(RoundedRectangle(cornerRadius: max(2, Look.current.radius - 2)).stroke(Color.line))
                             .accessibilityLabel(store.tr(w))
                     }
-                    VStack(alignment: .leading, spacing: 2) {
-                        switch store.course.id {
-                        case "zh": if store.pyFirst { PinyinText(py: w.py, size: 34, weight: .bold) } else { Text(w.hz).hanziFont(36) }
-                        case "vi": VietText(text: w.hz, size: 34, weight: .heavy)
-                        case "de", "es": LatinWord(word: w, size: 34, leading: true)
-                        default: Text(w.hz).hanziFont(36)
-                        }
-                        Text(readingLine).font(.subheadline).foregroundStyle(Color.ink2)
-                    }
+                    if !drawn { heading(w) }
                     Spacer(minLength: 4)
                     SquareButton(icon: "speaker.wave.2.fill", label: store.t("playWord", w.hz)) { store.speaker.say(w.hz) }
                     SquareButton(icon: fav ? "star.fill" : "star", label: store.t("favorite"), on: fav) {
                         store.update { if fav { $0.favs.removeAll { $0.id == w.id } } else { $0.favs.append(WordRef(w.id)) } }
                     }
                 }
+                if drawn { heading(w) }
                 Text(metaLine).font(.footnote).foregroundStyle(Color.ink2)
                 if Lingo.elButFeminine(w) {
                     VStack(alignment: .leading, spacing: 4) {
@@ -274,6 +269,18 @@ struct WordDetail: View {
             Button(store.t("newLesson")) { let id = store.newLesson(); store.update { $0.toggleLessonWord(id, w.id) }; store.toast(store.t("added")) }
         }
         .onAppear { if store.state.settings.autoSpeak { store.speaker.say(w.hz) } }
+    }
+    /// The word and its reading line
+    @ViewBuilder func heading(_ w: Word) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            switch store.course.id {
+            case "zh": if store.pyFirst { PinyinText(py: w.py, size: 34, weight: .bold) } else { Text(w.hz).hanziFont(36) }
+            case "vi": VietText(text: w.hz, size: 34, weight: .heavy)
+            case "de", "es": LatinWord(word: w, size: 34, leading: true)
+            default: Text(w.hz).hanziFont(36)
+            }
+            Text(readingLine).font(.subheadline).foregroundStyle(Color.ink2)
+        }
     }
     var readingLine: String {
         switch store.course.id {

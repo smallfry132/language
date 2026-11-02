@@ -469,7 +469,7 @@ struct TypeWord: View {
         let r = Look.current.radius
         HStack(spacing: 14) {
             if store.words.hasPicture(w.id) {
-                WordPic(id: w.id, size: 40, box: 72).frame(width: 72, height: 72)
+                WordPic(id: w.id, size: 40, box: picBox(w.id, 72, 112)).frame(width: picBox(w.id, 72, 112), height: picBox(w.id, 72, 112))
                     .background(Color.elevated, in: RoundedRectangle(cornerRadius: r)).overlay(RoundedRectangle(cornerRadius: r).stroke(Color.line))
                     .accessibilityHidden(true)
             }
@@ -614,7 +614,7 @@ struct Meet: View {
             VStack(spacing: 8) {
                 HStack { CapsLabel(text: store.t("newWord")); Spacer(); ToneChip(word: w) }
                 if store.words.hasPicture(w.id) {
-                    WordPic(id: w.id, size: 46, box: 84).frame(width: 84, height: 84)
+                    WordPic(id: w.id, size: 46, box: picBox(w.id, 84, 128)).frame(width: picBox(w.id, 84, 128), height: picBox(w.id, 84, 128))
                         .background(Color.paper, in: RoundedRectangle(cornerRadius: r)).overlay(RoundedRectangle(cornerRadius: r).stroke(Color.line))
                         .accessibilityHidden(true)
                 }

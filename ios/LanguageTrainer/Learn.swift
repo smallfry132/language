@@ -299,7 +299,7 @@ struct LearnView: View {
         Button { openWord = w } label: {
             HStack(alignment: .center, spacing: 16) {
                 if store.words.hasPicture(w.id) {
-                    WordPic(id: w.id, size: 40, box: 72).frame(width: 72, height: 72)
+                    WordPic(id: w.id, size: 40, box: picBox(w.id, 72, 96)).frame(width: picBox(w.id, 72, 96), height: picBox(w.id, 72, 96))
                         .background(Color.paper, in: RoundedRectangle(cornerRadius: Look.current.radius)).accessibilityHidden(true)
                 }
                 VStack(alignment: .leading, spacing: 3) {

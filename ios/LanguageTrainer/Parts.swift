@@ -220,7 +220,7 @@ struct WordPic: View {
     @ScaledMetric(relativeTo: .title) private var scale: CGFloat = 1
     var body: some View {
         if let img = ArtImages.image(id) {
-            let side = box ?? size * 1.25 * scale
+            let side = box ?? min(200, size * 2.1 * scale) // a drawn picture carries the meaning: more room than the emoji
             Image(uiImage: img).resizable().scaledToFill().frame(width: side, height: side)
                 .clipShape(RoundedRectangle(cornerRadius: box == nil ? side * 0.18 : max(2, Look.current.radius - 2)))
         } else if let p = Library.shared.pictures[id] {
@@ -228,6 +228,9 @@ struct WordPic: View {
         }
     }
 }
+
+/// The frame for a word's picture: larger when it is a drawn one
+func picBox(_ id: String, _ emoji: CGFloat, _ drawn: CGFloat) -> CGFloat { Library.shared.art[id] != nil ? drawn : emoji }
 
 /// Decoded drawn pictures, kept while memory allows (a list scrolls past the same tiles again)
 @MainActor enum ArtImages {

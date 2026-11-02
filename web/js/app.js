@@ -3106,6 +3106,8 @@
         let finished = false;
         const cap = startCapture(() => cap.finish());
         MIC.cap = cap;
+        // Chinese words: the recogniser listens as well (for the Heard line); if the browser can't do both, the curve stays
+        const heardP = pitch && SR_OK() ? hearOnce().catch(() => null) : Promise.resolve(null);
         cap.finish = async () => {
           if (finished) return; finished = true; MIC.cap = null;
           let rec; try { rec = await cap.stop(); } catch (e) { if (!cap.aborted) { idle(); if (opts && opts.onDenied) opts.onDenied(); else toast(t("noMic")); } return; }
@@ -3114,7 +3116,12 @@
           if (pitch) {
             const tones = toneCheck(target.py, pitchTrack(rec.samples, CAP_RATE));
             if (!tones.none) recordTones(tones);
-            done(k, { mode: "pitch", tones, score: tones.none ? 0 : tones.score, url: rec.url, ms: rec.ms });
+            if (MIC.rec) MIC.rec.stop();
+            const alts = await Promise.race([heardP, new Promise((r) => setTimeout(() => r(null), 1500))]);
+            const heard = alts && alts.length ? matchHeard(target.hz, alts, target.py) : null;
+            // A word the recogniser heard exactly (with its tones) counts, even if the curve disagrees
+            const exact = !!(heard && heard.score >= 1 && heard.text);
+            done(k, { mode: "pitch", tones, heard, exact, score: Math.max(tones.none ? 0 : tones.score, exact ? 1 : 0), url: rec.url, ms: rec.ms });
             return;
           }
           // Recording without a check: listen to yourself next to the model and rate it
@@ -3134,7 +3141,7 @@
   }
   // Feedback under a spoken line or word
   function resultHtml(l, r) {
-    if (r.mode === "pitch") return `${pitchChart(r.tones)}<div class="row">${playBtns(r.url)}<button class="btn sm" data-say-model="${esc(l.hz)}" type="button">▶ ${t("playModel")}</button></div>`;
+    if (r.mode === "pitch") return `${pitchChart(r.tones)}${r.heard && r.heard.text ? heardLineHtml(r.heard.text, l.py) : ""}${r.exact && !r.tones.none && r.tones.score < 0.8 ? `<div class="heard-tip ok-note">${esc(t("curveOverruled", l.py))}</div>` : ""}<div class="row">${playBtns(r.url)}<button class="btn sm" data-say-model="${esc(l.hz)}" type="button">▶ ${t("playModel")}</button></div>`;
     if (r.mode === "rec") return `<div class="heard ${r.self ? "ok" : "bad"}">${r.score >= 1 ? "✓ " + t("gotIt") : r.score > 0 ? "≈ " + t("closeEnough") : "↺ " + t("notYet")} ${playBtns(r.url)}</div>`;
     const msg = r.score >= 0.8 ? t("heardGreat") : r.score >= 0.4 ? t("heardAlmost") : t("heardNo");
     let line = "";
@@ -3143,7 +3150,38 @@
       let k = 0;
       line = parts.map((x) => (x.sep ? esc(x.text) : `<span class="${r.hit[k++] ? "tn" + x.tone : "missed"}">${esc(x.text)}</span>`)).join("");
     }
-    return `<div class="heard ${r.score >= 0.8 ? "ok" : "bad"}"><div>${msg} <b>${Math.round(r.score * 100)}%</b></div>${line ? `<div class="heard-line">${line}</div>` : ""}${r.text ? `<div class="small muted">${t("heardAs", esc(r.text))}</div>` : ""}${r.score < 1 && r.text ? heardHint(l, r.text) : ""}</div>`;
+    return `<div class="heard ${r.score >= 0.8 ? "ok" : "bad"}"><div>${msg} <b>${Math.round(r.score * 100)}%</b></div>${line ? `<div class="heard-line">${line}</div>` : ""}${r.text ? heardLineHtml(r.text, l.py) : ""}${r.score < 1 && r.text ? heardHint(l, r.text) : ""}</div>`;
+  }
+  // What the recogniser wrote, read back from the word lists: 城市 → chéngshì · city. Chinese is split into the longest
+  // list words; a character outside them gets its reading from another list word or the common-character table.
+  function heardReading(text) {
+    const clean = text.replace(/^[\s\p{P}]+|[\s\p{P}]+$/gu, ""), list = COURSES[C.id].words;
+    const byHz = (h) => list.find((w) => w.hz === h || w.hz.split(/\s*;\s*/).includes(h));
+    const mean = (w) => tr(w).split(/[;,(]/)[0].trim();
+    const whole = byHz(clean);
+    if (whole) return { text: clean, py: C.id === "ja" ? whole.romaji || whole.py : whole.py, meaning: mean(whole) };
+    if (C.id !== "zh") return { text: clean, py: C.id === "ko" && window.KO ? KO.romanize(clean) : "", meaning: "" };
+    const chars = unitsOf(clean), pys = [], means = [];
+    for (let i = 0; i < chars.length;) {
+      let w = null, len = 1;
+      for (let l = Math.min(4, chars.length - i); l >= 1; l--) { w = byHz(chars.slice(i, i + l).join("")); if (w) { len = l; break; } }
+      if (w) { pys.push(w.py); means.push(mean(w)); } else { const r = readingsOf(chars[i]); pys.push(r ? [...r][0] : charPinyin(chars[i]) || "?"); }
+      i += len;
+    }
+    return { text: clean, py: pys.join(" "), meaning: means.join(" · ") };
+  }
+  // The 3,755 most common characters with a reading (js/pinyin-chars.js), for characters outside the word lists
+  let charPy = null;
+  const charPinyin = (ch) => { if (!charPy) { charPy = {}; (window.PINYIN_CHARS || "").split(" ").forEach((e) => { const c = Array.from(e)[0]; if (c) charPy[c] = e.slice(c.length); }); } return charPy[ch] || ""; };
+  // Heard: 诚实 chéngshí · honest — and in Chinese the syllable heard with another tone (shì sounded like shí)
+  function heardLineHtml(text, targetPy) {
+    const r = heardReading(text);
+    let diff = "";
+    if (C.id === "zh" && targetPy) {
+      const a = pyParts(targetPy).filter((x) => !x.sep).map((x) => x.text.toLowerCase()), b = pyParts(r.py).filter((x) => !x.sep).map((x) => x.text.toLowerCase());
+      if (a.length === b.length) diff = a.map((x, k) => (x !== b[k] && stripTones(x) === stripTones(b[k]) ? t("heardDiff", x, b[k]) : "")).filter(Boolean).join(" · ");
+    }
+    return `<div class="heard-line2"><span class="muted">${t("heardWord")}</span> <span class="hanzi">${esc(r.text)}</span>${r.py ? ` <b>${C.id === "zh" ? pyHtml(r.py) : esc(r.py)}</b>` : ""} <span class="muted">· ${esc(r.meaning || t("notInLists"))}</span></div>${diff ? `<div class="heard-tip">${esc(diff)}</div>` : ""}`;
   }
   // What went wrong, where the language makes it clear: a Korean final consonant that was missing or different,
   // a Japanese long vowel or small っ that was not held
@@ -3981,5 +4019,5 @@
     window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
   }
   // Expose a tiny debug API (handy in the console)
-  window.HSK1 = { state: () => S, get words() { return WORDS; }, get all() { return ALL_WORDS; }, get course() { return C; }, courses: COURSES, switchCourse, speak, navigate, pairs: (id) => minimalPairs(BY_ID[id]).map((x) => x.hz), tones: (py, x, sr) => toneCheck(py, pitchTrack(x, sr)) };
+  window.HSK1 = { state: () => S, get words() { return WORDS; }, get all() { return ALL_WORDS; }, get course() { return C; }, courses: COURSES, switchCourse, speak, navigate, pairs: (id) => minimalPairs(BY_ID[id]).map((x) => x.hz), tones: (py, x, sr) => toneCheck(py, pitchTrack(x, sr)), heard: (text, py) => heardLineHtml(text, py) };
 })();

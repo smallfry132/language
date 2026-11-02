@@ -1433,3 +1433,5 @@ html[data-course="vi"] .tip-chip b { color: #0F2A24; } html[data-course="vi"] .b
 .p-row.skip { opacity: .55; }
 .p-choices { display: flex; flex-wrap: wrap; gap: 6px; } .p-choices .chip { margin: 0; }
 .p-own { display: flex; flex-wrap: wrap; gap: 6px; } .p-own input { flex: 1 1 110px; min-width: 0; height: 36px; padding: 0 10px; border: 1px solid var(--line); border-radius: calc(var(--radius-sm) / 1.5); background: var(--bg-elev); color: var(--text); font: inherit; font-size: 14px; }
+.heard-line2 { margin-top: 6px; font-size: 13px; line-height: 1.5; } .heard-line2 .hanzi { font-size: 17px; color: var(--text); } .heard-line2 b { font-size: 15px; }
+.ok-note { color: var(--green); }

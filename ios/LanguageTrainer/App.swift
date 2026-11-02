@@ -42,7 +42,7 @@ struct RootView: View {
             ZStack {
                 // All four stay alive, so each keeps its place when you switch
                 ForEach(Tab.allCases, id: \.self) { t in
-                    stack(t).opacity(tab == t ? 1 : 0).allowsHitTesting(tab == t).accessibilityHidden(tab != t)
+                    stack(t).opacity(tab == t ? 1 : 0).allowsHitTesting(tab == t)
                 }
             }
             if (paths[tab] ?? NavigationPath()).isEmpty && !keyboard { Dock(tab: $tab, paths: $paths) }
@@ -82,7 +82,9 @@ struct RootView: View {
                 case .me: MeView()
                 }
             }
-            .navigationDestination(for: Route.self) { r in destination(r) }
+            // Hidden inside the stack: on the NavigationStack itself it does not reach VoiceOver
+            .accessibilityHidden(tab != t)
+            .navigationDestination(for: Route.self) { r in destination(r).accessibilityHidden(tab != t) }
             .background(Color.paper)
         }
     }
@@ -180,9 +182,12 @@ struct Dock: View {
                 .buttonStyle(.card)
                 .accessibilityLabel(names[k])
                 .accessibilityAddTraits(on ? [.isSelected, .isButton] : .isButton)
+                .accessibilityIdentifier("tab-\(k)")
+                .accessibilityShowsLargeContentViewer { Text(names[k]) }
             }
         }
         .padding(.horizontal, 12).padding(.top, 6)
+        .dynamicTypeSize(...DynamicTypeSize.xxLarge)
         .background(Color.paper.ignoresSafeArea(edges: .bottom))
         .overlay(alignment: .top) { Rectangle().fill(Color.line).frame(height: 1) }
     }

@@ -142,7 +142,7 @@ struct Bubble<Extra: View>: View {
                 }
                 HStack(spacing: 6) {
                     small(Label(store.t("play"), systemImage: "play.fill"), dark: right) { store.speaker.say(line.hz, rate: store.state.settings.rate, who: line.who) }
-                    small(Text("0.75×"), dark: right) { store.speaker.say(line.hz, rate: 0.6, who: line.who) }
+                    small(Text("0.75×"), dark: right) { store.speaker.say(line.hz, rate: 0.6, who: line.who) }.accessibilityLabel(store.t("playSlowly"))
                 }.padding(.top, 4)
                 extra
             }

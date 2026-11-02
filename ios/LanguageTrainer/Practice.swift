@@ -37,6 +37,7 @@ enum Route: Hashable {
 /// each group says what is waiting there (due words, dialogues done) and marks the newest modes NEW
 struct PracticeHome: View {
     @Environment(Store.self) var store
+    @Environment(\.dynamicTypeSize) private var typeSize
     struct Row { let route: Route; let key: String; let sub: String; var isNew = false }
     static let skillWord: [String: [(String, String)]] = [
         "zh": [("tīng", "听"), ("shuō", "说"), ("dú", "读"), ("xiě", "写")], "vi": [("Nghe", ""), ("Nói", ""), ("Đọc", ""), ("Viết", "")],
@@ -84,7 +85,7 @@ struct PracticeHome: View {
         let s = suggested(due: due)
         return VStack(alignment: .leading, spacing: 8) {
             Text(store.t("suggestedNext").uppercased()).font(.caption.weight(.bold)).tracking(1.2).foregroundStyle(Color.accent)
-            HStack(spacing: 12) {
+            (typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 10)) : AnyLayout(HStackLayout(spacing: 12))) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(s.title).font(.headline).foregroundStyle(Color.ink)
                     Text(s.sub).font(.footnote).foregroundStyle(Color.ink2)

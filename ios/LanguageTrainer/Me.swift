@@ -7,6 +7,7 @@ import LanguageCore
 
 struct MeView: View {
     @Environment(Store.self) var store
+    @Environment(\.dynamicTypeSize) private var typeSize
     @State private var showCourses = false
     @State private var micResult: Spoken?
     @State private var reminderOn = Reminder.isOn
@@ -32,7 +33,7 @@ struct MeView: View {
                     Image(systemName: "chevron.right").foregroundStyle(Color.ink3)
                 }.foregroundStyle(Color.ink)
             }.buttonStyle(.card).accessibilityHint(store.t("switchCourse"))
-            HStack(spacing: 0) {
+            (typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8)) : AnyLayout(HStackLayout(spacing: 0))) {
                 number("\(store.state.streak())", store.t("statsStreak"), accent: true)
                 Divider()
                 number("\(known)", store.t("statsWords"))
@@ -48,6 +49,7 @@ struct MeView: View {
                 Divider()
                 VStack(alignment: .leading, spacing: 6) {
                     HStack { Text(store.t("ttsRate")); Spacer(); Text(String(format: "%.2f×", s.rate)).fontWeight(.bold).monospacedDigit() }
+                        .accessibilityElement(children: .ignore).accessibilityLabel(store.t("speedTimes", String(format: "%g", s.rate)))
                     // Presets, as on the style canvas: slow, learner, native, fast
                     HStack(spacing: 6) {
                         ForEach([0.5, 0.75, 1.0, 1.25], id: \.self) { v in
@@ -58,6 +60,7 @@ struct MeView: View {
                                     .overlay(RoundedRectangle(cornerRadius: max(2, Look.current.radius - 4)).stroke(on ? Color.clear : Color.line))
                                     .foregroundStyle(on ? Color.onAction : Color.ink)
                             }.buttonStyle(.card).accessibilityAddTraits(on ? .isSelected : [])
+                            .accessibilityLabel(store.t("speedTimes", String(format: "%g", v)))
                         }
                     }
                 }.padding(14)

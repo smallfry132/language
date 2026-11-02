@@ -627,7 +627,7 @@ struct Meet: View {
                     Button { store.speaker.say(w.hz, rate: store.state.settings.rate * 0.75) } label: {
                         Text("0.75×").font(.footnote).padding(.horizontal, 14).frame(height: 40)
                             .background(Color.elevated, in: RoundedRectangle(cornerRadius: r)).overlay(RoundedRectangle(cornerRadius: r).stroke(Color.line))
-                    }.buttonStyle(.card).foregroundStyle(Color.ink)
+                    }.buttonStyle(.card).foregroundStyle(Color.ink).accessibilityLabel(store.t("playSlowly"))
                 }.padding(.top, 4)
             }
             .padding(20).frame(maxWidth: .infinity)

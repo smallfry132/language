@@ -6,6 +6,7 @@ import LanguageCore
 
 struct WordsView: View {
     @Environment(Store.self) var store
+    @Environment(\.dynamicTypeSize) private var typeSize
     @ScaledMetric private var tileWidth: CGFloat = 160 // two columns on a phone; wider (fewer columns) with larger text
     @State private var q = ""
     @State private var statusFilter = "all"
@@ -48,13 +49,16 @@ struct WordsView: View {
         let ws = store.words.selected, now = nowMs()
         let counts = (new: ws.filter { store.status($0.id) == .new }.count, learning: ws.filter { store.status($0.id) == .learning }.count,
                       due: ws.filter { store.state.isDue($0.id, now: now) }.count)
-        HStack(spacing: 6) {
+        // Side by side; stacked at the accessibility text sizes, where four boxes would break their words
+        let row = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(spacing: 6)) : AnyLayout(HStackLayout(spacing: 6))
+        row {
             stat(counts.new, store.t("new"), "new", Color.tone(4))
             stat(counts.learning, store.t("learning"), "learning", Color.tone(2))
             stat(counts.due, store.t("due"), "due", Color.accent, hot: counts.due > 0)
             if counts.due > 0 {
                 NavigationLink(value: Route.mode(.flash)) {
-                    Text(store.t("review")).font(.subheadline.weight(.bold)).padding(.horizontal, 14).frame(maxHeight: .infinity)
+                    Text(store.t("review")).font(.subheadline.weight(.bold)).padding(.horizontal, 14).padding(.vertical, typeSize.isAccessibilitySize ? 10 : 0)
+                        .frame(maxWidth: typeSize.isAccessibilitySize ? .infinity : nil, maxHeight: .infinity)
                         .background(Color.action, in: RoundedRectangle(cornerRadius: max(2, Look.current.radius - 2))).foregroundStyle(Color.onAction)
                 }
                 .buttonStyle(.card).simultaneousGesture(TapGesture().onEnded { SetupPrefs.shared.pools = ["due"]; SetupPrefs.shared.mins = 0 })

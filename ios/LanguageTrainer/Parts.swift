@@ -25,10 +25,10 @@ struct NewBadge: View {
     @Environment(Store.self) var store
     var body: some View {
         let vi = Look.current.id == "vi"
-        Text(store.t("newBadge").uppercased()).font(.system(size: 10, weight: .bold)).tracking(0.8)
+        Text(store.t("newBadge").uppercased()).font(.caption2.weight(.bold)).tracking(0.8)
             .padding(.horizontal, 5).padding(.vertical, 1)
             .background(vi ? Color.dynamic(0xC5F27A, 0xC5F27A, text: false) : Color.accent, in: RoundedRectangle(cornerRadius: 3))
-            .foregroundStyle(vi ? Color.dynamic(0x0F2A24, 0x0F2A24, text: false) : Color.white)
+            .foregroundStyle(vi ? Color.dynamic(0x0F2A24, 0x0F2A24, text: false) : Look.current.id == "de" ? Color.dynamic(0x161616, 0x141414, text: false) : Color.dynamic(0xFFFFFF, 0x141414, text: false))
     }
 }
 

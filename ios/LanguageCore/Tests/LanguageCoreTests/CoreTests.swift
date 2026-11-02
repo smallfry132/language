@@ -181,6 +181,17 @@ final class PitchTests: XCTestCase {
         XCTAssertEqual(r.syllables.first?.ok, false)
         XCTAssertEqual(r.syllables.first?.tip, "tipFall")
     }
+    func testLowButLevelFirstTonesCount() {
+        // 医生 yīshēng said level, but lower than the voice range the app had learned (base 240 Hz, voice at ~190 Hz)
+        let low: [Double] = [-1, -1, -1]
+        for base in [200.0, 240.0, 260.0] {
+            let r = Pitch.check(py: "yīshēng", frames: Pitch.track(voice([low, low])), f0base: base)
+            XCTAssertEqual(r.score, 1, "base \(base): got \(r.syllables.map { $0.got ?? 0 })")
+        }
+        // A falling syllable is still not a 1st tone
+        let r = Pitch.check(py: "yī", frames: Pitch.track(voice([fall])), f0base: 200)
+        XCTAssertEqual(r.syllables.first?.ok, false, "got \(String(describing: r.syllables.first?.got)) levels \(r.syllables.first?.levels.map { Int($0 * 10) } ?? [])")
+    }
     func testSilence() {
         XCTAssertTrue(Pitch.check(py: "mā", frames: Pitch.track([Float](repeating: 0, count: 16000)), f0base: nil).none)
     }

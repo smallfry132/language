@@ -3017,10 +3017,16 @@
       const w = want[i];
       if (w === 5) return { text: x.text, want: w, lv, ok: null };
       const mean = (a) => a.reduce((s, v) => s + v, 0) / a.length;
-      const dist = (tpl) => { const ms = mean(pts), mt = mean(tpl); return pts.reduce((s, v, j) => s + ((v - ms) - (tpl[j] - mt)) ** 2, 0) / 5 + 0.3 * (ms - mt) ** 2; };
+      // Height counts little when every syllable is a 1st tone (医生 yīshēng): there is only the guessed voice range to
+      // compare with, and level is what makes a 1st tone. Elsewhere height still tells a high fall from a low dip.
+      const heightW = want.every((x) => x === 1 || x === 5) ? 0.1 : 0.3;
+      const dist = (tpl) => { const ms = mean(pts), mt = mean(tpl); return pts.reduce((s, v, j) => s + ((v - ms) - (tpl[j] - mt)) ** 2, 0) / 5 + heightW * (ms - mt) ** 2; };
       const ds = { 1: dist(TONE_SHAPES[1]), 2: dist(TONE_SHAPES[2]), 3: Math.min(dist(TONE_SHAPES[3]), i === n - 1 ? dist(TONE3_END) : Infinity), 4: dist(TONE_SHAPES[4]) };
-      const got = +Object.keys(ds).reduce((a, b) => (ds[b] < ds[a] ? b : a));
-      const ok = got === w || ds[w] <= ds[got] + 0.35;
+      let got = +Object.keys(ds).reduce((a, b) => (ds[b] < ds[a] ? b : a));
+      // A level line that is not down at the bottom of the voice is a 1st tone, whatever the guessed range says
+      if (w === 1 && Math.max(...pts) - Math.min(...pts) < 0.9 && mean(pts) >= 2.0) got = 1;
+      // Near misses count, but a 1st tone has to stay level: a clear rise or fall is never one
+      const ok = got === w || (ds[w] <= ds[got] + 0.35 && (w !== 1 || Math.abs(pts[4] - pts[0]) <= 1.2));
       const slope = pts[4] - pts[0], m = mean(pts);
       const tip = ok ? "" : w === 1 ? (Math.abs(slope) > 1.2 ? "tipFlat" : "tipHigher") : w === 2 ? "tipRise" : w === 3 ? "tipLower" : "tipFall";
       return { text: x.text, want: w, got, ok, lv, tip, m };
@@ -3961,5 +3967,5 @@
     window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
   }
   // Expose a tiny debug API (handy in the console)
-  window.HSK1 = { state: () => S, get words() { return WORDS; }, get all() { return ALL_WORDS; }, get course() { return C; }, courses: COURSES, switchCourse, speak, navigate, pairs: (id) => minimalPairs(BY_ID[id]).map((x) => x.hz) };
+  window.HSK1 = { state: () => S, get words() { return WORDS; }, get all() { return ALL_WORDS; }, get course() { return C; }, courses: COURSES, switchCourse, speak, navigate, pairs: (id) => minimalPairs(BY_ID[id]).map((x) => x.hz), tones: (py, x, sr) => toneCheck(py, pitchTrack(x, sr)) };
 })();

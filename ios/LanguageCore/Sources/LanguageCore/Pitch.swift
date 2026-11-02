@@ -121,6 +121,10 @@ public enum Pitch {
         let newBase = (f0base.map { pow($0, 0.85) * pow(med, 0.15) } ?? med).rounded()
         let level = { (f0: Double) in max(0.3, min(5.7, 3 + (12 * log2(f0 / center)) / 3.5)) }
         let mean = { (a: [Double]) in a.reduce(0, +) / Double(a.count) }
+        // How much the height counts next to the shape. When every syllable is a 1st tone (医生 yīshēng) there is nothing
+        // to compare the height with but the voice range the app has guessed, and level is what makes a 1st tone, so it
+        // counts little. Elsewhere height still tells a high fall from a low dip.
+        let heightWeight = want.allSatisfy { $0 == 1 || $0 == 5 } ? 0.1 : 0.3
 
         let res: [Syllable] = sylls.enumerated().map { i, x in
             let lv = runs[i].compactMap { frames[$0] }.map(level)
@@ -134,12 +138,16 @@ public enum Pitch {
             if w == 5 { return Syllable(text: x.text, want: w, got: nil, ok: nil, levels: lv, tip: nil, last: last) }
             let dist = { (tpl: [Double]) -> Double in
                 let ms = mean(pts), mt = mean(tpl)
-                return zip(pts, tpl).reduce(0) { $0 + pow(($1.0 - ms) - ($1.1 - mt), 2) } / 5 + 0.3 * pow(ms - mt, 2)
+                return zip(pts, tpl).reduce(0) { $0 + pow(($1.0 - ms) - ($1.1 - mt), 2) } / 5 + heightWeight * pow(ms - mt, 2)
             }
             let ds: [Int: Double] = [1: dist(shapes[1]!), 2: dist(shapes[2]!), 3: min(dist(shapes[3]!), last ? dist(tone3End) : .infinity), 4: dist(shapes[4]!)]
-            let got = [1, 2, 3, 4].min { ds[$0]! < ds[$1]! }!
-            let ok = got == w || ds[w]! <= ds[got]! + 0.35
+            var got = [1, 2, 3, 4].min { ds[$0]! < ds[$1]! }!
+            // A level line that is not down at the bottom of the voice is a 1st tone, whatever the guessed range says
+            let flat = (pts.max()! - pts.min()!) < 0.9
+            if w == 1 && flat && mean(pts) >= 2.0 { got = 1 }
             let slope = pts[4] - pts[0]
+            // Near misses count, but a 1st tone has to stay level: a clear rise or fall is never one
+            let ok = got == w || (ds[w]! <= ds[got]! + 0.35 && (w != 1 || abs(slope) <= 1.2))
             let tip = ok ? nil : w == 1 ? (abs(slope) > 1.2 ? "tipFlat" : "tipHigher") : w == 2 ? "tipRise" : w == 3 ? "tipLower" : "tipFall"
             return Syllable(text: x.text, want: w, got: got, ok: ok, levels: lv, tip: tip, last: last)
         }

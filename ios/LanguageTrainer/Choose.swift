@@ -33,7 +33,7 @@ struct ChooseWord: View {
             }.padding(.top, 8)
             question(w, gap).padding(.vertical, 8)
             LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
-                ForEach(options) { x in option(x, w, showMeaning: gap.sentence != nil) }
+                ForEach(Array(options.enumerated()), id: \.element.id) { k, x in option(x, w, showMeaning: gap.sentence != nil).numberKey(k) }
             }
         }
         .safeAreaInset(edge: .bottom) { if let p = picked { feedback(w, p) } }

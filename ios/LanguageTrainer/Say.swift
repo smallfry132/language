@@ -97,7 +97,7 @@ struct SayWord: View {
                     if result || heardNothing { Text(store.t("tryAgain")).font(.caption.weight(.semibold)).foregroundStyle(Color.ink2) }
                 }
                 Button(store.t("next") + " →") { next() }.buttonStyle(result ? AnyButtonStyle(.primary) : AnyButtonStyle(.secondary))
-                    .accessibilityIdentifier("say-next")
+                    .nextKey().accessibilityIdentifier("say-next")
             }
         }
     }

@@ -304,6 +304,7 @@ struct PrimaryButtonStyle: ButtonStyle {
         configuration.label.font(.headline).frame(maxWidth: .infinity).padding(.vertical, 14)
             .background(tint.opacity(configuration.isPressed ? 0.8 : 1), in: RoundedRectangle(cornerRadius: max(Look.current.radius, 2) + 2, style: .continuous))
             .foregroundStyle(text)
+            .contentShape(.hoverEffect, RoundedRectangle(cornerRadius: max(Look.current.radius, 2) + 2, style: .continuous)).hoverEffect(.lift)
     }
 }
 struct SecondaryButtonStyle: ButtonStyle {
@@ -313,6 +314,7 @@ struct SecondaryButtonStyle: ButtonStyle {
             .background(Color.elevated.opacity(configuration.isPressed ? 0.6 : 1), in: RoundedRectangle(cornerRadius: max(Look.current.radius, 2) + 2, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: max(Look.current.radius, 2) + 2, style: .continuous).stroke(Color.line))
             .foregroundStyle(tint)
+            .contentShape(.hoverEffect, RoundedRectangle(cornerRadius: max(Look.current.radius, 2) + 2, style: .continuous)).hoverEffect(.highlight)
     }
 }
 extension ButtonStyle where Self == PrimaryButtonStyle { static var primary: PrimaryButtonStyle { .init() } }
@@ -321,7 +323,9 @@ extension ButtonStyle where Self == SecondaryButtonStyle { static var secondary:
 /// see-through (with .plain only the text and other opaque parts react), and it dims a little while pressed
 struct CardButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
+        // With a trackpad or mouse on an iPad the pointer highlights what it is over
         configuration.label.contentShape(Rectangle()).opacity(configuration.isPressed ? 0.7 : 1)
+            .contentShape(.hoverEffect, RoundedRectangle(cornerRadius: max(Look.current.radius, 2) + 2, style: .continuous)).hoverEffect(.highlight)
     }
 }
 extension ButtonStyle where Self == CardButtonStyle { static var card: CardButtonStyle { .init() } }
@@ -392,6 +396,16 @@ struct FeedbackBar: View {
 }
 
 /// The page background and width used by every screen
+extension View {
+    /// Hardware keyboard (iPad, Mac): 1–9 pick the answer with that number
+    func numberKey(_ k: Int) -> some View {
+        keyboardShortcut(k < 9 ? KeyboardShortcut(KeyEquivalent(Character("\(k + 1)")), modifiers: []) : nil)
+    }
+    /// Space goes on to the next question or word, as it shows a flashcard's answer. (A plain Return does not reach a
+    /// button on iOS without a text field, and the iPad keeps the arrow keys for moving between items.)
+    func nextKey() -> some View { keyboardShortcut(.space, modifiers: []) }
+}
+
 struct Page<Content: View>: View {
     /// A readable column; two-column screens on an iPad pass a wider one
     var maxWidth: CGFloat = 640

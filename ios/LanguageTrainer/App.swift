@@ -49,7 +49,8 @@ struct RootView: View {
                 ZStack {
                     // All four stay alive, so each keeps its place when you switch
                     ForEach(Tab.allCases, id: \.self) { t in
-                        stack(t).opacity(tab == t ? 1 : 0).allowsHitTesting(tab == t)
+                        // Hidden tabs are disabled too, so a keyboard shortcut cannot reach an exercise left open there
+                        stack(t).opacity(tab == t ? 1 : 0).allowsHitTesting(tab == t).disabled(tab != t)
                     }
                 }
                 if hSize != .regular && (paths[tab] ?? NavigationPath()).isEmpty && !keyboard { Dock(tab: $tab, paths: $paths) }
@@ -241,6 +242,7 @@ struct Sidebar: View {
             }
             Divider().padding(.vertical, 8)
             item(on: place == .myLessons, glyph: nil, symbol: "text.book.closed", title: store.t("myLessons"), id: "side-lessons") { open(.myLessons) }
+            lessonDrops
             item(on: place == .dialogues, glyph: nil, symbol: "bubble.left.and.bubble.right", title: store.t("dialogues"), id: "side-dialogues") { open(.dialogues) }
             Spacer()
             Text(store.t("streakDays", store.state.streak())).font(.footnote.weight(.semibold)).foregroundStyle(Color.accent).padding(.horizontal, 12)
@@ -249,6 +251,19 @@ struct Sidebar: View {
         .frame(width: 250)
         .background(Color.paper)
         .sheet(isPresented: $showCourses) { CoursePicker().presentationDetents([.medium, .large]) }
+    }
+    /// The newest lessons under My lessons: tap to open, drop a word tile from Words onto one to add it
+    var lessonDrops: some View {
+        ForEach(store.state.lessons(course: store.course.id).suffix(4).reversed(), id: \.id) { l in
+            LessonDropRow(name: l.lesson.name, count: l.lesson.words.count) { open(.lesson(l.id)) } drop: { texts in
+                let ids = texts.compactMap { t in store.words.selected.first { $0.hz == t }?.id ?? store.state.customWords(course: store.course.id).first { $0.hz == t }?.id }
+                let new = ids.filter { !l.lesson.words.contains(WordRef($0)) }
+                guard !new.isEmpty else { return false }
+                store.update { s in new.forEach { s.toggleLessonWord(l.id, $0) } }
+                store.toast(store.t("added"))
+                return true
+            }
+        }
     }
     /// My lessons and Dialogues live under Learn, as on the web
     func open(_ r: Route) {
@@ -276,5 +291,28 @@ struct Sidebar: View {
         .buttonStyle(.card)
         .accessibilityAddTraits(on ? [.isSelected, .isButton] : .isButton)
         .accessibilityIdentifier(id)
+    }
+}
+
+/// A lesson in the sidebar that takes dropped words; it lights up while a word is held over it
+struct LessonDropRow: View {
+    let name: String, count: Int
+    let tap: () -> Void
+    let drop: ([String]) -> Bool
+    @State private var over = false
+    var body: some View {
+        Button(action: tap) {
+            HStack(spacing: 8) {
+                Text(name).font(.subheadline).foregroundStyle(Color.ink).lineLimit(1)
+                Spacer(minLength: 4)
+                Text("\(count)").font(.caption.monospacedDigit()).foregroundStyle(Color.ink2)
+            }
+            .padding(.leading, 52).padding(.trailing, 12).padding(.vertical, 6).frame(maxWidth: .infinity, minHeight: 36, alignment: .leading)
+            .background(over ? Color.accent.opacity(0.15) : Color.clear, in: RoundedRectangle(cornerRadius: max(2, Look.current.radius - 2)))
+            .overlay(RoundedRectangle(cornerRadius: max(2, Look.current.radius - 2)).stroke(over ? Color.accent : Color.clear, lineWidth: 1.5))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.card)
+        .dropDestination(for: String.self) { items, _ in drop(items) } isTargeted: { over = $0 }
     }
 }

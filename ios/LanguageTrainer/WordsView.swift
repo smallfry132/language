@@ -140,7 +140,7 @@ struct WordsView: View {
                 LazyVGrid(columns: columns, alignment: .leading, spacing: 8) {
                     ForEach(topicSections(list), id: \.theme.id) { sec in
                         Section {
-                            ForEach(sec.words) { w in Button { open = w } label: { Tile(w: w) }.buttonStyle(.card) }
+                            ForEach(sec.words) { w in Button { open = w } label: { Tile(w: w) }.buttonStyle(.card).draggable(w.hz) { Tile(w: w).frame(width: 170).environment(store) /* the preview is drawn outside this view */ } }
                         } header: {
                             VStack(spacing: 6) {
                                 HStack(alignment: .firstTextBaseline) {
@@ -155,7 +155,7 @@ struct WordsView: View {
                 }
             } else {
                 LazyVGrid(columns: columns, spacing: 8) {
-                    ForEach(Array(list.prefix(limit))) { w in Button { open = w } label: { Tile(w: w) }.buttonStyle(.card) }
+                    ForEach(Array(list.prefix(limit))) { w in Button { open = w } label: { Tile(w: w) }.buttonStyle(.card).draggable(w.hz) { Tile(w: w).frame(width: 170).environment(store) /* the preview is drawn outside this view */ } }
                 }
                 if list.count > limit {
                     Button(store.t("showMore", min(240, list.count - limit), list.count - limit)) { limit += 240 }.buttonStyle(.secondary)

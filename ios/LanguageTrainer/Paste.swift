@@ -247,7 +247,7 @@ struct PasteScreen: View {
         let add = toAdd, n = add.ids.count + add.own
         return Button(n == 1 ? store.t("addNTo.one", n, lessonLabel) : store.t("addNTo", n, lessonLabel)) { addAll() }
             .buttonStyle(.primary).disabled(n == 0).opacity(n == 0 ? 0.5 : 1)
-            .accessibilityIdentifier("paste-add")
+            .keyboardShortcut(.return, modifiers: .command).accessibilityIdentifier("paste-add")
             .padding(.horizontal, 16).padding(.vertical, 10)
             .background(Color.paper).overlay(alignment: .top) { Rectangle().fill(Color.line).frame(height: 1) }
     }

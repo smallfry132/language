@@ -64,6 +64,21 @@ final class IPadTests: XCTestCase {
         shot("say-landscape")
     }
 
+    /// Drag a word tile from Words onto a lesson in the sidebar: the lesson gets the word
+    func testDragWordOntoLesson() {
+        launch(["-route", "words"])
+        let lesson = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Lesson 5'")).firstMatch
+        XCTAssertTrue(lesson.waitForExistence(timeout: 8), "the newest lesson under My lessons")
+        let before = lesson.label
+        let tile = app.buttons.matching(NSPredicate(format: "label CONTAINS 'goodbye'")).firstMatch
+        XCTAssertTrue(tile.waitForExistence(timeout: 5))
+        tile.press(forDuration: 1.2, thenDragTo: lesson, withVelocity: .slow, thenHoldForDuration: 0.6)
+        XCTAssertEqual(app.state, .runningForeground, "still in the app after the drop")
+        let changed = NSPredicate(format: "label != %@", before)
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: changed, object: lesson)], timeout: 5), .completed, "the word count went up: \(lesson.label)")
+        shot("drag-to-lesson")
+    }
+
     /// The accessibility audit on the iPad layout (same rules as PlatformTests)
     func testAccessibilityAuditIPad() throws {
         for route in ["learn", "practice", "words", "me"] {

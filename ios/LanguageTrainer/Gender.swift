@@ -32,13 +32,13 @@ struct GenderQuiz: View {
             }
             .frame(maxWidth: .infinity).padding(.vertical, 24)
             HStack(spacing: 10) {
-                ForEach(Array(articles.enumerated()), id: \.offset) { _, a in button(a.0, a.1, w) }
+                ForEach(Array(articles.enumerated()), id: \.offset) { k, a in button(a.0, a.1, w).numberKey(k) }
             }
             if let p = picked {
                 let ok = p == w.g
                 FeedbackBar(ok: ok, text: GenderText.attributed(w) + AttributedString(w.plural.map { " · " + $0 } ?? ""), speak: w.hz)
                 if let rule = rule(w) { Text(.init(rule)).font(.subheadline).foregroundStyle(Color.ink2).fixedSize(horizontal: false, vertical: true) }
-                Button(store.course.id == "es" ? "Seguir" : "Weiter") { next() }.buttonStyle(.primary).accessibilityIdentifier("Next")
+                Button(store.course.id == "es" ? "Seguir" : "Weiter") { next() }.buttonStyle(.primary).nextKey().accessibilityIdentifier("Next")
             }
         }
     }

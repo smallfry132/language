@@ -254,6 +254,7 @@ struct WordWidgetView: View {
             if let w = e.word {
                 switch family {
                 case .systemMedium: medium(w)
+                case .systemLarge: large(w)
                 case .accessoryRectangular: rectangular(w)
                 case .accessoryCircular: circular(w)
                 default: small(w)
@@ -306,6 +307,22 @@ struct WordWidgetView: View {
         case "es": return "\(WordLines.short(w.en)) · \(WordLines.stress(w))"
         default: return w.en
         }
+    }
+
+    /// Large (iPad Home Screen, also iPhone): the medium widget with the word's example sentence below
+    func large(_ w: Word) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            medium(w).frame(maxHeight: 170)
+            Rectangle().fill(look.muted.opacity(0.3)).frame(height: 1)
+            if let ex = w.ex, !ex.isEmpty {
+                eyebrow("EXAMPLE")
+                Text(ex).font(w.course == "de" || w.course == "es" ? look.word(20) : .system(size: 20, weight: .medium)).foregroundStyle(look.ink).lineLimit(3).minimumScaleFactor(0.7)
+                if let py = w.exPy, !py.isEmpty, w.course != "vi" { Text(py).font(.system(size: 13)).foregroundStyle(look.muted).lineLimit(2) }
+                if let en = w.exEn, !en.isEmpty { Text(en).font(.system(size: 13)).foregroundStyle(look.muted).lineLimit(2) }
+            }
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
     /// Medium: the course and tag above the word, the meaning and a hint below, Hear it plays the word in place
@@ -380,7 +397,7 @@ struct WordWidget: Widget {
         AppIntentConfiguration(kind: "WordOfDay", intent: CourseConfig.self, provider: WordProvider()) { WordWidgetView(e: $0) }
             .configurationDisplayName("Word of the day")
             .description("A word to learn today, in your course's look. Hear it plays the word.")
-            .supportedFamilies([.systemSmall, .systemMedium, .accessoryRectangular, .accessoryCircular])
+            .supportedFamilies([.systemSmall, .systemMedium, .systemLarge, .accessoryRectangular, .accessoryCircular])
     }
 }
 

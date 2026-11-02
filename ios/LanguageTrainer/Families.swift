@@ -223,7 +223,7 @@ struct FamilyQuiz: View {
                     if picked != nil {
                         let ok = picked == q.word.id
                         FeedbackBar(ok: ok, text: AttributedString((ok ? store.t("correct") : store.t("wrong")) + "  " + (store.course.id == "zh" ? q.word.py : q.word.hz) + " · " + store.tr(q.word)), speak: q.word.hz)
-                        Button(store.t("next")) { next() }.buttonStyle(.primary)
+                        Button(store.t("next")) { next() }.buttonStyle(.primary).nextKey()
                     }
                 }
                 .onAppear { if q.listen { store.speaker.say(q.word.hz) } }

@@ -42,10 +42,13 @@ struct TraceRun: View {
     @State private var mistakes: [Word] = []
     @State private var why: [String: String] = [:]
     @State private var live: [CGPoint] = []
+    @State private var liveWidth: [CGFloat] = [] // ink width per point: the Pencil's pressure, a finger draws evenly
+    @Environment(\.horizontalSizeClass) private var hSize
     @State private var lastOk = false
     @State private var hint: String?
     @State private var showing: Int?   // Show me: how many strokes are drawn so far
-    private let gridSize: CGFloat = 320
+    /// A larger writing grid on an iPad
+    private var gridSize: CGFloat { hSize == .regular ? 440 : 320 }
 
     var chars: [Character] { Array(list[wi].hz).filter { Strokes.shared.char($0) != nil } }
     var body: some View {
@@ -95,14 +98,21 @@ struct TraceRun: View {
                     if m.count > 1 { Path { p in p.move(to: toView(m[0])); p.addLine(to: toView(m[min(2, m.count - 1)])) }.stroke(seal.opacity(0.6), style: StrokeStyle(lineWidth: 3, lineCap: .round)) }
                 }
             }
-            Path { p in if let f = live.first { p.move(to: f); live.dropFirst().forEach { p.addLine(to: $0) } } }
-                .stroke(Color.ink.opacity(0.75), style: StrokeStyle(lineWidth: 11, lineCap: .round, lineJoin: .round))
+            // Your stroke: segment by segment, so the Pencil's pressure shows as a brush would
+            Canvas { ctx, _ in
+                guard live.count > 1 else { if let f = live.first { ctx.fill(Path(ellipseIn: CGRect(x: f.x - 5, y: f.y - 5, width: 10, height: 10)), with: .color(Color.ink.opacity(0.75))) }; return }
+                for k in 1..<live.count {
+                    var seg = Path(); seg.move(to: live[k - 1]); seg.addLine(to: live[k])
+                    ctx.stroke(seg, with: .color(Color.ink.opacity(0.75)), style: StrokeStyle(lineWidth: liveWidth[k], lineCap: .round, lineJoin: .round))
+                }
+            }
+            .allowsHitTesting(false)
+            InkInput(began: { p, w in live = [p]; liveWidth = [w] }, moved: { p, w in live.append(p); liveWidth.append(w) }, ended: { strokeEnded(m, n: n) })
         }
         .overlay(Rectangle().stroke(seal, lineWidth: 1.5))
         .contentShape(Rectangle())
-        .gesture(DragGesture(minimumDistance: 0)
-            .onChanged { live.append($0.location) }
-            .onEnded { _ in strokeEnded(m, n: n) })
+        // Apple Pencil: double-tap (or squeeze) shows the strokes once more
+        .pencilActions(show: { showMe(n) })
         .accessibilityLabel(store.t("traceAria", String(chars[min(ci, chars.count - 1)])))
     }
 
@@ -124,7 +134,7 @@ struct TraceRun: View {
     func strokeEnded(_ m: [[Double]], n: Int) {
         let s = 1024 / gridSize
         let pts = live.map { (x: Double($0.x * s), y: Double(900 - $0.y * s)) }
-        live = []
+        live = []; liveWidth = []
         guard si < n, !pts.isEmpty else { return }
         if Strokes.matches(pts, median: m) {
             si += 1; misses = 0; lastOk = true; hint = nil
@@ -151,5 +161,61 @@ struct TraceRun: View {
             if wi + 1 >= list.count { done(SessionResult(correct: right, total: list.count, mistakes: mistakes, why: why)); return }
             wi += 1
         }
+    }
+}
+
+/// Touches on the writing grid with their pressure: Apple Pencil draws thinner or wider with pressure, a finger evenly.
+/// (SwiftUI's drag gesture has no pressure.)
+struct InkInput: UIViewRepresentable {
+    let began: (CGPoint, CGFloat) -> Void
+    let moved: (CGPoint, CGFloat) -> Void
+    let ended: () -> Void
+    func makeUIView(context: Context) -> InkView { InkView() }
+    func updateUIView(_ v: InkView, context: Context) { v.began = began; v.moved = moved; v.ended = ended }
+
+    final class InkView: UIView {
+        var began: ((CGPoint, CGFloat) -> Void)?, moved: ((CGPoint, CGFloat) -> Void)?, ended: (() -> Void)?
+        private lazy var ink = InkRecognizer(target: nil, action: nil)
+        override init(frame: CGRect) {
+            super.init(frame: frame); backgroundColor = .clear
+            ink.owner = self; addGestureRecognizer(ink)
+        }
+        required init?(coder: NSCoder) { fatalError() }
+        // A stroke on the grid never scrolls the page: the scroll view waits for the ink recognizer
+        override func didMoveToWindow() {
+            super.didMoveToWindow()
+            var v = superview
+            while let s = v { if let sv = s as? UIScrollView { sv.panGestureRecognizer.require(toFail: ink) }; v = s.superview }
+        }
+        static func width(_ t: UITouch) -> CGFloat {
+            guard t.type == .pencil, t.maximumPossibleForce > 0 else { return 11 }
+            return 5 + 13 * min(1, t.force / (t.maximumPossibleForce * 0.6))
+        }
+    }
+
+    /// Recognises a stroke from its first touch (so nothing else takes it) and reports every point with its width
+    final class InkRecognizer: UIGestureRecognizer {
+        weak var owner: InkView?
+        override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
+            guard let t = touches.first, let v = owner else { return }
+            state = .began; v.began?(t.location(in: v), InkView.width(t))
+        }
+        override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent) {
+            guard let t = touches.first, let v = owner else { return }
+            // Coalesced touches: the Pencil reports up to 240 points a second, all of them make the line smooth
+            for c in event.coalescedTouches(for: t) ?? [t] { v.moved?(c.location(in: v), InkView.width(c)) }
+            state = .changed
+        }
+        override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) { owner?.ended?(); state = .ended }
+        override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent) { owner?.ended?(); state = .cancelled }
+    }
+}
+
+extension View {
+    /// Apple Pencil double-tap and squeeze (iPadOS 17.5 and later)
+    @ViewBuilder func pencilActions(show: @escaping () -> Void) -> some View {
+        if #available(iOS 17.5, *) {
+            self.onPencilDoubleTap { _ in show() }.onPencilSqueeze { phase in if case .ended = phase { show() } }
+        } else { self }
     }
 }

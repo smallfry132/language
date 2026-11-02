@@ -48,6 +48,17 @@ LanguageCore/               Swift package with everything that isn't a screen (r
 LanguageTrainerUITests/     UI tests
 ```
 
+## iPad
+
+- Full width: a sidebar instead of the dock (the course, the four sections, My lessons with the newest lessons, Dialogues).
+  Split View and Slide Over keep the dock. In landscape Learn uses two columns and a word opens in a pane beside the tiles.
+- Keyboard: **1–9** pick an answer (also the article in Der, die, das? and Again/Hard/Good/Easy on a card),
+  **Space** shows a card's answer and goes on to the next question, **⌘ Return** adds the words in Add words.
+  (A plain Return does not reach a button on iOS without a text field, and the iPad keeps the arrow keys for moving between items.)
+- Apple Pencil in character tracing: the stroke follows the pressure; double-tap or squeeze shows the strokes once more.
+- Drag a word tile from Words onto a lesson in the sidebar to add it (or into another app as text).
+- The word-of-the-day widget also comes in the large size.
+
 ## Develop
 
 ```bash

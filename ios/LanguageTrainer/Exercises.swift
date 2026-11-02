@@ -59,13 +59,13 @@ struct Flashcards: View {
             if flipped {
                 // Four in a row, two by two at the largest text sizes
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: dynamicType.isAccessibilitySize ? 2 : 4), spacing: 6) {
-                    rate(0, store.t("rateAgain"), "< 10 min")
+                    rate(0, store.t("rateAgain"), "< 10 min") // keys 1–4
                     rate(1, store.t("rateHard"), store.state.nextInterval(w.id, 1))
                     rate(2, store.t("rateGood"), store.state.nextInterval(w.id, 2))
                     rate(3, store.t("rateEasy"), store.state.nextInterval(w.id, 3))
                 }
             } else {
-                Button(store.t("showAnswer")) { flip(w) }.buttonStyle(.primary)
+                Button(store.t("showAnswer")) { flip(w) }.buttonStyle(.primary).keyboardShortcut(.space, modifiers: [])
             }
         }
         .onAppear { if listenFirst { store.speaker.say(w.hz) }; if Launch.has("-flip") && !flipped { flip(w) } } // -flip: for screenshots
@@ -191,7 +191,7 @@ struct Flashcards: View {
                 .background(q == 2 ? Color.action : Color.elevated, in: RoundedRectangle(cornerRadius: radius))
                 .overlay(RoundedRectangle(cornerRadius: radius).stroke(q == 0 ? Color.accent : q == 2 ? Color.clear : Color.line, lineWidth: q == 0 ? 1.5 : 1))
                 .foregroundStyle(q == 2 ? Color.onAction : q == 0 ? Color.accent : Color.ink)
-        }.buttonStyle(.card)
+        }.buttonStyle(.card).numberKey(q)
     }
 }
 
@@ -248,7 +248,7 @@ struct ChoiceQuiz: View {
             if picturesOnly(w) {
                 // Pictures as large tiles, two by two
                 LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
-                    ForEach(options) { x in
+                    ForEach(Array(options.enumerated()), id: \.element.id) { k, x in
                         Button { answer(x) } label: {
                             VStack(spacing: 4) {
                                 Text(store.words.picture(x.id) ?? "").scaledFont(52)
@@ -259,7 +259,7 @@ struct ChoiceQuiz: View {
                             .overlay(RoundedRectangle(cornerRadius: 16).stroke(border(x), lineWidth: 1.5))
                             .contentShape(RoundedRectangle(cornerRadius: 16)) // the whole tile is the button, not only the picture
                         }
-                        .buttonStyle(.card).disabled(picked != nil)
+                        .buttonStyle(.card).disabled(picked != nil).numberKey(k)
                         .accessibilityLabel(store.tr(x))
                     }
                 }
@@ -275,13 +275,13 @@ struct ChoiceQuiz: View {
                         .overlay(RoundedRectangle(cornerRadius: 14).stroke(border(x), lineWidth: 1.5))
                         .foregroundStyle(Color.ink)
                         .contentShape(RoundedRectangle(cornerRadius: 14)) // the whole card is the button, not only the word
-                    }.buttonStyle(.card).disabled(picked != nil)
+                    }.buttonStyle(.card).disabled(picked != nil).numberKey(k)
                 }
             }
             if let p = picked {
                 let ok = p == w.id
                 FeedbackBar(ok: ok, text: feedbackText(w, ok), speak: w.hz)
-                Button(store.t("next")) { next() }.buttonStyle(.primary)
+                Button(store.t("next")) { next() }.buttonStyle(.primary).nextKey()
             }
         }
         .onAppear { if options.isEmpty { options = optionsFor(w) } ; if direction.listens { store.speaker.say(w.hz) } }
@@ -645,7 +645,7 @@ struct Meet: View {
                 Button(store.t("nextWord") + " →") {
                     if store.state.card(w.id) == nil { store.update { $0.markLearning(w.id) } }
                     advance()
-                }.buttonStyle(SealButtonStyle()).accessibilityIdentifier("NextWord")
+                }.buttonStyle(SealButtonStyle()).nextKey().accessibilityIdentifier("NextWord")
             }.padding(.top, 6)
         }
         .onAppear { store.speaker.say(w.hz) }
@@ -849,11 +849,11 @@ struct PickRound: View {
                     .background(picked == nil ? Color.elevated : k == q.answer ? Color.good.opacity(0.15) : k == picked ? Color.bad.opacity(0.15) : Color.elevated, in: RoundedRectangle(cornerRadius: 14))
                     .overlay(RoundedRectangle(cornerRadius: 14).stroke(picked == nil ? Color.ink.opacity(0.08) : k == q.answer ? Color.good : k == picked ? Color.bad : Color.ink.opacity(0.08), lineWidth: 1.5))
                     .foregroundStyle(Color.ink)
-                }.buttonStyle(.card).disabled(picked != nil)
+                }.buttonStyle(.card).numberKey(k).disabled(picked != nil)
             }
             if let p = picked {
                 FeedbackBar(ok: p == q.answer, text: q.reveal)
-                Button(store.t("next")) { next() }.buttonStyle(.primary)
+                Button(store.t("next")) { next() }.buttonStyle(.primary).nextKey()
             }
         }
         .onAppear { q.play() }

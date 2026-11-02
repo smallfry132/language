@@ -39,8 +39,8 @@ LanguageTrainer/            The app
   SoundChart.swift          Sound chart
   SettingsViews.swift       Statistics, settings, sync, tone guide, tips, about
   Trace.swift               Trace characters (stroke order in a 田字格)
-  Intents.swift             Siri and Shortcuts: Quiz me, Word of the day
-LanguageWidget/             Home and Lock Screen widgets (word of the day); Info.plist in LanguageWidget-Info.plist
+  Intents.swift             Siri and Shortcuts: Quiz me, Word of the day, Listening practice
+LanguageWidget/             Home and Lock Screen widgets (word of the day, daily quiz, today); Info.plist in LanguageWidget-Info.plist
   Theme.swift               Colours and shared building blocks
   Demo.swift                A demo learner for screenshots and tests (launch argument -demo)
 LanguageCore/               Swift package with everything that isn't a screen (runs and tests on the Mac)
@@ -62,9 +62,13 @@ Launch arguments for testing: `-demo` (a demo learner), `-mute` (silent voices),
 
 ## Widgets and Siri
 
-The **LanguageWidget** extension shows the word of the day (Home Screen small and medium, Lock Screen) in each
-course's look; tapping it opens the app and plays the word. Siri and Shortcuts know “Quiz me in Trainer” (five
-listening questions) and “Trainer word of the day”.
+The **LanguageWidget** extension has three widgets, for all six courses: the word of the day (Home Screen small and
+medium, Lock Screen) in each course's look, where the medium size's Hear it button plays the word without opening the
+app and a tap elsewhere opens the app and plays it; a daily quiz (one two-option question a day, answered in the
+widget; the answer stays in the widget, so it isn't counted as a review); and Today, which shows a quiet “Open the app
+to see today's plan” until progress can be shared. Siri and Shortcuts know “Quiz me in Trainer” (five two-option
+questions inside Siri, iOS 26), “Trainer word of the day” (said twice, with an example) and “Listening practice in
+Trainer” (opens the app's five-question listening round).
 
 Streak and due words on the widgets need an **App Group**, which free Apple IDs can't always add: with a paid
 account, add the App Groups capability to both the LanguageTrainer and LanguageWidget targets with the group

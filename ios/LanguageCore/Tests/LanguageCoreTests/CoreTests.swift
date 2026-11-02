@@ -16,6 +16,18 @@ final class StrokeTests: XCTestCase {
             let a = WordOfDay.pick(course: c, date: Date(timeIntervalSince1970: 1_800_000_000)), b = WordOfDay.pick(course: c, date: Date(timeIntervalSince1970: 1_800_000_000 + 600))
             XCTAssertEqual(a?.word.id, b?.word.id); XCTAssertEqual(a?.word.lvl, 1); XCTAssertEqual(a?.word.course, c)
         }
+        for c in ["de", "es"] {
+            let a = WordOfDay.pick(course: c, date: Date(timeIntervalSince1970: 1_800_000_000))!
+            XCTAssertFalse(WordOfDay.bare(a.word).contains(" ")); XCTAssertNotNil(a.picture)
+            // over a month German and Spanish include nouns with their article
+            XCTAssertTrue((0..<30).contains { WordOfDay.pick(course: c, date: Date(timeIntervalSince1970: 1_800_000_000 + Double($0) * 86400))!.word.g != nil })
+        }
+        for c in ["zh", "vi", "ja", "ko", "de", "es"] {
+            for n in 0..<5 {
+                let q = WordOfDay.quiz(course: c, date: Date(timeIntervalSince1970: 1_800_000_000), n: n)!
+                XCTAssertNotEqual(q.word.en, q.other.en); XCTAssertNotEqual(q.word.hz, q.other.hz)
+            }
+        }
         XCTAssertNil(WidgetSnapshot.read(), "no App Group in tests")
         let han = { (c: Character) in c.unicodeScalars.first!.properties.isIdeographic }
         XCTAssertEqual(Library.shared.words["zh"]!.filter { w in w.hz.contains(where: han) && !Strokes.shared.covers(String(w.hz.filter(han))) }.count, 0)

@@ -11,16 +11,37 @@ public enum WordOfDay {
         return try? JSONDecoder().decode(T.self, from: data)
     }
 
-    public static func pick(course: String, date: Date = Date()) -> (word: Word, picture: String?)? {
-        guard var words = load("words-\(course)", [Word].self) else { return nil }
-        words = words.filter { $0.lvl == 1 }
+    /// German and Spanish nouns carry their article ("die Tür"); the one-word check looks at the word after it
+    public static func bare(_ w: Word) -> String {
+        guard w.g != nil, let sp = w.hz.firstIndex(of: " ") else { return w.hz }
+        return String(w.hz[w.hz.index(after: sp)...])
+    }
+    static func dayNumber(_ date: Date) -> Int {
+        Int(date.timeIntervalSince1970 / 86400 + Double(TimeZone.current.secondsFromGMT(for: date)) / 86400)
+    }
+    static func pool(_ course: String) -> (words: [Word], pics: [String: String])? {
+        guard let words = load("words-\(course)", [Word].self)?.filter({ $0.lvl == 1 }) else { return nil }
         let pics = load("pictures", [String: [String: String]].self)?[course] ?? [:]
-        let withPic = words.filter { pics[$0.id] != nil && !$0.hz.contains(" ") }
+        let withPic = words.filter { pics[$0.id] != nil && !bare($0).contains(" ") }
         let pool = withPic.count >= 7 ? withPic : Array(words.prefix(60))
-        guard !pool.isEmpty else { return nil }
-        let day = Int(date.timeIntervalSince1970 / 86400 + Double(TimeZone.current.secondsFromGMT(for: date)) / 86400)
-        var w = pool[day % pool.count]; w.course = course
-        return (w, pics[w.id])
+        return pool.isEmpty ? nil : (pool.map { var w = $0; w.course = course; return w }, pics)
+    }
+
+    public static func pick(course: String, date: Date = Date()) -> (word: Word, picture: String?)? {
+        guard let p = pool(course) else { return nil }
+        let w = p.words[dayNumber(date) % p.words.count]
+        return (w, p.pics[w.id])
+    }
+
+    /// One question a day for the quiz widget, five for Siri (n = 0…4): a word other than the word of the day, and a
+    /// second word with a different meaning and spelling to choose against
+    public static func quiz(course: String, date: Date = Date(), n: Int = 0) -> (word: Word, other: Word, rightFirst: Bool)? {
+        guard let p = pool(course), p.words.count > 3 else { return nil }
+        let day = dayNumber(date), c = p.words.count
+        let w = p.words[(day + c / 2 + n * 7) % c]
+        var k = (day * 3 + n + 1) % c
+        while p.words[k].id == w.id || p.words[k].en == w.en || p.words[k].hz == w.hz { k = (k + 1) % c }
+        return (w, p.words[k], (day + n) % 2 == 0)
     }
 }
 

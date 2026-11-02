@@ -51,6 +51,7 @@ final class Store {
         if let c = Launch.value("-course"), Course.all.contains(where: { $0.id == c }) { s.course = c } // for screenshots and tests
         if s.settings.onboarded == nil && !s.srs.isEmpty { s.settings.onboarded = 1 } // learners with progress skip the welcome
         if Launch.has("-onboarding") { s.settings.onboarded = nil }
+        if let g = Launch.value("-goal").flatMap(Int.init) { s.settings.dailyGoal = g } // tests: a goal that is (not) reached
         state = s
         snap = Snapshot(s)
         words = CourseWords(state: s)

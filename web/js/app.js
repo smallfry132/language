@@ -2378,7 +2378,7 @@
           ${segs}
           <button class="btn block cc-btn" id="go-session" type="button">${esc(cont)}</button>`
         : `<div class="cc-title">${n || introducedToday() ? t("sessionDone") : t("sessionTitle")}</div><div class="cc-sub">${n || introducedToday() ? t("sessionDoneSub") : t("sessionEmpty")}</div>
-          ${p.unseen ? `<button class="btn block cc-btn" id="more-new" type="button">${t("moreNew", Math.min(5, p.unseen))}</button>` : ""}`}
+          ${p.unseen && n < goal ? `<button class="btn block cc-btn" id="more-new" type="button">${t("moreNew", Math.min(5, p.unseen))}</button>` : ""}`}
       </div>`;
     const label = `<span class="wod-label">${t("wordOfDay")}</span>`;
     const say = wd ? `<span class="speak-btn sm" data-speak="${esc(wd.hz)}" aria-label="${t("speak")}">🔊</span>` : "";

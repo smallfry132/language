@@ -16,7 +16,7 @@ final class FlowTests: XCTestCase {
     func text(_ part: String) -> XCUIElement { app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", part)).firstMatch }
 
     func testTodaySessionRunsToTheEnd() {
-        launch()
+        launch(["-goal", "500"]) // goal not reached: Learn more is offered after the session
         app.buttons["Continue"].tap()
         var steps: [String] = []
         for _ in 0..<300 {

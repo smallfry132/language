@@ -17,6 +17,10 @@ struct Look {
     let radius: CGFloat
     let wordFont: (CGFloat, Font.Weight) -> String? // PostScript name of the font for words in the target script; nil = system
     let tabs: [String]                 // Learn, Practice, Words, Me in the language's own script
+    /// PostScript name of the interface font (Barlow, Work Sans); nil = the system font
+    var uiFont: (Font.Weight) -> String? = { _ in nil }
+    /// Latin dock labels: the word in the language with the English below, under a bar (German, Spanish)
+    var latinTabs: Bool { id == "de" || id == "es" }
 
     static let inkGrid = Look(id: "zh",
         paper: (0xFAF8F3, 0x161514), elevated: (0xFFFFFF, 0x211F1D), sunken: (0xEFEBE2, 0x0F0E0D), line: (0xDDD5C6, 0x3A3632),
@@ -39,17 +43,20 @@ struct Look {
         action: (0x0F2A24, 0xC5F27A), onAction: (0xC5F27A, 0x0F2A24), accent: (0x0F2A24, 0xC5F27A), radius: 14,
         wordFont: { _, w in w == .heavy || w == .black ? "BeVietnamPro-ExtraBold" : w.isBold ? "BeVietnamPro-SemiBold" : "BeVietnamPro-Regular" },
         tabs: ["Học", "Tập", "Từ", "Tôi"])
-    /// German (Klar: paper, ink, amber) and Spanish (Sol: sand, terracotta); the dock uses symbols (tabs empty)
+    /// German, Klar: clear like street signage, Barlow Condensed for words, amber only for the one thing to do next
     static let klar = Look(id: "de",
-        paper: (0xF6F6F3, 0x141414), elevated: (0xFFFFFF, 0x1F1F1E), sunken: (0xECECE7, 0x0D0D0D), line: (0xDEDDD8, 0x363634),
-        ink: (0x161616, 0xF0EFEC), ink2: (0x54524E, 0xB4B2AD), ink3: (0x6A6864, 0x95938E),
-        action: (0x161616, 0xF0EFEC), onAction: (0xFFFFFF, 0x141414), accent: (0xB7791F, 0xE6AA46), radius: 6,
-        wordFont: { _, _ in nil }, tabs: [])
+        paper: (0xF6F6F3, 0x141414), elevated: (0xFFFFFF, 0x1E1E1D), sunken: (0xECECE7, 0x0D0D0D), line: (0xDCDCD6, 0x34342F),
+        ink: (0x161616, 0xEDEDE8), ink2: (0x5C5C57, 0xB4B2AD), ink3: (0x66665F, 0x95938E),
+        action: (0xB7791F, 0xE0A341), onAction: (0x161616, 0x141414), accent: (0x8F5C12, 0xE0A341), radius: 6,
+        wordFont: { _, w in w.isBold ? "BarlowCondensed-Bold" : "BarlowCondensed-SemiBold" }, tabs: ["Lernen", "Üben", "Wörter", "Ich"],
+        uiFont: { w in w == .bold || w == .heavy || w == .black ? "Barlow-Bold" : w.isBold ? "Barlow-SemiBold" : "Barlow-Regular" })
+    /// Spanish, Sol: warm and spoken, Fraunces for words, terracotta marks where the voice lands
     static let sol = Look(id: "es",
-        paper: (0xFBF6EF, 0x1A1410), elevated: (0xFFFFFF, 0x251D17), sunken: (0xF1E7D9, 0x120E0B), line: (0xEADFCF, 0x3C3027),
-        ink: (0x2B1D14, 0xF4ECE2), ink2: (0x6B5848, 0xC2B3A2), ink3: (0x7A6656, 0xA29282),
-        action: (0xC4572B, 0xE88056), onAction: (0xFFFFFF, 0x1A1410), accent: (0xC4572B, 0xE88056), radius: 14,
-        wordFont: { _, _ in nil }, tabs: [])
+        paper: (0xFBF6EF, 0x1B1714), elevated: (0xFFFFFF, 0x26201B), sunken: (0xF1E7D9, 0x120F0C), line: (0xE8DCCB, 0x3E332A),
+        ink: (0x2A1E16, 0xF3EBE0), ink2: (0x6E5A4A, 0xC2B3A2), ink3: (0x76604F, 0xA29282),
+        action: (0xA8461F, 0xE8805A), onAction: (0xFFFFFF, 0x1B1714), accent: (0xA8461F, 0xE8805A), radius: 18,
+        wordFont: { _, w in w == .heavy || w == .black || w == .bold ? "Fraunces-72ptNonWonky" : "Fraunces-72ptSemiBoldNonWonky" }, tabs: ["Aprender", "Practicar", "Palabras", "Yo"],
+        uiFont: { w in w == .bold || w == .heavy || w == .black ? "WorkSansRoman-Bold" : w.isBold ? "WorkSansRoman-SemiBold" : "WorkSansRoman-Regular" })
     static func of(_ course: String) -> Look { ["zh": inkGrid, "ja": quietRuby, "ko": blockBuilder, "vi": toneColor, "de": klar, "es": sol][course] ?? inkGrid }
     /// The look of the course on screen. Set by the Store when the course changes; read when colours are drawn.
     static var current = inkGrid
@@ -109,13 +116,14 @@ extension Color {
     }
     /// Mandarin tones 1–4 and neutral (5)
     static func tone(_ n: Int) -> Color { contour([1: .level, 2: .rising, 3: .dipping, 4: .falling][n] ?? .light) }
-    /// German and Spanish nouns by gender: der/el blue, die/la red, das green (always shown with the article)
+    /// German and Spanish nouns by gender: der/el blue, die/la red (Spanish crimson, far from terracotta), das green.
+    /// Always with the article; as outlines and text only, never a fill, so "do this" never looks like "feminine".
     static func gender(_ g: String) -> Color {
         let isEs = Look.current.id == "es"
         switch g {
-        case "m": return isEs ? dynamic(0x2459A8, 0x86A9F0) : dynamic(0x1D5BBF, 0x7FA6FF)
-        case "f": return isEs ? dynamic(0xB5283E, 0xF08A96) : dynamic(0xC62828, 0xF07A6E)
-        default: return dynamic(0x2E7D32, 0x6BCB77)
+        case "m": return isEs ? dynamic(0x2456A6, 0x8FB0F0) : dynamic(0x1F5FBF, 0x86ABF2)
+        case "f": return isEs ? dynamic(0xA3193F, 0xF27A97) : dynamic(0xA82E25, 0xF08A80)
+        default: return dynamic(0x24704A, 0x6FC795)
         }
     }
     /// Vietnamese tones: ngang, huyền, sắc, hỏi, ngã, nặng (1–6)
@@ -145,6 +153,8 @@ struct ScaledFont: ViewModifier {
     }
     func body(content: Content) -> some View {
         if word, let name = Look.current.wordFont(size, weight), UIFont(name: name, size: size) != nil {
+            content.font(.custom(name, fixedSize: size))
+        } else if !word, design == .default, let name = Look.current.uiFont(weight), UIFont(name: name, size: size) != nil {
             content.font(.custom(name, fixedSize: size))
         } else {
             content.font(.system(size: size, weight: weight, design: design))
@@ -216,7 +226,7 @@ struct GenderText: View {
     let word: Word
     var size: CGFloat = 17
     var weight: Font.Weight = .bold
-    var body: some View { SwiftUI.Text(Self.attributed(word)).scaledFont(size, weight) }
+    var body: some View { SwiftUI.Text(Self.attributed(word)).hanziFont(size, weight) }
     static func attributed(_ w: Word) -> AttributedString {
         guard let (art, noun) = w.articleSplit, let g = w.g else { return AttributedString(w.hz) }
         var a = AttributedString(art); a.foregroundColor = Look.toneColors ? Color.gender(g) : Color.ink

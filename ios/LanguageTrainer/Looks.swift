@@ -7,7 +7,8 @@ import LanguageCore
  * and the dock's labels written in the language (Look.tabs, drawn by Dock). */
 
 enum Fonts {
-    /// Fonts shipped with the app (Be Vietnam Pro); the Chinese and Japanese serifs are built into iOS
+    /// Fonts shipped with the app, all under the SIL Open Font License: Be Vietnam Pro, Barlow (German), Work Sans and
+    /// Fraunces (Spanish, both cut to static weights from the variable fonts); the Chinese and Japanese serifs are built into iOS
     static func register() {
         for url in Bundle.main.urls(forResourcesWithExtension: "ttf", subdirectory: nil) ?? [] {
             CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil)
@@ -46,7 +47,7 @@ struct WordHero: View {
                 Text(word.py).font(.subheadline).foregroundStyle(Color.ink3)
                 ToneContours(text: word.hz)
             case "de", "es":
-                WordFace(word: word, size: size)
+                LatinWord(word: word, size: size * 0.75, longGender: true)
                 if let pl = word.plural { Text("\(store.t("plural")): \(pl)").font(.subheadline).foregroundStyle(Color.ink2) }
             default:
                 WordFace(word: word, size: size)
@@ -54,6 +55,72 @@ struct WordHero: View {
             }
         }
         .multilineTextAlignment(.center)
+    }
+}
+
+/// German and Spanish (Klar, Sol): the article as an outlined chip in its gender's colour, then the noun in the look's
+/// font. German compounds show their parts (Kühl·schrank); Spanish underlines where the voice lands (ma·ña·na).
+struct LatinWord: View {
+    @Environment(Store.self) var store
+    let word: Word
+    var size: CGFloat = 44
+    var leading = false
+    /// "das · neuter" instead of "das · n"
+    var longGender = false
+    var body: some View {
+        VStack(alignment: leading ? .leading : .center, spacing: 6) {
+            if let (art, _) = word.articleSplit, let g = word.g { GenderChip(word: word, article: art, g: g, long: longGender) }
+            Text(Self.noun(word, course: store.course.id, nouns: Self.nouns(store))).hanziFont(size, .bold).foregroundStyle(Color.ink)
+                .lineLimit(2).minimumScaleFactor(leading ? 1 : 0.5)
+        }
+        .accessibilityElement(children: .ignore).accessibilityLabel(word.hz)
+    }
+    /// The nouns of the German list without article, for the compound parts
+    @MainActor static var nounCache: (count: Int, set: Set<String>) = (0, [])
+    @MainActor static func nouns(_ store: Store) -> Set<String> {
+        guard store.course.id == "de" else { return [] }
+        let all = store.words.all
+        if nounCache.count != all.count { nounCache = (all.count, Set(all.compactMap { $0.g == nil ? nil : $0.articleSplit?.noun })) }
+        return nounCache.set
+    }
+    static func noun(_ w: Word, course: String, nouns: Set<String>) -> AttributedString {
+        let noun = w.articleSplit?.noun ?? w.hz
+        if course == "de" {
+            let parts = Lingo.deCompound(noun, nouns: nouns)
+            var out = AttributedString()
+            for (k, part) in parts.enumerated() {
+                if k > 0 { var dot = AttributedString("·"); dot.foregroundColor = .ink3; out += dot }
+                out += AttributedString(part)
+            }
+            return out
+        }
+        if course == "es", let syl = Lingo.esSyllables(noun), syl.parts.count > 1 {
+            var out = AttributedString()
+            for (k, part) in syl.parts.enumerated() {
+                var a = AttributedString(part)
+                if k == syl.stressed { a.foregroundColor = .accent; a.underlineStyle = .single }
+                out += a
+            }
+            return out
+        }
+        return AttributedString(noun)
+    }
+}
+
+/// The article of a noun, outlined in its gender's colour: der · m, la · f, el · but feminine
+struct GenderChip: View {
+    @Environment(Store.self) var store
+    let word: Word
+    let article: String
+    let g: String
+    var long = false
+    var body: some View {
+        let es = store.course.id == "es", odd = es && Lingo.elButFeminine(word)
+        let label = odd ? store.t("elButFem") : "\(article) · " + (long ? store.t("gender_" + g) : g)
+        let color = Look.toneColors ? Color.gender(odd ? "f" : g) : Color.ink
+        Text(label).scaledFont(13, .bold).foregroundStyle(color)
+            .padding(.horizontal, es ? 10 : 8).frame(height: 26)
+            .overlay { if es { Capsule().stroke(color, lineWidth: 1.5) } else { RoundedRectangle(cornerRadius: 6).stroke(color, lineWidth: 1.5) } }
     }
 }
 

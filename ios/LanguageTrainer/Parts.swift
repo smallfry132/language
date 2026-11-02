@@ -159,7 +159,7 @@ struct SayLike: View {
                 VStack(alignment: .leading, spacing: 2) {
                     if store.course.id == "es", !(word.articleSplit?.noun ?? word.hz).contains(" ") { Text(Lingo.esStress(word.articleSplit?.noun ?? word.hz)).font(.title2.weight(.bold)) }
                     else { GenderText(word: word, size: 22) }
-                    if let g = word.g { Text(([store.t("gender_" + g)] + (word.plural.map { [store.t("plural") + ": " + $0] } ?? [])).joined(separator: " · ")).font(.footnote).foregroundStyle(Color.ink2) }
+                    if let g = word.g { Text(([store.t("gender_" + (Lingo.elButFeminine(word) ? "f" : g))] + (word.plural.map { [store.t("plural") + ": " + $0] } ?? [])).joined(separator: " · ")).font(.footnote).foregroundStyle(Color.ink2) }
                 }
             default: ToneContours(text: word.hz)
             }

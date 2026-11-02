@@ -36,7 +36,7 @@ public struct Texts: Sendable {
 
     /// t("wordsCount", 3, 10) → "3 of 10 words"; a "key.one" form is used when the first number is 1
     public func callAsFunction(_ key: String, _ args: CustomStringConvertible...) -> String {
-        if let extra = Texts.extra[lang]?[key] ?? Texts.extra["en"]?[key] { return fill(extra, args) }
+        if let extra = Texts.extra[lang]?[key] ?? Texts.screens[lang]?[key] ?? Texts.extra["en"]?[key] ?? Texts.screens["en"]?[key] { return fill(extra, args) }
         if key == "toneLike", lang == "en", let n = args.first.flatMap({ Int("\($0)") }) {
             return "sounded like a \(["", "1st", "2nd", "3rd", "4th"][max(0, min(4, n))]) tone"
         }

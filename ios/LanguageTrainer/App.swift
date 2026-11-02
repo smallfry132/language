@@ -162,15 +162,20 @@ struct Dock: View {
                     if on { paths[t] = NavigationPath() }
                     tab = t
                 } label: {
-                    VStack(spacing: 2) {
-                        if Look.current.tabs.isEmpty { // German and Spanish: symbols instead of words in the language
-                            Image(systemName: ["sun.max", "target", "list.bullet", "person"][k]).font(.system(size: 19, weight: on ? .semibold : .regular)).foregroundStyle(on ? Color.accent : Color.ink2).frame(height: 22)
-                        } else {
-                            Text(Look.current.tabs[k]).hanziFont(20, on ? .semibold : .regular).foregroundStyle(on ? Color.accent : Color.ink2)
+                    if Look.current.latinTabs { // German and Spanish: the word in the language under a bar, English small below
+                        VStack(spacing: 2) {
+                            Rectangle().fill(on ? Color.action : Color.clear).frame(width: 28, height: 3).padding(.bottom, 4)
+                            Text(Look.current.tabs[k]).scaledFont(14, on ? .bold : .regular).foregroundStyle(on ? Color.ink : Color.ink2).lineLimit(1).minimumScaleFactor(0.8)
+                            if names[k] != Look.current.tabs[k] { Text(names[k]).font(.caption2).foregroundStyle(Color.ink2) }
                         }
-                        Text(names[k]).font(.caption2.weight(on ? .bold : .regular)).foregroundStyle(on ? Color.ink : Color.ink2)
+                        .frame(maxWidth: .infinity, minHeight: 50, alignment: .top).contentShape(Rectangle())
+                    } else {
+                        VStack(spacing: 2) {
+                            Text(Look.current.tabs[k]).hanziFont(20, on ? .semibold : .regular).foregroundStyle(on ? Color.accent : Color.ink2)
+                            Text(names[k]).font(.caption2.weight(on ? .bold : .regular)).foregroundStyle(on ? Color.ink : Color.ink2)
+                        }
+                        .frame(maxWidth: .infinity, minHeight: 50).contentShape(Rectangle())
                     }
-                    .frame(maxWidth: .infinity, minHeight: 50).contentShape(Rectangle())
                 }
                 .buttonStyle(.card)
                 .accessibilityLabel(names[k])

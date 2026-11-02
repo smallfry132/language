@@ -54,10 +54,11 @@ final class FlowTests: XCTestCase {
             }
             RunLoop.current.run(until: Date().addingTimeInterval(0.3))
         }
-        XCTAssertTrue(text("session is done").exists)
+        XCTAssertTrue(text("Session done").exists)
+        XCTAssertTrue(app.buttons["FlowMore"].exists, "goal not reached: Learn 5 more is offered")
         XCTAssertEqual(steps.count, 5, "meet, cards, listen, say, type: \(steps)")
         app.buttons["FlowDone"].tap()
-        XCTAssertTrue(text("Done for today").waitForExistence(timeout: 3))
+        XCTAssertTrue(text("session is done").waitForExistence(timeout: 3))
         // Learn 5 more starts a new round with new words (it used to do nothing after a finished session)
         let more = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Learn'")).matching(NSPredicate(format: "label CONTAINS 'more'")).firstMatch
         XCTAssertTrue(more.waitForExistence(timeout: 3))
@@ -106,9 +107,13 @@ final class FlowTests: XCTestCase {
         let box = app.textViews["paste-text"]
         XCTAssertTrue(box.waitForExistence(timeout: 5))
         box.tap(); box.typeText("xie4xie, cha2\nwater")
+        let find = app.buttons["paste-find"]
+        XCTAssertTrue(find.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["Find words · 3"].waitForExistence(timeout: 5), "three pieces to look up")
+        find.tap()
+        XCTAssertTrue(text("3 words found").waitForExistence(timeout: 5), "xièxie, chá and water are found")
         let add = app.buttons["paste-add"]
         XCTAssertTrue(add.waitForExistence(timeout: 5))
-        XCTAssertTrue(text("3 words to add").waitForExistence(timeout: 5), "xièxie, chá and water are found")
         add.tap()
         // The new lesson opens with the three words
         XCTAssertTrue(text("thank you").waitForExistence(timeout: 5))

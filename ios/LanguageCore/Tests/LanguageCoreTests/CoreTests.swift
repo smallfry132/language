@@ -400,4 +400,28 @@ final class FamilyTests: XCTestCase {
         XCTAssertEqual(PasteList.match("mizu", words: words("ja"), course: "ja").hits.first?.hz, "水")
         XCTAssertEqual(PasteList.match("물", words: words("ko"), course: "ko").hits.first?.hz, "물")
     }
+
+    func testHeardHomophonesCount() {
+        // The recogniser may write 事 for 是 or 她 for 他: said right, so it counts
+        XCTAssertEqual(Check.matchHeard("是", ["事"], course: "zh", py: "shì").score, 1)
+        XCTAssertEqual(Check.matchHeard("他是老师", ["她是老师"], course: "zh", py: "tā shì lǎoshī").score, 1)
+        XCTAssertLessThan(Check.matchHeard("是", ["十"], course: "zh", py: "shì").score, 1) // another tone: not the same
+        XCTAssertLessThan(Check.matchHeard("是", ["事"], course: "zh").score, 1) // without the reading it compares characters
+    }
+    func testPauseWaitsForSpeech() {
+        // A tap, then 0.9 s of quiet before speaking: the recording must not end before the word is said
+        var p = PauseDetector(maxSeconds: 6, quiet: 0.8)
+        let chunk = 0.05
+        var stopped = false
+        for _ in 0..<10 { stopped = stopped || p.feed(rms: 0.0005, seconds: chunk) }   // background
+        stopped = stopped || p.feed(rms: 0.05, seconds: chunk)                           // the tap
+        for _ in 0..<18 { stopped = stopped || p.feed(rms: 0.0005, seconds: chunk) }    // waiting
+        XCTAssertFalse(stopped)
+        XCTAssertFalse(p.heard)
+        for _ in 0..<12 { stopped = stopped || p.feed(rms: 0.03, seconds: chunk) }      // the word
+        XCTAssertTrue(p.heard)
+        var end = false
+        for _ in 0..<20 { if p.feed(rms: 0.0005, seconds: chunk) { end = true; break } } // quiet after it
+        XCTAssertTrue(end)
+    }
 }

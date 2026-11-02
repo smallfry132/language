@@ -29,8 +29,22 @@ public enum Check {
         public init(score: Double, hit: [Bool], text: String) { self.score = score; self.hit = hit; self.text = text }
     }
     /// Which target units were heard (longest common subsequence over the recogniser's alternatives)
-    public static func matchHeard(_ target: String, _ alts: [String], course: String) -> Heard {
+    /// Chinese: every reading a character has in the word lists ("是" → shì), so a homophone the recogniser wrote
+    /// (事 for 是, 她 for 他) still counts as the syllable that was said
+    static let zhReadings: [String: Set<String>] = {
+        var out: [String: Set<String>] = [:]
+        for w in Library.shared.words["zh"] ?? [] {
+            let chars = units(w.hz, course: "zh"), syl = Lingo.pyParts(w.py).filter { !$0.sep }.map { $0.text.lowercased() }
+            guard chars.count == syl.count else { continue }
+            for (c, y) in zip(chars, syl) { out[c, default: []].insert(y) }
+        }
+        return out
+    }()
+    public static func matchHeard(_ target: String, _ alts: [String], course: String, py: String? = nil) -> Heard {
         let tc = units(target, course: course)
+        let syl = py.map { Lingo.pyParts($0).filter { !$0.sep }.map { $0.text.lowercased() } } ?? []
+        let bySound = course == "zh" && syl.count == tc.count
+        func same(_ i: Int, _ h: String) -> Bool { tc[i] == h || (bySound && (zhReadings[h]?.contains(syl[i]) ?? false)) }
         var best = Heard(score: 0, hit: tc.map { _ in false }, text: alts.first ?? "")
         for a in alts {
             let hc = units(a, course: course), n = tc.count, m = hc.count
@@ -38,13 +52,13 @@ public enum Check {
             if n > 0 && m > 0 {
                 for i in stride(from: n - 1, through: 0, by: -1) {
                     for j in stride(from: m - 1, through: 0, by: -1) {
-                        L[i][j] = tc[i] == hc[j] ? L[i + 1][j + 1] + 1 : max(L[i + 1][j], L[i][j + 1])
+                        L[i][j] = same(i, hc[j]) ? L[i + 1][j + 1] + 1 : max(L[i + 1][j], L[i][j + 1])
                     }
                 }
             }
             var hit = tc.map { _ in false }, i = 0, j = 0
             while i < n && j < m {
-                if tc[i] == hc[j] { hit[i] = true; i += 1; j += 1 } else if L[i + 1][j] >= L[i][j + 1] { i += 1 } else { j += 1 }
+                if same(i, hc[j]) { hit[i] = true; i += 1; j += 1 } else if L[i + 1][j] >= L[i][j + 1] { i += 1 } else { j += 1 }
             }
             let score = n > 0 ? Double(L[0][0]) / Double(n) : 0
             if score > best.score || best.text.isEmpty { best = Heard(score: score, hit: hit, text: a) }

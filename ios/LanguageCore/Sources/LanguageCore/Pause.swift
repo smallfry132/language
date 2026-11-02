@@ -10,6 +10,7 @@ public struct PauseDetector {
     private var floor: Float = 0      // background level, follows the quiet moments
     private var quietFor = 0.0
     private var total = 0.0
+    private var voiced = 0.0
 
     public init(maxSeconds: Double = 6, quiet: Double = 0.8) { self.maxSeconds = maxSeconds; self.quiet = quiet }
 
@@ -22,9 +23,12 @@ public struct PauseDetector {
             floor = floor == 0 ? rms : min(floor * up, max(rms, floor * 0.85))
         }
         let speech = max(floor * 3, 0.004), silence = max(floor * 2, 0.003)
-        if rms > speech { heard = true; quietFor = 0 }
+        // A tap or a breath is not speech: the level has to stay up for a fifth of a second
+        if rms > speech { voiced += seconds; quietFor = 0; if voiced >= 0.2 { heard = true } }
         else if heard && rms < silence { quietFor += seconds }
         else if heard { quietFor = max(0, quietFor - seconds / 2) }
-        return (heard && quietFor > quiet) || total > maxSeconds
+        else { voiced = max(0, voiced - seconds) }
+        // Never stop in the first 1.5 s: there is time to start speaking after the tap
+        return (heard && quietFor > quiet && total > 1.5) || total > maxSeconds
     }
 }

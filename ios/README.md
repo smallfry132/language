@@ -5,7 +5,7 @@ It syncs with the web app through the same sync code (Settings → Sync).
 
 What the native app adds:
 
-- **Speech recognition on the iPhone** (Apple's recogniser, on the device when the language supports it) for words and dialogue lines, and a recording of every attempt to play back next to the model voice.
+- **Speech recognition on the iPhone** (Apple's recogniser, on the device or on Apple's servers as it decides; the expected word is passed as a hint, and Chinese homophones such as 事 for 是 count) for words and dialogue lines, and a recording of every attempt to play back next to the model voice.
 - **Tone curve** computed from the raw microphone samples (the same YIN pitch tracking as the web app, sped up with Accelerate).
 - **Voices**: Apple's voices, including Premium and Enhanced ones (download them under Settings → Accessibility → Spoken Content → Voices, then pick one in the app's settings). Speech plays even with the silent switch on.
 - **New words per day** can be set in Settings (also synced to the web app).

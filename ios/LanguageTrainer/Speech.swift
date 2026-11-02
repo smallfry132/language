@@ -3,8 +3,8 @@ import Speech
 import LanguageCore
 
 /* Voice output, microphone and speech recognition. Everything runs on the iPhone:
- * Apple's voices speak, Apple's recogniser listens (on the device when the language supports it),
- * and the tone curve is computed from the raw microphone samples. */
+ * Apple's voices speak, Apple's recogniser listens (on the device or on Apple's servers, as it decides),
+ * and the tone curve is computed from the raw microphone samples on the device. */
 
 enum AudioSession {
     /// Playback that ignores the silent switch
@@ -15,7 +15,9 @@ enum AudioSession {
     }
     static func record() throws {
         let s = AVAudioSession.sharedInstance()
-        try s.setCategory(.playAndRecord, mode: .measurement, options: [.defaultToSpeaker, .allowBluetoothHFP])
+        // .default keeps the iPhone's automatic input level: .measurement switched it off and the recogniser got
+        // speech that was often too quiet (the pitch curve works the same either way)
+        try s.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetoothHFP])
         try s.setActive(true)
     }
 }
@@ -179,7 +181,12 @@ final class Microphone {
         if recognitionOK, let rec = SFSpeechRecognizer(locale: Locale(identifier: tts)), rec.isAvailable {
             let req = SFSpeechAudioBufferRecognitionRequest()
             req.shouldReportPartialResults = true // partial results show when the words stop coming
-            if rec.supportsOnDeviceRecognition { req.requiresOnDeviceRecognition = true }
+            // Apple's recogniser picks on the device or its servers; forcing the device gave nothing back whenever
+            // the on-device model was missing or unsure. The expected word is passed as a hint.
+            req.requiresOnDeviceRecognition = false
+            req.contextualStrings = [s.target]
+            req.taskHint = s.target.count <= 8 ? .search : .dictation
+            req.addsPunctuation = false
             s.request = req
             s.task = rec.recognitionTask(with: req) { [weak s] result, error in
                 let texts = result.map { r in r.transcriptions.map(\.formattedString) } ?? []
@@ -208,7 +215,7 @@ final class Microphone {
             while !Task.isCancelled {
                 try? await Task.sleep(for: .milliseconds(200))
                 guard let self, let s, self.session === s else { return }
-                if !s.alts.isEmpty, Date().timeIntervalSince(s.lastText) > quietAfterWords { self.stop() }
+                if !s.alts.isEmpty, Date().timeIntervalSince(s.started) > 1.5, Date().timeIntervalSince(s.lastText) > quietAfterWords { self.stop() }
             }
         }
     }
@@ -235,7 +242,7 @@ final class Microphone {
             if self.session == nil { AudioSession.playback() } // releases the mic, unless a new recording has started
             var spoken = Spoken(heard: nil, tones: nil, wav: wav, ms: ms)
             if !s.alts.isEmpty || !s.pitch && recognising && s.request != nil {
-                spoken.heard = Check.matchHeard(s.target, s.alts, course: s.course)
+                spoken.heard = Check.matchHeard(s.target, s.alts, course: s.course, py: s.py)
             }
             if s.pitch {
                 let frames = await Task.detached { Pitch.track(samples) }.value

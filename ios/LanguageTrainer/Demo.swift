@@ -20,6 +20,8 @@ enum Demo {
         for d in 1...9 { s.stats.days[todayKey(now - DAY * Double(d))] = 10 + d * 3 }
         s.stats.days[todayKey(now)] = 6
         s.stats.answered = 160; s.stats.correct = 131
+        s.stats.skill = ["zh": ["listen": [43, 50], "speak": [20, 27], "read": [40, 48], "write": [19, 24]]]
+        s.stats.tones = ["zh": ["1": [21, 23], "2": [16, 19], "3": [8, 13], "4": [22, 25]]]
         s.dlg["zh-greet"] = { var p = DialogueProgress(); p.listen = todayKey(now); p.read = .init(best: 41000, last: 47000, acc: 86); return p }()
         return s
     }

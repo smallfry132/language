@@ -39,11 +39,14 @@ struct PracticeHome: View {
             ("write", "pencil", [Row(route: .mode(.type), key: "modeType")] + (c.id == "ja" ? [] : [Row(route: .mode(.typer), key: "modeTyper")]) + [Row(route: .mode(.numbers), key: "modeNumbers")])
         ]
     }
+    /// Listening exercises wait until there is a voice for the course
+    static func needsVoice(_ r: Route) -> Bool { if case .mode(let m) = r { return [.listen, .listenPic, .tones].contains(m) }; return r == .soundDrill }
     var body: some View {
         Page {
+            NoVoiceCard()
             let due = store.words.selected.filter { store.state.isDue($0.id) }.count
             if due > 0 { Text(store.t("dueInToday", due)).font(.subheadline).foregroundStyle(Color.accent) }
-            ForEach(skills, id: \.id) { sk in
+            ForEach(skills.map { sk in (id: sk.id, icon: sk.icon, rows: sk.rows.filter { !(store.noVoice && Self.needsVoice($0.route)) }) }.filter { !$0.rows.isEmpty }, id: \.id) { sk in
                 HStack(alignment: .top, spacing: 12) {
                     Image(systemName: sk.icon).font(.title3).foregroundStyle(Color.accent).frame(width: 28)
                     VStack(alignment: .leading, spacing: 2) {
@@ -136,6 +139,8 @@ struct PracticeScreen: View {
         .navigationTitle(store.t(mode.key))
         .navigationBarTitleDisplayMode(.inline)
         .background(Color.paper)
+        .onAppear { store.currentSkill = Store.modeSkill[mode.rawValue] }
+        .onDisappear { store.currentSkill = nil }
     }
     func begin() {
         var list: [Word]

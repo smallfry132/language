@@ -41,12 +41,7 @@ struct LearnView: View {
             }
             if let next { nextDialogue(next) }
             lessonLines
-            if store.device.code != nil {
-                HStack(spacing: 6) {
-                    Circle().fill(store.syncState == .error || store.syncState == .offline || store.syncState == .off ? Color.ink3 : Color.tone(3)).frame(width: 8, height: 8)
-                    Text(store.syncStatusText).font(.caption).foregroundStyle(Color.ink2)
-                }.padding(.top, 14)
-            }
+            SyncLine()
         }
         .toolbar(.hidden, for: .navigationBar)
         .sheet(isPresented: $showVoiceGuide) { NavigationStack { VoiceGuide() }.environment(store) }

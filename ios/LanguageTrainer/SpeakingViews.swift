@@ -13,7 +13,7 @@ struct MicButton: View {
     /// The large round button of the chat composer
     var big = false
     let done: (Spoken) -> Void
-    @State private var denied = false
+    @State private var denied = Launch.has("-micdenied") // for screenshots
 
     var body: some View {
         let live = store.mic.isListening(key)
@@ -22,7 +22,7 @@ struct MicButton: View {
                 store.speaker.stop()
                 store.mic.listen(key: key, target: target, py: py, course: store.course, pitch: pitch && store.course.id == "zh", f0base: store.state.settings.f0base) { r in
                     guard let r else { denied = true; return }
-                    if let tones = r.tones, !tones.none { store.update { $0.settings.f0base = tones.f0base } }
+                    if let tones = r.tones, !tones.none { store.update { $0.settings.f0base = tones.f0base; $0.recordTones(tones) } }
                     done(r)
                 }
             } label: {
@@ -46,12 +46,12 @@ struct MicButton: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel(store.t("speakBtn"))
-            if denied {
-                VStack(spacing: 6) {
-                    Text(store.t("micPermission")).font(.footnote).foregroundStyle(Color.ink2).multilineTextAlignment(.center)
-                    Button(store.t("openSettings")) { if let u = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(u) } }.font(.footnote.weight(.semibold))
-                }
+            // The microphone is off for this app: what to do instead, in a sheet so it gets the full width
+            .sheet(isPresented: $denied) {
+                MicDeniedCard(target: target) { r in denied = false; done(r) }
+                    .padding(16).presentationDetents([.height(320)]).presentationBackground(Color.paper)
             }
+
         }
     }
 }

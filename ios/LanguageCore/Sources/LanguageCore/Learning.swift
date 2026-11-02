@@ -54,10 +54,30 @@ extension AppState {
     }
     public mutating func resetWord(_ id: String) { srs[id] = nil }
 
-    public mutating func recordAnswer(_ correct: Bool, now: Double = nowMs()) {
+    public mutating func recordAnswer(_ correct: Bool, skill: String? = nil, now: Double = nowMs()) {
         stats.answered += 1
         if correct { stats.correct += 1 }
         stats.days[todayKey(now), default: 0] += 1
+        if let skill { bumpPair(\.skill, skill, correct) }
+    }
+    /// Spoken tones from the pitch check (Chinese), for "Tones when speaking"
+    public mutating func recordTones(_ r: Pitch.Result) {
+        guard !r.none else { return }
+        for s in r.syllables where s.ok != nil && (1...4).contains(s.want) { bumpPair(\.tones, String(s.want), s.ok == true) }
+    }
+    mutating func bumpPair(_ group: WritableKeyPath<Stats, [String: [String: [Int]]]?>, _ key: String, _ ok: Bool) {
+        var g = stats[keyPath: group] ?? [:], c = g[course] ?? [:], p = c[key] ?? [0, 0]
+        if p.count < 2 { p = [0, 0] }
+        if ok { p[0] += 1 }
+        p[1] += 1
+        c[key] = p; g[course] = c; stats[keyPath: group] = g
+    }
+    /// [right, total] over this device and the synced ones, for the current course
+    public func pairSum(_ group: KeyPath<Stats, [String: [String: [Int]]]?>, _ key: String) -> (right: Int, total: Int) {
+        allStats.reduce((0, 0)) { a, s in
+            guard let p = s[keyPath: group]?[course]?[key], p.count >= 2 else { return a }
+            return (a.0 + p[0], a.1 + p[1])
+        }
     }
     /// This device's counts plus those the other synced devices reported
     var allStats: [Stats] { [stats] + Array(peers.values) }

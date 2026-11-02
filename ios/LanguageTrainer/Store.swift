@@ -49,6 +49,8 @@ final class Store {
         var s = (try? Data(contentsOf: Self.fileURL)).flatMap { try? JSONDecoder().decode(AppState.self, from: $0) } ?? AppState()
         if ProcessInfo.processInfo.arguments.contains("-demo") { s = Demo.state(); UserDefaults.standard.removeObject(forKey: "flow.today") } // a fresh session too
         if let c = Launch.value("-course"), Course.all.contains(where: { $0.id == c }) { s.course = c } // for screenshots and tests
+        if s.settings.onboarded == nil && !s.srs.isEmpty { s.settings.onboarded = 1 } // learners with progress skip the welcome
+        if Launch.has("-onboarding") { s.settings.onboarded = nil }
         state = s
         snap = Snapshot(s)
         words = CourseWords(state: s)
@@ -106,8 +108,14 @@ final class Store {
     private func saveDevice() { if let d = try? JSONEncoder().encode(device) { UserDefaults.standard.set(d, forKey: Self.deviceKey) } }
 
     func grade(_ id: String, _ q: Int) { update { $0.grade(id, q) } }
-    func recordAnswer(_ ok: Bool) { update { $0.recordAnswer(ok) } }
-    func answer(_ w: Word, ok: Bool) { update { $0.grade(w.id, ok ? 2 : 0); $0.recordAnswer(ok) } }
+    func recordAnswer(_ ok: Bool) { let sk = currentSkill; update { $0.recordAnswer(ok, skill: sk) } }
+    func answer(_ w: Word, ok: Bool) { let sk = currentSkill; update { $0.grade(w.id, ok ? 2 : 0); $0.recordAnswer(ok, skill: sk) } }
+    /// The skill the current exercise trains (listen, speak, read, write), for the statistics; set by the screen that runs it
+    var currentSkill: String?
+    static let modeSkill: [String: String] = ["listen": "listen", "listenPic": "listen", "tones": "listen", "say": "speak", "flash": "read", "quiz": "read", "picture": "read", "choose": "read", "match": "read", "type": "write", "typer": "write", "numbers": "write", "trace": "write"]
+    static let flowSkill: [String: String] = ["review": "read", "listen": "listen", "speak": "speak", "write": "write"]
+    /// No voice for this course on the device: listening is hidden, words keep their reading (-novoice pretends so)
+    var noVoice: Bool { let _ = voiceCheck; return Launch.has("-novoice") || speaker.courseVoices().isEmpty }
     func toast(_ s: String) {
         toastText = s
         Task { try? await Task.sleep(for: .seconds(2)); if toastText == s { toastText = nil } }

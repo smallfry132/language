@@ -136,12 +136,22 @@ public struct Stats: Codable, Equatable {
     public var answered = 0, correct = 0, sessions = 0
     public var days: [String: Int] = [:]
     public var since = 0.0
-    enum K: String, CodingKey { case answered, correct, sessions, days, since }
+    /// Per course: [right, total] by skill (listen, speak, read, write) and by tone when speaking ("1"…"4")
+    public var skill: [String: [String: [Int]]]?
+    public var tones: [String: [String: [Int]]]?
+    enum K: String, CodingKey { case answered, correct, sessions, days, since, skill, tones }
     public init(since: Double = 0) { self.since = since }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: K.self)
         answered = c.get(.answered, 0); correct = c.get(.correct, 0); sessions = c.get(.sessions, 0)
         days = c.get(.days, [String: Int]()); since = c.get(.since, 0.0)
+        skill = c.get(.skill, nil as [String: [String: [Int]]]?); tones = c.get(.tones, nil as [String: [String: [Int]]]?)
+    }
+    public func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: K.self)
+        try c.encode(answered, forKey: .answered); try c.encode(correct, forKey: .correct); try c.encode(sessions, forKey: .sessions)
+        try c.encode(days, forKey: .days); try c.encode(since, forKey: .since)
+        try c.encodeIfPresent(skill, forKey: .skill); try c.encodeIfPresent(tones, forKey: .tones)
     }
 }
 
@@ -159,7 +169,9 @@ public struct Settings: Codable, Equatable {
     public var toneColors: Bool?
     /// Chosen voice per course. Voices differ per device, so this is never synced.
     public var voices: [String: String]?
-    enum K: String, CodingKey { case rate, autoSpeak, tilePinyin, quizSize, dailyGoal, theme, newPerDay, f0base, dlgHz, dlgTr, dlgSlow, dlgPy, voices, readingLayer, maxReviews, toneColors }
+    /// The first-launch welcome was seen (1)
+    public var onboarded: Int?
+    enum K: String, CodingKey { case rate, autoSpeak, tilePinyin, quizSize, dailyGoal, theme, newPerDay, f0base, dlgHz, dlgTr, dlgSlow, dlgPy, voices, readingLayer, maxReviews, toneColors, onboarded }
     public init() {}
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: K.self)
@@ -169,6 +181,7 @@ public struct Settings: Codable, Equatable {
         voices = c.get(.voices, nil as [String: String]?)
         readingLayer = c.get(.readingLayer, nil as String?)
         maxReviews = c.get(.maxReviews, nil as Int?); toneColors = c.get(.toneColors, nil as Bool?)
+        onboarded = c.get(.onboarded, nil as Int?)
     }
     /// The settings that sync (without the device's voices)
     public var synced: Settings { var s = self; s.voices = nil; return s }

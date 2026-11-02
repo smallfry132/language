@@ -12,6 +12,10 @@ struct LanguageTrainerApp: App {
             RootView()
                 .environment(store)
                 .tint(.accent)
+                // First launch: the welcome (course, level, voice, microphone, daily plan)
+                .fullScreenCover(isPresented: Binding(get: { store.state.settings.onboarded == nil }, set: { _ in })) {
+                    Onboarding().environment(store).tint(.accent)
+                }
         }
         .onChange(of: phase) { _, p in
             if p == .active { store.voiceCheck += 1 }

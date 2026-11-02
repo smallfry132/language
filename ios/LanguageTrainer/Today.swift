@@ -99,7 +99,7 @@ struct StepSegments: View {
         let p = store.words.planToday(store.state, extraNew: store.extraNew), sv = saved(store.course.id)
         let ids = sv?.ids ?? (p.fresh + p.due.shuffled().prefix(max(0, 12 - p.fresh.count))).map(\.id)
         let practice = ids.compactMap { store.word($0) }, done = sv?.done ?? []
-        let steps = [FlowStep(kind: "meet", list: p.fresh), FlowStep(kind: "review", list: p.due), FlowStep(kind: "listen", list: practice.shuffled()),
+        let steps = [FlowStep(kind: "meet", list: p.fresh), FlowStep(kind: "review", list: p.due), FlowStep(kind: "listen", list: store.noVoice ? [] : practice.shuffled()),
                      FlowStep(kind: "speak", list: Array(practice.shuffled().prefix(6))), FlowStep(kind: "write", list: practice.shuffled())]
         return (steps, done, ids, steps.filter { !$0.list.isEmpty && !done.contains($0.kind) })
     }
@@ -126,10 +126,12 @@ struct FlowScreen: View {
             else {
                 run(steps[i]).id(steps[i].id)
                     .environment(\.flowInfo, FlowInfo(steps: steps, step: i, close: { dismiss() }))
+                    .onAppear { store.currentSkill = Store.flowSkill[steps[i].kind] }
             }
         }
         .toolbar(.hidden, for: .navigationBar)
         .background(Color.paper)
+        .onDisappear { store.currentSkill = nil }
         .onAppear {
             if steps.isEmpty { build() }
             if let k = Launch.value("-step").flatMap(Int.init), k < steps.count { i = k }

@@ -1423,3 +1423,13 @@ html[data-course="vi"] .tip-chip b { color: #0F2A24; } html[data-course="vi"] .b
 .fam-chip.on { border: 1.5px solid var(--text); } .fam-chip b { font-size: 16px; } .fam-chip > span { font-size: 11px; color: var(--text-2); }
 .fam-whole { font-size: 14px; } .fam-whole b { font-size: 16px; }
 .fam-mini .link-btn { align-self: flex-start; font-size: 13px; padding: 0; }
+/* Paste a list */
+.paste-box { width: 100%; box-sizing: border-box; margin-top: 6px; padding: 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--bg-elev); color: var(--text); font: inherit; font-size: 16px; line-height: 1.5; resize: vertical; }
+#p-rows { display: flex; flex-direction: column; margin: 10px 0 90px; }
+.p-row { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.p-row .grow { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.p-raw { width: 92px; flex-shrink: 0; color: var(--text-2); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-top: 2px; }
+.p-row.ok .p-raw::before { content: "✓ "; color: var(--green); } .p-row.ask .p-raw::before { content: "? "; color: var(--tone2); font-weight: 700; } .p-row.own .p-raw::before { content: "+ "; color: var(--seal); font-weight: 700; }
+.p-row.skip { opacity: .55; }
+.p-choices { display: flex; flex-wrap: wrap; gap: 6px; } .p-choices .chip { margin: 0; }
+.p-own { display: flex; flex-wrap: wrap; gap: 6px; } .p-own input { flex: 1 1 110px; min-width: 0; height: 36px; padding: 0 10px; border: 1px solid var(--line); border-radius: calc(var(--radius-sm) / 1.5); background: var(--bg-elev); color: var(--text); font: inherit; font-size: 14px; }

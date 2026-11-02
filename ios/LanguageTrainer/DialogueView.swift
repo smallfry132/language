@@ -81,7 +81,8 @@ struct DialogueToggles: View {
 
 extension Store {
     var dialogueRate: Double { state.settings.dlgSlow == true ? 0.55 : state.settings.rate }
-    func sayLine(_ text: String, then: (() -> Void)? = nil) { speaker.say(text, rate: dialogueRate, then: then) }
+    /// A dialogue line, in the voice of the person who says it (who 1 = the second person)
+    func sayLine(_ text: String, who: Int = 0, then: (() -> Void)? = nil) { speaker.say(text, rate: dialogueRate, who: who, then: then) }
     /// The reading line with dialogue lines: on unless switched off in the header
     var dialogueReading: Bool { state.settings.dlgPy != false && course.id != "vi" && !course.gender }
 }
@@ -139,8 +140,8 @@ struct Bubble<Extra: View>: View {
                         .padding(.top, 4)
                 }
                 HStack(spacing: 6) {
-                    small(Label(store.t("play"), systemImage: "play.fill"), dark: right) { store.speaker.say(line.hz, rate: store.state.settings.rate) }
-                    small(Text("0.75×"), dark: right) { store.speaker.say(line.hz, rate: 0.6) }
+                    small(Label(store.t("play"), systemImage: "play.fill"), dark: right) { store.speaker.say(line.hz, rate: store.state.settings.rate, who: line.who) }
+                    small(Text("0.75×"), dark: right) { store.speaker.say(line.hz, rate: 0.6, who: line.who) }
                 }.padding(.top, 4)
                 extra
             }
@@ -244,7 +245,7 @@ struct DialogueListen: View {
         if k >= d.lines.count { playing = -1; store.update { $0.dlg[d.id, default: DialogueProgress()].listen = todayKey(); $0.dlg[d.id]!.gone = nil }; return }
         playing = k
         withAnimation { proxy.scrollTo(k, anchor: .center) }
-        store.sayLine(d.lines[k].hz) {
+        store.sayLine(d.lines[k].hz, who: d.lines[k].who) {
             Task { try? await Task.sleep(for: .milliseconds(450)); step(k + 1, my, proxy) }
         }
     }
@@ -439,7 +440,7 @@ struct DialogueTurn: View {
         replies = ([l] + (other.map { [$0] } ?? [])).shuffled()
     }
     func pick(_ x: Dialogue.Line, _ l: Dialogue.Line) {
-        if x.hz == l.hz { withAnimation { chosen = true }; wrongPick = nil; store.speaker.say(l.hz, rate: 0.75) }
+        if x.hz == l.hz { withAnimation { chosen = true }; wrongPick = nil; store.speaker.say(l.hz, rate: 0.75, who: l.who) }
         else { wrongPick = x.hz; Haptic.answer(false) }
     }
     func resetTurn() { hint = 0; typed = ""; chosen = false; wrongPick = nil; typing = false; attempt = nil; replies = [] }
@@ -458,7 +459,7 @@ struct DialogueTurn: View {
         let l = d.lines[i]
         if ok == true { right += 1 }
         shown.append(Shown(k: i, ok: ok, note: note, spoken: spoken))
-        store.sayLine(l.hz)
+        store.sayLine(l.hz, who: l.who)
         i += 1; resetTurn()
         advance(after: true)
     }
@@ -478,7 +479,7 @@ struct DialogueTurn: View {
             guard my == gen else { return }
             shown.append(Shown(k: i, ok: nil, note: nil, spoken: nil))
             i += 1
-            store.sayLine(l.hz) { Task { try? await Task.sleep(for: .milliseconds(300)); if my == gen { advance(after: false) } } }
+            store.sayLine(l.hz, who: l.who) { Task { try? await Task.sleep(for: .milliseconds(300)); if my == gen { advance(after: false) } } }
         }
     }
 }

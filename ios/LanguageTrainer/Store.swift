@@ -65,6 +65,7 @@ final class Store {
         speaker.course = course
         speaker.voices = state.settings.voices ?? [:]
         speaker.rate = state.settings.rate
+        speaker.twoVoices = state.settings.twoVoices != false
     }
 
     // MARK: Derived
@@ -93,6 +94,7 @@ final class Store {
         speaker.course = course
         speaker.voices = state.settings.voices ?? [:]
         speaker.rate = state.settings.rate
+        speaker.twoVoices = state.settings.twoVoices != false
         saveWork?.cancel()
         let w = DispatchWorkItem { [weak self] in self?.flushSave() }
         saveWork = w

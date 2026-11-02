@@ -175,7 +175,9 @@ public struct Settings: Codable, Equatable {
     public var viAccent: String?
     /// The first-launch welcome was seen (1)
     public var onboarded: Int?
-    enum K: String, CodingKey { case rate, autoSpeak, tilePinyin, quizSize, dailyGoal, theme, newPerDay, f0base, dlgHz, dlgTr, dlgSlow, dlgPy, voices, readingLayer, maxReviews, toneColors, viAccent, onboarded }
+    /// Dialogues: the second person speaks with another voice (or the same one lower); nil = on
+    public var twoVoices: Bool?
+    enum K: String, CodingKey { case rate, autoSpeak, tilePinyin, quizSize, dailyGoal, theme, newPerDay, f0base, dlgHz, dlgTr, dlgSlow, dlgPy, voices, readingLayer, maxReviews, toneColors, viAccent, onboarded, twoVoices }
     public init() {}
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: K.self)
@@ -187,6 +189,7 @@ public struct Settings: Codable, Equatable {
         maxReviews = c.get(.maxReviews, nil as Int?); toneColors = c.get(.toneColors, nil as Bool?)
         viAccent = c.get(.viAccent, nil as String?)
         onboarded = c.get(.onboarded, nil as Int?)
+        twoVoices = c.get(.twoVoices, nil as Bool?)
     }
     /// The settings that sync (without the device's voices)
     public var synced: Settings { var s = self; s.voices = nil; return s }

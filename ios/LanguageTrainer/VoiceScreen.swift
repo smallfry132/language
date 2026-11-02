@@ -9,6 +9,72 @@ import LanguageCore
 struct VoiceScreen: View {
     @Environment(Store.self) var store
     @State private var showAll = false
+    @State private var natural = true
+    @State private var tune = VoiceTune.standard
+    @State private var tuneVoice: String?
+
+    /// Sound: Natural sound (smooth slowing + equaliser) and the equaliser of the voice in use, saved on this device
+    var soundSection: some View {
+        let voice = store.speaker.currentVoice
+        return VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text(store.t("eqTitle").uppercased()).font(.caption.weight(.bold)).tracking(1.2).foregroundStyle(Color.ink2)
+                Spacer()
+                if let voice { Text(voice.name).font(.caption).foregroundStyle(Color.ink2) }
+            }
+            Toggle(isOn: Binding(get: { natural }, set: { natural = $0; store.speaker.natural = $0; test() })) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(store.t("eqNatural")).font(.body.weight(.semibold))
+                    Text(store.t("eqNaturalSub")).font(.caption).foregroundStyle(Color.ink2).fixedSize(horizontal: false, vertical: true)
+                }
+            }.tint(.accent)
+            if natural {
+                slider("eqBass", \.bass, -6...6, unit: "dB")
+                slider("eqClarity", \.clarity, -6...6, unit: "dB")
+                slider("eqBright", \.bright, -6...6, unit: "dB")
+                slider("eqPitch", \.pitch, -300...300, unit: "ct")
+                HStack {
+                    Text(store.t("eqHint")).font(.caption).foregroundStyle(Color.ink2)
+                    Spacer()
+                    Button(store.t("eqReset")) { tune = .standard; saveTune(); test() }.font(.subheadline.weight(.semibold)).foregroundStyle(Color.accent)
+                    Button(store.t("testVoice")) { test() }.buttonStyle(.bordered).tint(.ink)
+                }
+            }
+        }
+        .padding(14)
+        .background(Color.elevated, in: RoundedRectangle(cornerRadius: Look.current.radius + 2))
+        .overlay(RoundedRectangle(cornerRadius: Look.current.radius + 2).stroke(Color.line))
+        .padding(.top, 14)
+        .onAppear { natural = store.speaker.natural; loadTune() }
+        .onChange(of: store.speaker.currentVoice?.identifier) { _, _ in loadTune() }
+    }
+    func slider(_ key: String, _ path: WritableKeyPath<VoiceTune, Double>, _ range: ClosedRange<Double>, unit: String) -> some View {
+        HStack(spacing: 10) {
+            Text(store.t(key)).font(.subheadline).frame(width: 92, alignment: .leading)
+            Slider(value: Binding(get: { tune[keyPath: path] }, set: { tune[keyPath: path] = $0 }), in: range, step: unit == "ct" ? 25 : 0.5) { editing in
+                if !editing { saveTune(); test() }
+            }.tint(.accent).accessibilityLabel(store.t(key))
+            Text(String(format: unit == "ct" ? "%+.0f" : "%+.1f", tune[keyPath: path])).font(.caption.monospacedDigit()).foregroundStyle(Color.ink2).frame(width: 44, alignment: .trailing)
+        }
+    }
+    func loadTune() { tuneVoice = store.speaker.currentVoice?.identifier; tune = store.speaker.tune(tuneVoice) }
+    func saveTune() { if let id = tuneVoice { store.speaker.setTune(tune == .standard ? nil : VoiceTune(bass: tune.bass, clarity: tune.clarity, bright: tune.bright, pitch: tune.pitch), for: id) } }
+    func test() { store.speaker.say(store.course.testPhrase) }
+
+    /// Dialogues: the second person's voice (another voice of the language, or the same one lower)
+    var twoVoicesRow: some View {
+        let on = store.state.settings.twoVoices != false, second = store.speaker.secondVoice
+        return Toggle(isOn: Binding(get: { on }, set: { v in store.update { $0.settings.twoVoices = v ? nil : false }; if v { store.speaker.say(store.course.testPhrase, who: 1) } })) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(store.t("twoVoices")).font(.body.weight(.semibold))
+                Text(second.map { store.t("twoVoicesWith", $0.name) } ?? store.t("twoVoicesPitch")).font(.caption).foregroundStyle(Color.ink2).fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .tint(.accent).padding(14)
+        .background(Color.elevated, in: RoundedRectangle(cornerRadius: Look.current.radius + 2))
+        .overlay(RoundedRectangle(cornerRadius: Look.current.radius + 2).stroke(Color.line))
+        .padding(.top, 10)
+    }
 
     var body: some View {
         let _ = store.voiceCheck // re-reads the voices when you come back from Settings
@@ -33,6 +99,8 @@ struct VoiceScreen: View {
                     Button(store.t("showAllVoices", all.count)) { showAll = true }.font(.subheadline.weight(.semibold)).foregroundStyle(Color.accent)
                 }
             }
+
+            if !all.isEmpty { soundSection; twoVoicesRow }
 
             Text(store.t("speed").uppercased()).font(.caption.weight(.bold)).tracking(1.2).foregroundStyle(Color.ink2).padding(.top, 14)
             HStack(spacing: 0) {

@@ -59,7 +59,7 @@ struct RootView: View {
         .animation(.easeInOut(duration: 0.2), value: store.toastText)
         .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in keyboard = true }
         .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in keyboard = false }
-        .onAppear { openLaunchRoute(); openPending() }
+        .onAppear { openLaunchRoute(); openPending(); if Launch.has("-soundcheck") { store.speaker.soundCheck() } }
         .onReceive(NotificationCenter.default.publisher(for: IntentRouter.notice)) { _ in openPending() }
         .onOpenURL { url in // widgets: trainer://word/<course>/<id> plays the word of the day
             let p = url.pathComponents.filter { $0 != "/" }

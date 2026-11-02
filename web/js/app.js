@@ -2968,11 +2968,13 @@
       frames.push({ rms: Math.sqrt(e / W), f0 });
     }
     const maxR = Math.max(0, ...frames.map((f) => f.rms));
-    frames.forEach((f) => { if (f.rms < Math.max(0.008, maxR * 0.12)) f.f0 = null; });
-    // Octave errors: fold values far from the median back; then a 5-frame median filter
+    // Quiet frames still count while the pitch is clear: a 4th tone fades as it falls, and its end is what shows it
+    frames.forEach((f) => { if (f.rms < Math.max(0.004, maxR * 0.05)) f.f0 = null; });
+    // Octave errors: fold back only real octave jumps (a 4th tone can fall almost an octave); then a light 3-frame
+    // median filter, so a fast fall keeps its shape. The loudness stays with each frame (it shows where syllables join).
     const med = median(frames.filter((f) => f.f0).map((f) => f.f0));
-    frames.forEach((f) => { if (f.f0 && f.f0 > med * 1.7) f.f0 /= 2; else if (f.f0 && f.f0 < med * 0.6) f.f0 *= 2; });
-    return frames.map((f, i) => (f.f0 ? { f0: median(frames.slice(Math.max(0, i - 2), i + 3).filter((g) => g.f0).map((g) => g.f0)) } : { f0: null }));
+    frames.forEach((f) => { if (f.f0 && f.f0 > med * 1.8) f.f0 /= 2; else if (f.f0 && f.f0 < med * 0.45) f.f0 *= 2; });
+    return frames.map((f, i) => ({ rms: f.rms, f0: f.f0 ? median(frames.slice(Math.max(0, i - 1), i + 2).filter((g) => g.f0).map((g) => g.f0)) : null }));
   }
   function median(a) { if (!a.length) return 0; const s = a.slice().sort((x, y) => x - y); return s[Math.floor(s.length / 2)]; }
   // Voiced stretches (short gaps bridged, tiny blips dropped) as arrays of frame indices
@@ -3001,9 +3003,21 @@
       for (let i = 0; i < runs.length - 1; i++) { const gi = runs[i + 1][0] - runs[i][runs[i].length - 1]; if (gi < g) { g = gi; k = i; } }
       runs.splice(k, 2, runs[k].concat(runs[k + 1]));
     }
-    while (runs.length < n) { // split the longest stretch in two
+    while (runs.length < n) { // split the longest stretch in two, where one syllable ends and the next begins
       let k = 0; runs.forEach((r, i) => { if (r.length > runs[k].length) k = i; });
-      const r = runs[k], h = Math.ceil(r.length / 2); runs.splice(k, 1, r.slice(0, h), r.slice(h));
+      const r = runs[k]; let h = Math.ceil(r.length / 2);
+      if (r.length >= 8) {
+        const lo = Math.max(2, Math.floor(r.length / 5)), hi = Math.min(r.length - 2, r.length - Math.floor(r.length / 5)), js = [];
+        for (let j = lo; j < hi; j++) js.push(j);
+        const loud = (j) => [j - 1, j, j + 1].filter((q) => q >= 0 && q < r.length).reduce((a, q) => a + (frames[r[q]].rms || 0), 0) / 3;
+        const depth = (j) => { let b = 0, a = 0; for (let q = Math.max(0, j - 12); q < j; q++) b = Math.max(b, loud(q)); for (let q = j + 1; q <= Math.min(r.length - 1, j + 12); q++) a = Math.max(a, loud(q)); return Math.min(b, a) - loud(j); };
+        const jump = (j) => (frames[r[j - 1]].f0 && frames[r[j]].f0 ? Math.abs(12 * Math.log2(frames[r[j]].f0 / frames[r[j - 1]].f0)) : 0);
+        // Clearest sign first: a short break the voice tracker bridged, then a jump in pitch, then the dip in loudness
+        const breaks = js.filter((j) => r[j] - r[j - 1] > 1);
+        if (breaks.length) h = breaks.reduce((a, b) => (r[b] - r[b - 1] > r[a] - r[a - 1] ? b : a));
+        else { const jj = js.reduce((a, b) => (jump(b) > jump(a) ? b : a), js[0]); if (jj !== undefined && jump(jj) > 1.5) h = jj; else { const dd = js.reduce((a, b) => (depth(b) > depth(a) ? b : a), js[0]); if (dd !== undefined && depth(dd) > 0) h = dd; } }
+      }
+      runs.splice(k, 1, r.slice(0, h), r.slice(h));
     }
     const all = runs.flat().map((i) => frames[i].f0), med = median(all), base = S.settings.f0base;
     const center = base ? (n > 1 ? Math.sqrt(base * med) : base) : med;
@@ -3011,8 +3025,9 @@
     const level = (f0) => Math.max(0.3, Math.min(5.7, 3 + (12 * Math.log2(f0 / center)) / 3.5));
     const res = sylls.map((x, i) => {
       const lv = runs[i].map((k) => level(frames[k].f0));
-      const cut = lv.length >= 10 ? Math.floor(lv.length * 0.15) : 0; // edges are consonants and creak
-      const core = lv.slice(cut, lv.length - cut || undefined);
+      // The start is the consonant; the end is kept almost whole, because a falling or dipping tone shows there
+      const cutStart = lv.length >= 10 ? Math.floor(lv.length * 0.15) : lv.length >= 6 ? 1 : 0, cutEnd = lv.length >= 14 ? Math.floor(lv.length * 0.05) : 0;
+      const core = lv.slice(cutStart, lv.length - cutEnd);
       const pts = [0, 1, 2, 3, 4].map((b) => { const part = core.slice(Math.floor((b * core.length) / 5), Math.max(Math.floor(((b + 1) * core.length) / 5), Math.floor((b * core.length) / 5) + 1)); return part.reduce((a, v) => a + v, 0) / part.length; });
       const w = want[i];
       if (w === 5) return { text: x.text, want: w, lv, ok: null };

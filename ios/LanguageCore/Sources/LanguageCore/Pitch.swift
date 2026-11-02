@@ -9,10 +9,12 @@ public enum Pitch {
     public static let sampleRate = 16_000.0
 
     /// f0 in Hz per 10 ms frame (nil = unvoiced)
-    public static func track(_ x: [Float], sr: Double = sampleRate) -> [Double?] {
+    public static func track(_ x: [Float], sr: Double = sampleRate) -> [Double?] { trackWithEnergy(x, sr: sr).f0 }
+    /// f0 per 10 ms frame and the loudness of each frame (used to find where one syllable ends and the next begins)
+    public static func trackWithEnergy(_ x: [Float], sr: Double = sampleRate) -> (f0: [Double?], rms: [Double]) {
         let hop = Int((sr * 0.01).rounded()), W = Int((sr * 0.032).rounded())
         let tMin = Int(sr / 450), tMax = Int(sr / 70)
-        guard x.count > W + tMax + 1 else { return [] }
+        guard x.count > W + tMax + 1 else { return ([], []) }
         var d = [Float](repeating: 1, count: tMax + 1)
         var frames: [(rms: Double, f0: Double?)] = []
         x.withUnsafeBufferPointer { p in
@@ -45,14 +47,17 @@ public enum Pitch {
             }
         }
         let maxR = frames.map(\.rms).max() ?? 0
-        var f = frames.map { $0.rms < max(0.008, maxR * 0.12) ? nil : $0.f0 }
-        // Octave errors: fold values far from the median back; then a 5-frame median filter
+        // Quiet frames still count while the pitch is clear: a 4th tone fades as it falls, and its end is what shows it
+        var f = frames.map { $0.rms < max(0.004, maxR * 0.05) ? nil : $0.f0 }
+        // Octave errors: fold back only real octave jumps (a 4th tone can fall almost an octave); then a light
+        // 3-frame median filter, so a fast fall keeps its shape
         let med = median(f.compactMap { $0 })
-        f = f.map { v in guard let v else { return nil }; return v > med * 1.7 ? v / 2 : v < med * 0.6 ? v * 2 : v }
-        return f.indices.map { i in
+        f = f.map { v in guard let v else { return nil }; return v > med * 1.8 ? v / 2 : v < med * 0.45 ? v * 2 : v }
+        let smooth: [Double?] = f.indices.map { i in
             guard f[i] != nil else { return nil }
-            return median(f[max(0, i - 2)..<min(f.count, i + 3)].compactMap { $0 })
+            return median(f[max(0, i - 1)..<min(f.count, i + 2)].compactMap { $0 })
         }
+        return (smooth, frames.map(\.rms))
     }
 
     public static func median(_ a: [Double]) -> Double {
@@ -95,7 +100,7 @@ public enum Pitch {
     }
 
     /// Compares what was said with the tones of the pinyin. f0base: the middle of your voice so far (nil at first).
-    public static func check(py: String, frames: [Double?], f0base: Double?) -> Result {
+    public static func check(py: String, frames: [Double?], f0base: Double?, energy: [Double]? = nil) -> Result {
         let sylls = Lingo.pyParts(py).filter { !$0.sep }
         var want = sylls.map(\.tone)
         var sandhi = false
@@ -110,10 +115,29 @@ public enum Pitch {
             for i in 0..<(runs.count - 1) { let gi = runs[i + 1][0] - runs[i].last!; if gi < g { g = gi; k = i } }
             runs.replaceSubrange(k...(k + 1), with: [runs[k] + runs[k + 1]])
         }
-        while runs.count < n { // split the longest stretch in two
+        while runs.count < n { // split the longest stretch in two, where the voice is quietest (between syllables)
             var k = 0
             for (i, r) in runs.enumerated() where r.count > runs[k].count { k = i }
-            let r = runs[k], h = (r.count + 1) / 2
+            let r = runs[k]
+            var h = (r.count + 1) / 2
+            if r.count >= 8 {
+                let e = energy ?? []
+                // syllables still to place in this stretch decide where to look: the middle 60 % of one syllable's share
+                let lo = max(2, r.count / 5), hi = min(r.count - 2, r.count - r.count / 5)
+                let loud = { (j: Int) -> Double in (max(0, j - 1)...min(r.count - 1, j + 1)).map { r[$0] < e.count ? e[r[$0]] : 0 }.reduce(0, +) / 3 }
+                // The joint is a dip with louder voice on both sides, not just the quietest moment (a fading tone's
+                // tail is quiet too): how far it lies below the loudest point before it and after it
+                let depth = { (j: Int) -> Double in
+                    let before = (max(0, j - 12)..<j).map(loud).max() ?? 0, after = ((j + 1)...min(r.count - 1, j + 12)).map(loud).max() ?? 0
+                    return min(before, after) - loud(j)
+                }
+                // Clearest sign first: a short break the voice tracker bridged, then a jump in pitch, then the dip in loudness
+                let breaks = (lo..<hi).filter { r[$0] - r[$0 - 1] > 1 }
+                let jump = { (j: Int) -> Double in guard let a = frames[r[j - 1]], let b = frames[r[j]] else { return 0 }; return abs(12 * log2(b / a)) }
+                if let b = breaks.max(by: { r[$0] - r[$0 - 1] < r[$1] - r[$1 - 1] }) { h = b }
+                else if let j = (lo..<hi).max(by: { jump($0) < jump($1) }), jump(j) > 1.5 { h = j }
+                else if lo < hi, let best = (lo..<hi).max(by: { depth($0) < depth($1) }), depth(best) > 0 { h = best }
+            }
             runs.replaceSubrange(k...k, with: [Array(r[..<h]), Array(r[h...])])
         }
         let all = runs.joined().compactMap { frames[$0] }, med = median(all)
@@ -124,8 +148,10 @@ public enum Pitch {
 
         let res: [Syllable] = sylls.enumerated().map { i, x in
             let lv = runs[i].compactMap { frames[$0] }.map(level)
-            let cut = lv.count >= 10 ? Int(Double(lv.count) * 0.15) : 0 // edges are consonants and creak
-            let core = Array(lv[cut..<(lv.count - cut)])
+            // The start is the consonant; the end is kept almost whole, because a falling or dipping tone shows there
+            let cutStart = lv.count >= 10 ? Int(Double(lv.count) * 0.15) : lv.count >= 6 ? 1 : 0
+            let cutEnd = lv.count >= 14 ? Int(Double(lv.count) * 0.05) : 0
+            let core = Array(lv[cutStart..<(lv.count - cutEnd)])
             let pts: [Double] = (0..<5).map { b in
                 let lo = b * core.count / 5, hi = max((b + 1) * core.count / 5, lo + 1)
                 return mean(Array(core[lo..<min(hi, core.count)]))

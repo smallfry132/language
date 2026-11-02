@@ -245,8 +245,8 @@ final class Microphone {
                 spoken.heard = Check.matchHeard(s.target, s.alts, course: s.course, py: s.py)
             }
             if s.pitch {
-                let frames = await Task.detached { Pitch.track(samples) }.value
-                spoken.tones = Pitch.check(py: s.py, frames: frames, f0base: s.f0base)
+                let tracked = await Task.detached { Pitch.trackWithEnergy(samples) }.value
+                spoken.tones = Pitch.check(py: s.py, frames: tracked.f0, f0base: s.f0base, energy: tracked.rms)
             }
             callback?(spoken)
         }

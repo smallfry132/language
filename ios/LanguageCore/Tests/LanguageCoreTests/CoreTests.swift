@@ -204,6 +204,57 @@ final class PitchTests: XCTestCase {
             for c in [rise, fall] { XCTAssertEqual(Pitch.check(py: "yī", frames: Pitch.track(voice([c])), f0base: base).syllables.first?.ok, false, "\(c)") }
         }
     }
+    /// Syllables of their own length and loudness (fading from `a0` to `a1`), joined without a pause when gap is 0
+    /// (as with m, n, l, r between syllables); a short dip in loudness marks the joint
+    func speech(_ parts: [(c: [Double], dur: Double, a0: Double, a1: Double)], gap: Double = 0, base: Double = 200) -> [Float] {
+        var out: [Float] = [], phase = 0.0
+        let sr = Pitch.sampleRate
+        for (j, part) in parts.enumerated() {
+            let n = Int(part.dur * sr)
+            for i in 0..<n {
+                let t = Double(i) / Double(n), p = t * Double(part.c.count - 1), k = min(Int(p), part.c.count - 2), f = p - Double(k)
+                let f0 = base * pow(2, (part.c[k] * (1 - f) + part.c[k + 1] * f) / 12)
+                phase += 2 * .pi * f0 / sr
+                var amp = part.a0 + (part.a1 - part.a0) * t
+                if gap == 0 && j > 0 && t < 0.08 { amp *= 0.35 + 0.65 * t / 0.08 } // the joint between syllables
+                out.append(Float(amp * (0.3 * sin(phase) + 0.15 * sin(2 * phase) + 0.08 * sin(3 * phase))))
+            }
+            if gap > 0 { out += [Float](repeating: 0, count: Int(gap * sr)) }
+        }
+        out += [Float](repeating: 0, count: Int(0.1 * sr))
+        return out
+    }
+    func check(_ py: String, _ x: [Float], base: Double = 200) -> Pitch.Result {
+        let t = Pitch.trackWithEnergy(x)
+        return Pitch.check(py: py, frames: t.f0, f0base: base, energy: t.rms)
+    }
+    func testShortFadingFourthTone() {
+        // 是 shì said quickly: 150 ms, falling 7 semitones, the voice fading to a quarter at the end
+        for (py, dur, fall) in [("shì", 0.15, [4.0, -3]), ("mà", 0.18, [5.0, -4]), ("shì", 0.22, [4.0, -1])] {
+            let r = check(py, speech([(fall, dur, 1, 0.25)]))
+            XCTAssertEqual(r.syllables.first?.ok, true, "\(py) \(dur)s \(fall): got \(String(describing: r.syllables.first?.got)) levels \(r.syllables.first?.levels.map { Int($0 * 10) } ?? [])")
+        }
+        // a deep fall of almost an octave is still a 4th tone (no octave "correction" back up)
+        let deep = check("mà", speech([([6, -5], 0.25, 1, 0.3)]))
+        XCTAssertEqual(deep.syllables.first?.ok, true, "deep: \(String(describing: deep.syllables.first?.got))")
+        // and a short level syllable is not a 4th tone
+        XCTAssertEqual(check("mà", speech([([3, 3], 0.16, 1, 0.8)])).syllables.first?.ok, false)
+    }
+    func testSyllablesWithoutPause() {
+        // Two syllables run together (no silence between), the first short and the second long: the split has to
+        // follow the dip in loudness, not the middle
+        let cases: [(String, [(c: [Double], dur: Double, a0: Double, a1: Double)])] = [
+            ("māmà", [([3, 3], 0.16, 1, 0.9), ([5, -3], 0.34, 1, 0.3)]),
+            ("lǎoshī", [([-3, -6, -5], 0.32, 1, 0.8), ([3, 3], 0.18, 1, 0.9)]),
+            ("rènshi", [([5, -3], 0.2, 1, 0.5), ([-2, -3], 0.14, 0.7, 0.5)]),
+            ("míngzi", [([-2, 0, 4], 0.28, 1, 0.9), ([0, -1], 0.12, 0.6, 0.4)])
+        ]
+        for (py, parts) in cases {
+            let r = check(py, speech(parts))
+            XCTAssertFalse(r.none, py)
+            XCTAssertEqual(r.score, 1, "\(py): got \(r.syllables.map { $0.got ?? 0 }) lengths \(r.syllables.map { $0.levels.count })")
+        }
+    }
     func testSilence() {
         XCTAssertTrue(Pitch.check(py: "mā", frames: Pitch.track([Float](repeating: 0, count: 16000)), f0base: nil).none)
     }

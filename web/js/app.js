@@ -107,7 +107,7 @@
   // One look per language (Ink Grid, Quiet Ruby, Block Builder, Tone Color): colours and fonts in style.css
   // under html[data-course]; here the tab labels written in the language itself
   const LOOK_EXTRA = { zh: ["课", "话"], ja: ["課", "話"], ko: ["과", "화"], vi: ["Bài", "Thoại"] }; // German and Spanish use the line icons
-  const LOOK_TABS = { zh: ["学", "练", "词", "我"], ja: ["学", "練", "語", "私"], ko: ["학", "연", "단", "나"], vi: ["Học", "Tập", "Từ", "Tôi"] };
+  const LOOK_TABS = { zh: ["学", "练", "词", "我"], ja: ["学", "練", "語", "私"], ko: ["학", "연", "단", "나"], vi: ["Học", "Tập", "Từ", "Tôi"], de: ["Lernen", "Üben", "Wörter", "Ich"], es: ["Aprender", "Practicar", "Palabras", "Yo"] };
   function applyCourse() {
     C = COURSES[S.course] || COURSES.zh;
     document.documentElement.dataset.course = C.id;
@@ -2315,7 +2315,14 @@
   const VI_TONE_CLASS = ["", "level", "falling", "rising", "dipping", "broken", "light"];
   const viHtml = (s) => esc(s).replace(/[\p{L}]+/gu, (syl) => `<span class="tc-${VI_TONE_CLASS[firstToneVi(syl)]}">${syl}</span>`);
   // German and Spanish: the article in its gender's colour (der/el blue, die/la red, das green), the noun in ink
-  const genderHtml = (w) => { const m = String(w.hz).match(/^(der|die|das|el|la)\s+(.+)$/); return m && w.g ? `<span class="art g-${w.g}">${m[1]}</span> ${esc(m[2])}` : esc(w.hz); };
+  const genderHtml = (w) => { const m = String(w.hz).match(/^(der|die|das|el|la)\s+(.+)$/); return m && w.g ? `<span class="art g-${w.g}">${m[1]}</span> ${stressHtml(m[2])}` : stressHtml(w.hz); };
+  // Spanish one-word entries: the syllable the voice lands on in <b class="stress">
+  function stressHtml(word) {
+    if (C.id !== "es" || /[\s.,¿?¡!]/.test(word)) return esc(word);
+    const syl = esStress(word).split("-"), k = syl.findIndex((x) => x !== x.toLowerCase());
+    if (syl.length < 2 || k < 0) return esc(word);
+    let i = 0; return syl.map((x, j) => { const part = word.slice(i, i + x.length); i += x.length; return j === k ? `<b class="stress">${esc(part)}</b>` : esc(part); }).join("");
+  }
   const firstToneVi = (syl) => { const m = Array.from(syl.normalize("NFD")).map((c) => VI_TONE_MARKS[c]).filter(Boolean); return m[0] || 1; };
   // The reading layer (pinyin, romanization, kana) with a word: always, for words not yet known, or off
   const readingLayer = () => S.settings.readingLayer || (S.settings.tilePinyin === false ? "off" : "always");
@@ -3620,11 +3627,13 @@
     S.stats.sessions += 1; save();
     flowDone(view, f);
   }
-  const SEAL = { zh: ["完成", "Wánchéng!", "完成"], ja: ["完了", "Kanryō!", "完了"], ko: ["완료", "Wallyo!", "완료"], vi: ["Xong", "Xong rồi!", ""], de: ["Fertig", "Fertig!", ""], es: ["Hecho", "¡Hecho!", ""] };
+  const SEAL = { zh: ["完成", "Wánchéng!", "完成"], ja: ["完了", "Kanryō!", "完了"], ko: ["완료", "Wallyo!", "완료"], vi: ["Xong", "Xong rồi!", ""], de: ["Erledigt", "Fertig für heute", ""], es: ["Listo", "Listo por hoy", ""] };
   // The seal of the course; "sm" for the Learn card
   function sealHtml(size) {
     const seal = SEAL[C.id] || SEAL.zh;
-    return `<div class="seal-stamp ${C.id} ${C.script === "latin" ? "latin" : ""} ${size || ""}" role="img" aria-label="${esc(seal[0])}">${(C.script === "latin" ? [seal[0]] : Array.from(seal[0])).map((c) => `<span>${esc(c)}</span>`).join("")}</div>`;
+    // German: a rubber stamp with the date; Spanish: a sun
+    const date = C.id === "de" ? `<small>${new Date().toLocaleDateString("de-DE", { day: "numeric", month: "short" }).toUpperCase()}</small>` : "";
+    return `<div class="seal-stamp ${C.id} ${C.script === "latin" ? "latin" : ""} ${size || ""}" role="img" aria-label="${esc(seal[0])}">${(C.script === "latin" ? [seal[0]] : Array.from(seal[0])).map((c) => `<span>${esc(c)}</span>`).join("")}${date}</div>`;
   }
   // Reviews that will be waiting tomorrow (due by the end of tomorrow)
   function dueTomorrow() {

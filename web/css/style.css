@@ -1437,14 +1437,14 @@ html[data-course="vi"] .tip-chip b { color: #0F2A24; } html[data-course="vi"] .b
 .ok-note { color: var(--green); }
 
 /* ===== German (Klar) and Spanish (Sol): Latin script, nouns coloured by gender ===== */
-html[data-course="de"] { --bg: #F6F6F3; --bg-elev: #FFFFFF; --bg-sunken: #ECECE7; --text: #161616; --text-2: #54524E; --text-3: #6A6864; --line: #DEDDD8; --accent: #161616; --accent-text: #FFFFFF; --accent-soft: rgba(183, 121, 31, 0.12); --seal: #B7791F; --radius: 8px; --radius-sm: 6px; --font-hanzi: var(--font); --g-m: #1D5BBF; --g-f: #C62828; --g-n: #2E7D32; }
-html[data-course="es"] { --bg: #FBF6EF; --bg-elev: #FFFFFF; --bg-sunken: #F1E7D9; --text: #2B1D14; --text-2: #6B5848; --text-3: #7A6656; --line: #EADFCF; --accent: #2B1D14; --accent-text: #FFFFFF; --accent-soft: rgba(196, 87, 43, 0.12); --seal: #C4572B; --radius: 16px; --radius-sm: 12px; --font-hanzi: var(--font); --g-m: #2459A8; --g-f: #B5283E; --g-n: #2E7D32; }
+html[data-course="de"] { --bg: #F6F6F3; --bg-elev: #FFFFFF; --bg-sunken: #ECECE7; --text: #161616; --text-2: #5C5C57; --text-3: #6A6864; --line: #DCDCD6; --accent: #161616; --accent-text: #FFFFFF; --accent-soft: rgba(183, 121, 31, 0.12); --seal: #B7791F; --radius: 6px; --radius-sm: 4px; --font: "Barlow", -apple-system, system-ui, sans-serif; --font-hanzi: "Barlow Condensed", "Barlow", system-ui, sans-serif; --g-m: #1F5FBF; --g-f: #A82E25; --g-n: #24704A; }
+html[data-course="es"] { --bg: #FBF6EF; --bg-elev: #FFFFFF; --bg-sunken: #F1E7D9; --text: #2A1E16; --text-2: #6E5A4A; --text-3: #7A6656; --line: #EADFCF; --accent: #2A1E16; --accent-text: #FFFFFF; --accent-soft: rgba(196, 87, 43, 0.12); --seal: #C4572B; --es-btn: #A8461F; --radius: 18px; --radius-sm: 12px; --font: "Work Sans", -apple-system, system-ui, sans-serif; --font-hanzi: "Fraunces", Georgia, serif; --g-m: #2456A6; --g-f: #A3193F; --g-n: #2E7D32; }
 @media (prefers-color-scheme: dark) {
-  html[data-course="de"]:not([data-theme="light"]) { --bg: #141414; --bg-elev: #1F1F1E; --bg-sunken: #0D0D0D; --text: #F0EFEC; --text-2: #B4B2AD; --text-3: #95938E; --line: #363634; --accent: #F0EFEC; --accent-text: #141414; --accent-soft: rgba(230, 170, 70, 0.16); --seal: #E6AA46; --g-m: #7FA6FF; --g-f: #F07A6E; --g-n: #6BCB77; }
-  html[data-course="es"]:not([data-theme="light"]) { --bg: #1A1410; --bg-elev: #251D17; --bg-sunken: #120E0B; --text: #F4ECE2; --text-2: #C2B3A2; --text-3: #A29282; --line: #3C3027; --accent: #F4ECE2; --accent-text: #1A1410; --accent-soft: rgba(232, 128, 86, 0.16); --seal: #E88056; --g-m: #86A9F0; --g-f: #F08A96; --g-n: #6BCB77; }
+  html[data-course="de"]:not([data-theme="light"]) { --bg: #141414; --bg-elev: #1E1E1D; --bg-sunken: #0D0D0D; --text: #EDEDE8; --text-2: #B0AFA9; --text-3: #95938E; --line: #34342F; --accent: #EDEDE8; --accent-text: #141414; --accent-soft: rgba(224, 163, 65, 0.16); --seal: #E0A341; --g-m: #86ABF2; --g-f: #F08A80; --g-n: #6FC795; }
+  html[data-course="es"]:not([data-theme="light"]) { --bg: #1B1714; --bg-elev: #26201B; --bg-sunken: #120E0B; --text: #F3EBE0; --text-2: #C2B3A2; --text-3: #A29282; --line: #3C3027; --accent: #F3EBE0; --accent-text: #1B1714; --accent-soft: rgba(232, 128, 90, 0.16); --seal: #E8805A; --es-btn: #E8805A; --g-m: #8FB0F0; --g-f: #F27A97; --g-n: #6BCB77; }
 }
-html[data-course="de"][data-theme="dark"] { --bg: #141414; --bg-elev: #1F1F1E; --bg-sunken: #0D0D0D; --text: #F0EFEC; --text-2: #B4B2AD; --text-3: #95938E; --line: #363634; --accent: #F0EFEC; --accent-text: #141414; --accent-soft: rgba(230, 170, 70, 0.16); --seal: #E6AA46; --g-m: #7FA6FF; --g-f: #F07A6E; --g-n: #6BCB77; }
-html[data-course="es"][data-theme="dark"] { --bg: #1A1410; --bg-elev: #251D17; --bg-sunken: #120E0B; --text: #F4ECE2; --text-2: #C2B3A2; --text-3: #A29282; --line: #3C3027; --accent: #F4ECE2; --accent-text: #1A1410; --accent-soft: rgba(232, 128, 86, 0.16); --seal: #E88056; --g-m: #86A9F0; --g-f: #F08A96; --g-n: #6BCB77; }
+html[data-course="de"][data-theme="dark"] { --bg: #141414; --bg-elev: #1E1E1D; --bg-sunken: #0D0D0D; --text: #EDEDE8; --text-2: #B0AFA9; --text-3: #95938E; --line: #34342F; --accent: #EDEDE8; --accent-text: #141414; --accent-soft: rgba(224, 163, 65, 0.16); --seal: #E0A341; --g-m: #86ABF2; --g-f: #F08A80; --g-n: #6FC795; }
+html[data-course="es"][data-theme="dark"] { --bg: #1B1714; --bg-elev: #26201B; --bg-sunken: #120E0B; --text: #F3EBE0; --text-2: #C2B3A2; --text-3: #A29282; --line: #3C3027; --accent: #F3EBE0; --accent-text: #1B1714; --accent-soft: rgba(232, 128, 90, 0.16); --seal: #E8805A; --es-btn: #E8805A; --g-m: #8FB0F0; --g-f: #F27A97; --g-n: #6BCB77; }
 .art { font-weight: 700; } .art.g-m, .g-m > b { color: var(--g-m); } .art.g-f, .g-f > b { color: var(--g-f); } .art.g-n, .g-n > b { color: var(--g-n); }
 html.no-tone-colors .art { color: inherit; }
 .hero-word.latin, .latin-face { font-family: var(--font); font-weight: 700; }
@@ -1559,3 +1559,26 @@ input[type="range"] { accent-color: var(--seal); }
 .ws-lesson i { width: 16px; height: 16px; border: 1.5px solid var(--text-2); border-radius: 4px; flex: none; }
 .ws-lesson.on i { background: var(--accent); border-color: var(--accent); box-shadow: inset 0 0 0 3px var(--bg-elev); }
 .ws-lesson.new { color: var(--accent); font-weight: 600; }
+
+/* Round 3 · Klar (German): signage — condensed words, gender as outlines only, amber is the one filled colour */
+html[data-course="de"] .hero-word.latin, html[data-course="de"] .latin-face, html[data-course="de"] .wsh-word, html[data-course="de"] .gender-noun, html[data-course="de"] .wt-main, html[data-course="de"] .ph-title, html[data-course="de"] .fd-title { font-family: var(--font-hanzi); font-weight: 700; letter-spacing: 0; }
+html[data-course="de"] .lesson-card .cc-btn, html[data-course="de"] .btn.primary { background: var(--seal); border-color: var(--seal); color: #161616; }
+html[data-course="de"] .art { border: 1.5px solid currentColor; border-radius: 4px; padding: 0 5px; font-family: var(--font); font-size: .62em; vertical-align: .25em; font-weight: 600; }
+html[data-course="de"] .wt-main .art, html[data-course="de"] .p-row .art { font-size: .78em; vertical-align: .1em; }
+html[data-course="de"] .gender-btn.g-m, html[data-course="de"] .gender-btn.g-f, html[data-course="de"] .gender-btn.g-n { border-top-width: 1.5px; }
+html[data-course="de"] .gender-btn.g-m b { color: var(--g-m); } html[data-course="de"] .gender-btn.g-f b { color: var(--g-f); } html[data-course="de"] .gender-btn.g-n b { color: var(--g-n); }
+html[data-course="de"] .tab-glyph, html[data-course="es"] .tab-glyph { font-family: var(--font); font-size: 14px; font-weight: 600; }
+html[data-course="de"] .tab.active .tab-glyph { box-shadow: inset 0 -2px 0 var(--seal); }
+.seal-stamp.de { width: auto; min-width: 150px; height: auto; padding: 10px 16px; display: flex; flex-direction: column; align-items: center; gap: 2px; background: transparent; color: var(--seal); border: 3px double var(--seal); font-family: "Barlow Condensed", var(--font); font-size: 30px; letter-spacing: .08em; text-transform: uppercase; transform: rotate(-5deg); }
+.seal-stamp.de small { font-size: 13px; letter-spacing: .12em; font-weight: 600; }
+/* Round 3 · Sol (Spanish): warm and spoken — the stressed syllable heavier and underlined in terracotta */
+html[data-course="es"] .hero-word.latin, html[data-course="es"] .latin-face, html[data-course="es"] .wsh-word, html[data-course="es"] .gender-noun, html[data-course="es"] .wt-main, html[data-course="es"] .ph-title, html[data-course="es"] .fd-title, html[data-course="es"] .say-word { font-family: var(--font-hanzi); font-weight: 600; }
+b.stress { font-weight: inherit; }
+html[data-course="es"] b.stress { font-weight: 800; text-decoration: underline; text-decoration-color: var(--seal); text-decoration-thickness: 2px; text-underline-offset: .14em; }
+html[data-course="es"] .art { font-family: var(--font); font-weight: 600; }
+html[data-course="es"] .lesson-card .cc-btn, html[data-course="es"] .btn.primary { background: var(--es-btn); border-color: var(--es-btn); color: #fff; }
+html[data-course="es"][data-theme="dark"] .btn.primary, html[data-course="es"][data-theme="dark"] .lesson-card .cc-btn { color: #1B1714; }
+@media (prefers-color-scheme: dark) { html[data-course="es"]:not([data-theme="light"]) .btn.primary, html[data-course="es"]:not([data-theme="light"]) .lesson-card .cc-btn { color: #1B1714; } }
+html[data-course="es"] .tab.active .tab-glyph { color: var(--seal); }
+.seal-stamp.es { width: 110px; height: 110px; border-radius: 50%; display: grid; place-items: center; grid-template-columns: 1fr; background: radial-gradient(circle, var(--seal) 0 46%, transparent 47%), repeating-conic-gradient(var(--seal) 0 6deg, transparent 6deg 22.5deg); color: #fff; font-family: "Fraunces", Georgia, serif; font-size: 22px; font-weight: 700; transform: none; padding: 0; }
+.seal-stamp.es.sm, .seal-stamp.de.sm { zoom: .45; }

@@ -26,6 +26,7 @@ public enum Check {
         public var score: Double
         public var hit: [Bool]
         public var text: String
+        public init(score: Double, hit: [Bool], text: String) { self.score = score; self.hit = hit; self.text = text }
     }
     /// Which target units were heard (longest common subsequence over the recogniser's alternatives)
     public static func matchHeard(_ target: String, _ alts: [String], course: String) -> Heard {

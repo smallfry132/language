@@ -11,6 +11,7 @@ struct MeView: View {
     @State private var micResult: Spoken?
     @State private var reminderOn = Reminder.isOn
     @State private var reminderTime = Reminder.time
+    @State private var showVoice = Launch.value("-route") == "me/voice" // for screenshots
 
     var body: some View {
         let s = store.state.settings, ws = store.words.selected
@@ -43,7 +44,7 @@ struct MeView: View {
                 .background(Color.elevated, in: RoundedRectangle(cornerRadius: Look.current.radius + 2)).overlay(RoundedRectangle(cornerRadius: Look.current.radius + 2).stroke(Color.line))
 
             section(store.t("voiceMic")) {
-                NavigationLink { VoicePicker() } label: { row(store.t("voice"), value: store.speaker.currentVoice?.name ?? "–") }
+                NavigationLink { VoiceScreen() } label: { row(store.t("voice"), value: store.speaker.currentVoice.map { "\($0.name) · \(VoiceScreen.quality($0))" } ?? "–") }
                 Divider()
                 VStack(alignment: .leading, spacing: 6) {
                     HStack { Text(store.t("ttsRate")); Spacer(); Text(String(format: "%.2f×", s.rate)).fontWeight(.bold).monospacedDigit() }
@@ -69,8 +70,6 @@ struct MeView: View {
                 if let r = micResult, let h = r.heard {
                     Text(store.t("heardAs", h.text.isEmpty ? "–" : h.text)).font(.footnote).foregroundStyle(Color.ink2).padding([.horizontal, .bottom], 14)
                 }
-                Divider()
-                NavigationLink { VoiceGuide() } label: { row(store.t("voiceGuideTitle"), value: store.speaker.level() == .natural ? "✓" : "") }
             }
 
             section(store.t("dailyPlan")) {
@@ -147,6 +146,7 @@ struct MeView: View {
         }
         .toolbar(.hidden, for: .navigationBar)
         .sheet(isPresented: $showCourses) { CoursePicker().presentationDetents([.medium, .large]) }
+        .navigationDestination(isPresented: $showVoice) { VoiceScreen() }
         .onAppear { Task { reminderOn = await Reminder.check() } }
     }
 
@@ -184,37 +184,6 @@ struct MeView: View {
         Stepper(value: Binding(get: { value }, set: set), in: range, step: step) {
             HStack { Text(title); Spacer(); Text("\(value)").fontWeight(.bold).monospacedDigit() }
         }.padding(14)
-    }
-}
-
-/// Voice choice, moved here from Settings
-struct VoicePicker: View {
-    @Environment(Store.self) var store
-    var body: some View {
-        let voices = store.speaker.courseVoices(), chosen = store.state.settings.voices?[store.course.id] ?? ""
-        Page {
-            VStack(spacing: 0) {
-                pick(store.t("voiceAuto"), id: "", chosen: chosen)
-                ForEach(voices, id: \.identifier) { v in
-                    Divider()
-                    let robotic = Speaker.rank(v) == 0
-                    pick(v.name + (v.quality == .premium ? " (Premium)" : v.quality == .enhanced ? " (Enhanced)" : robotic ? " (robotic)" : ""), id: v.identifier, chosen: chosen)
-                }
-            }
-            .background(Color.elevated, in: RoundedRectangle(cornerRadius: Look.current.radius + 2))
-            .overlay(RoundedRectangle(cornerRadius: Look.current.radius + 2).stroke(Color.line))
-            Text(store.t("voiceHint")).font(.footnote).foregroundStyle(Color.ink2)
-        }
-        .navigationTitle(store.t("voice")).navigationBarTitleDisplayMode(.inline)
-    }
-    func pick(_ name: String, id: String, chosen: String) -> some View {
-        Button {
-            store.update { var m = $0.settings.voices ?? [:]; m[$0.course] = id.isEmpty ? nil : id; $0.settings.voices = m }
-            store.speaker.say(store.course.testPhrase)
-        } label: {
-            HStack { Text(name).foregroundStyle(Color.ink); Spacer(); if id == chosen { Image(systemName: "checkmark").foregroundStyle(Color.accent) } }
-                .padding(14).contentShape(Rectangle())
-        }.buttonStyle(.plain).accessibilityAddTraits(id == chosen ? .isSelected : [])
     }
 }
 

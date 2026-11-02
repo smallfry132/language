@@ -316,6 +316,18 @@ final class TipsTests: XCTestCase {
         XCTAssertEqual(Lingo.viMark("việt", 6), "việt")
         XCTAssertEqual(Lingo.viMark("qua", 4), "quả")
     }
+    func testSkillAndToneStats() throws {
+        var s = AppState(); s.course = "zh"
+        s.recordAnswer(true, skill: "listen"); s.recordAnswer(false, skill: "listen"); s.recordAnswer(true)
+        XCTAssertEqual(s.pairSum(\.skill, "listen").right, 1); XCTAssertEqual(s.pairSum(\.skill, "listen").total, 2)
+        // The web app's shape survives a round trip, and the other devices' counts add up
+        let json = #"{"answered":3,"correct":2,"days":{},"skill":{"zh":{"read":[4,5]}},"tones":{"zh":{"3":[1,4]}}}"#
+        s.peers["web"] = try JSONDecoder().decode(Stats.self, from: Data(json.utf8))
+        XCTAssertEqual(s.pairSum(\.tones, "3").total, 4)
+        let back = try JSONDecoder().decode(Stats.self, from: JSONEncoder().encode(s.peers["web"]!))
+        XCTAssertEqual(back.skill?["zh"]?["read"], [4, 5])
+        s.course = "vi"; XCTAssertEqual(s.pairSum(\.skill, "read").total, 0)
+    }
 }
 
 final class MinimalPairTests: XCTestCase {

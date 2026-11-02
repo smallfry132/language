@@ -65,6 +65,8 @@ struct PracticeHome: View {
         if store.course.id == "zh" { if store.pyFirst { PinyinText(py: w.0, size: 14, weight: .bold) } else { Text(w.1).hanziFont(15) } }
         else { Text(w.1.isEmpty ? w.0 : w.1).hanziFont(14, .semibold).foregroundStyle(Color.ink2) }
     }
+    /// Listening exercises wait until there is a voice for the course
+    static func needsVoice(_ r: Route) -> Bool { if case .mode(let m) = r { return [.listen, .listenPic, .tones].contains(m) }; return r == .soundDrill }
     var body: some View {
         let due = store.words.selected.filter { store.state.isDue($0.id) }.count
         let pw: (String, String) = ["zh": ("Liànxí", "练习"), "vi": ("Luyện tập", ""), "ja": ("Renshū", "練習"), "ko": ("Yeonseup", "연습")][store.course.id] ?? ("", "")
@@ -84,7 +86,8 @@ struct PracticeHome: View {
                     }
                 }
             }
-            ForEach(Array(skills.enumerated()), id: \.element.id) { _, sk in
+            NoVoiceCard()
+            ForEach(Array(skills.map { sk in (id: sk.id, rows: sk.rows.filter { !(store.noVoice && Self.needsVoice($0.route)) }) }.filter { !$0.rows.isEmpty }.enumerated()), id: \.element.id) { _, sk in
                 let k = ["listen", "speak", "read", "write"].firstIndex(of: sk.id) ?? 0
                 VStack(spacing: 0) {
                     HStack(alignment: .firstTextBaseline, spacing: 6) {
@@ -197,6 +200,8 @@ struct PracticeScreen: View {
         .navigationTitle(store.t(mode.key))
         .navigationBarTitleDisplayMode(.inline)
         .background(Color.paper)
+        .onAppear { store.currentSkill = Store.modeSkill[mode.rawValue] }
+        .onDisappear { store.currentSkill = nil }
     }
     func begin() {
         var list: [Word]

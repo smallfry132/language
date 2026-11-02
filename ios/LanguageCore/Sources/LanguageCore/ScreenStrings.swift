@@ -8,6 +8,8 @@ extension Texts {
             "sayListening": "Listening…", "sayListeningSub": "Say it when you’re ready. I stop when you pause.",
             "stopListening": "Stop listening", "cancel": "Cancel",
             "speedTimes": "Speed {0} times", "playSlowly": "Play slowly", "wordPaneHint": "Tap a word to see it here",
+            "scan": "Scan", "scanTake": "Take photo", "scanChoose": "Choose photo", "scanReading": "Reading the photo…",
+            "scanNothing": "No text found in this photo — try closer, flat and well lit.",
             "micOffText": "Turn it on under Open Settings → Microphone to get tone feedback — or say it aloud and rate yourself.",
             "heardNothing": "I didn’t hear anything",
             "heardNothingText": "No problem — that’s usually distance or a quiet start. Nothing was counted.",
@@ -77,6 +79,8 @@ extension Texts {
         ],
         "de": [
             "speedTimes": "Tempo {0}-fach", "playSlowly": "Langsam abspielen", "wordPaneHint": "Tippe ein Wort an, um es hier zu sehen",
+            "scan": "Scannen", "scanTake": "Foto aufnehmen", "scanChoose": "Foto auswählen", "scanReading": "Foto wird gelesen…",
+            "scanNothing": "Kein Text auf diesem Foto gefunden – näher ran, flach und gut beleuchtet.",
             "micOffText": "Schalte es unter Einstellungen öffnen → Mikrofon ein, um Rückmeldung zu den Tönen zu bekommen – oder sprich laut und bewerte dich selbst.",
             "sayListening": "Ich höre zu …", "sayListeningSub": "Sprich, wenn du bereit bist. Ich höre auf, wenn du eine Pause machst.",
             "stopListening": "Zuhören beenden", "cancel": "Abbrechen",

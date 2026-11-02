@@ -120,6 +120,27 @@ final class FlowTests: XCTestCase {
         XCTAssertTrue(text("water").exists)
     }
 
+    /// Scan: Apple's text recognition reads an image of written words into the box (-scantest draws the image)
+    func testScanReadsWrittenWords() {
+        launch(["-route", "learn/paste", "-scantest", "谢谢|老师|水"])
+        let box = app.textViews["paste-text"]
+        XCTAssertTrue(box.waitForExistence(timeout: 5))
+        let read = NSPredicate(format: "value CONTAINS '谢谢' AND value CONTAINS '老师'")
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: read, object: box)], timeout: 15), .completed, "read: \(box.value as? String ?? "")")
+        app.buttons["paste-find"].tap()
+        XCTAssertTrue(text("thank you").waitForExistence(timeout: 5))
+        XCTAssertTrue(text("teacher").exists)
+    }
+
+    func testScanReadsGerman() {
+        launch(["-course", "de", "-route", "learn/paste", "-scantest", "der Hund|die Katze"])
+        let box = app.textViews["paste-text"]
+        XCTAssertTrue(box.waitForExistence(timeout: 5))
+        let read = NSPredicate(format: "value CONTAINS 'Hund' AND value CONTAINS 'Katze'")
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: read, object: box)], timeout: 15), .completed, "read: \(box.value as? String ?? "")")
+        XCTAssertTrue(app.buttons["paste-scan"].exists)
+    }
+
     func testDialogueTypedAnswer() {
         launch(["-route", "lessons/dialogue/zh-greet", "-dlgmode", "turn", "-dlgrole", "1"])
         let type = button("Type")

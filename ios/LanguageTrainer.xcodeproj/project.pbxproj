@@ -311,6 +311,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Trainer;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
+				INFOPLIST_KEY_NSCameraUsageDescription = "The camera takes a photo of written words — a worksheet, a page or your notes. The text is read on this device and goes into Add words for you to check.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "The microphone hears you speak words and sentences, so the app can show your tone curve and which words came through. Your voice stays on this iPhone.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Speech recognition checks which words of a sentence you said. It runs on this iPhone when the language supports it.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -343,6 +344,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Trainer;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
+				INFOPLIST_KEY_NSCameraUsageDescription = "The camera takes a photo of written words — a worksheet, a page or your notes. The text is read on this device and goes into Add words for you to check.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "The microphone hears you speak words and sentences, so the app can show your tone curve and which words came through. Your voice stays on this iPhone.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Speech recognition checks which words of a sentence you said. It runs on this iPhone when the language supports it.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;

@@ -74,10 +74,14 @@ struct PasteScreen: View {
                 .background(Color.elevated, in: RoundedRectangle(cornerRadius: max(4, Look.current.radius)))
                 .overlay(RoundedRectangle(cornerRadius: max(4, Look.current.radius)).stroke(Color.line))
                 Text(store.t(zh ? "addHintZh" : "addHint")).font(.footnote).foregroundStyle(Color.ink2).fixedSize(horizontal: false, vertical: true)
-                HStack(spacing: 8) {
+                WrapLayout(spacing: 8) {
                     PasteButton(payloadType: String.self) { s in text = s.joined(separator: "\n") }
                         .buttonBorderShape(.capsule).tint(.ink)
-                    Button(store.t("browseList")) { browse() }.buttonStyle(.bordered).tint(.ink)
+                    ScanButton { lines in
+                        let add = lines.joined(separator: "\n")
+                        text = text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? add : text + "\n" + add
+                    }
+                    Button(store.t("browseList")) { browse() }.buttonStyle(.bordered).tint(.ink).lineLimit(1)
                 }
             }
             Button(rows.isEmpty ? store.t("findWordsNone") : store.t("findWords", rows.count)) {

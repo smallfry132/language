@@ -133,7 +133,8 @@ struct Bubble<Extra: View>: View {
                 if s.dlgTr != false { Text(line.tr(store.state.lang)).font(.caption).foregroundStyle(sub) }
                 if let tip = line.tip {
                     // A short tip for this line (round 2), inline under the translation
-                    (Text(store.t("tipTitle")).bold().foregroundColor(right ? nil : Color.accent) + Text(" · " + tip.get(store.state.lang)))
+                    // In your own (dark) bubble the label takes the bubble's text colour, underlined: the accent was hard to read there
+                    (Text(store.t("tipTitle")).bold().foregroundColor(right ? Color.onAction : Color.accent).underline(right) + Text(" · " + tip.get(store.state.lang)))
                         .font(.caption).foregroundStyle(sub)
                         .padding(.horizontal, 8).padding(.vertical, 6).frame(maxWidth: .infinity, alignment: .leading)
                         .overlay(RoundedRectangle(cornerRadius: max(2, Look.current.radius - 6)).strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [3, 3])).foregroundStyle(right ? Color.onAction.opacity(0.35) : Color.line))

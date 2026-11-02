@@ -127,7 +127,7 @@ struct PracticeScreen: View {
             switch phase {
             case .setup:
                 if [.match, .tones, .numbers, .trace].contains(mode) { Color.paper.onAppear { begin() } }
-                else { SetupView(mode: mode, prefs: prefs) { begin() }.onAppear { if Launch.has("-autostart") { begin() } } }
+                else { SetupView(mode: mode, prefs: prefs) { begin() }.onAppear { if Launch.has("-autostart") { begin() } else if IntentRouter.shared.quickStart { IntentRouter.shared.quickStart = false; prefs.count = 5; prefs.pool = "due"; begin() } } }
             case .run(let id, let list):
                 exercise(mode, list, direction: prefs.direction) { phase = .result($0) }.id(id)
             case .result(let r):

@@ -53,7 +53,13 @@ struct RootView: View {
         .animation(.easeInOut(duration: 0.2), value: store.toastText)
         .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in keyboard = true }
         .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in keyboard = false }
-        .onAppear { openLaunchRoute() }
+        .onAppear { openLaunchRoute(); openPending() }
+        .onReceive(NotificationCenter.default.publisher(for: IntentRouter.notice)) { _ in openPending() }
+        .onOpenURL { url in // widgets: trainer://word/<course>/<id> plays the word of the day
+            let p = url.pathComponents.filter { $0 != "/" }
+            if url.host == "word", p.count == 2, let w = Library.shared.word(p[1]) { if store.course.id != p[0] { store.switchCourse(p[0]) }; store.speaker.say(w.hz) }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in writeWidgetSnapshot() }
     }
 
     func path(_ t: Tab) -> Binding<NavigationPath> {
@@ -93,7 +99,21 @@ struct RootView: View {
     func openLaunchRoute() {
         let args = ProcessInfo.processInfo.arguments
         guard let k = args.firstIndex(of: "-route"), k + 1 < args.count else { return }
-        let parts = args[k + 1].split(separator: "/").map(String.init)
+        open(args[k + 1])
+    }
+    /// Siri and Shortcuts (Quiz me on …) leave a course and a route here
+    func openPending() {
+        guard let r = IntentRouter.shared.take() else { return }
+        if store.course.id != r.course { store.switchCourse(r.course) }
+        DispatchQueue.main.async { open(r.route) }
+    }
+    /// Streak and due words for the widgets, only where an App Group is set up
+    func writeWidgetSnapshot() {
+        let due = store.words.selected.filter { store.state.isDue($0.id) }.count
+        WidgetSnapshot(course: store.course.id, streak: store.state.streak(), due: due, day: todayKey(nowMs())).write()
+    }
+    func open(_ spec: String) {
+        let parts = spec.split(separator: "/").map(String.init)
         let alias = ["today": "learn", "lessons": "learn", "settings": "me"]
         guard let t = Tab(rawValue: alias[parts[0]] ?? parts[0]) else { return }
         tab = t

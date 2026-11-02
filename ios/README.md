@@ -38,6 +38,9 @@ LanguageTrainer/            The app
   WordsView.swift           Word tiles and word details
   SoundChart.swift          Sound chart
   SettingsViews.swift       Statistics, settings, sync, tone guide, tips, about
+  Trace.swift               Trace characters (stroke order in a 田字格)
+  Intents.swift             Siri and Shortcuts: Quiz me, Word of the day
+LanguageWidget/             Home and Lock Screen widgets (word of the day); Info.plist in LanguageWidget-Info.plist
   Theme.swift               Colours and shared building blocks
   Demo.swift                A demo learner for screenshots and tests (launch argument -demo)
 LanguageCore/               Swift package with everything that isn't a screen (runs and tests on the Mac)
@@ -56,3 +59,13 @@ xcodebuild -project ios/LanguageTrainer.xcodeproj -scheme LanguageTrainer \
 
 Launch arguments for testing: `-demo` (a demo learner), `-mute` (silent voices), `-route today/session` (open a screen),
 `-autostart`, `-step 2`, `-dlgmode turn`, `-syncURL http://127.0.0.1:8765/api/sync`, `-syncCode XXXXX-…`.
+
+## Widgets and Siri
+
+The **LanguageWidget** extension shows the word of the day (Home Screen small and medium, Lock Screen) in each
+course's look; tapping it opens the app and plays the word. Siri and Shortcuts know “Quiz me in Trainer” (five
+listening questions) and “Trainer word of the day”.
+
+Streak and due words on the widgets need an **App Group**, which free Apple IDs can't always add: with a paid
+account, add the App Groups capability to both the LanguageTrainer and LanguageWidget targets with the group
+`group.com.smallfry132.languagetrainer`. Without it the widgets simply leave those numbers out.
